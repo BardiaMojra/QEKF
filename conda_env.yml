@@ -1,0 +1,20 @@
+name: QEKF
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - basemap
+  - quaternion
+  - matplotlib
+  - pandas
+  - pip:
+      - h5py
+      - pyquaternion
+      - pyqt5
+#variables:
+#  VAR1: valueA
+#  VAR2: valueB
