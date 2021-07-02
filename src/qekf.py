@@ -26,14 +26,12 @@ adaptive_ekf_window = 25
 print_output = True
 
 matplotlib.pyplot.ion()
-
-
+plt.style.use('ggplot')
 # syned to orientation data
 def read_utari_data(imu_dir, vicon_file):
   acc_file = open(imu_dir+'/acce.txt', "r")
   gyro_file = open(imu_dir+'/gyro.txt', "r")
   quat_file = open(imu_dir+'/rv.txt', "r")
-
 
   acc_lines = acc_file.readlines()
   gyro_lines = gyro_file.readlines()
@@ -181,18 +179,15 @@ def read_oxford_vicon_data(filename):
 np.random.seed(5555)
 def get_skew_symm_X(x):
   X = np.zeros((3,3))
-
   X[0,1] = -x[2]
   X[0,2] = x[1]
   X[1,0] = x[2]
   X[1,2] = -x[0]
   X[2,0] = -x[1]
   X[2,1] = x[0]
-
   return X
 
 def get_omega(q):
-
   omega = np.array([  [-q[1], -q[2], -q[3] ],
                       [ q[0],  q[3], -q[2] ],
                       [-q[3],  q[0],  q[1] ],
@@ -211,9 +206,11 @@ def check_symmetric(a, tol=1e-8):
 
 ## fixed the error in implementation but results donot match matlab quat2rotm
 def transform_(q):
-  Q = np.array([   [2*q[0]**2-1+2*q[3]**2,    2*q[0]*q[1]+2*q[2]*q[3],  2*q[0]*q[2]-2*q[1]*q[3] ],
-          [2*q[0]*q[1]-2*q[2]*q[3],  2*q[1]**2-1+2*q[3]**2,    2*q[1]*q[2]+2*q[0]*q[3] ],
-          [2*q[0]*q[2]+2*q[1]*q[3],  2*q[1]*q[2]-2*q[0]*q[3],  2*q[2]**2-1+2*q[3]**2] ])
+  Q=np.array(
+    [ [2*q[0]**2-1+2*q[3]**2,   2*q[0]*q[1]+2*q[2]*q[3], 2*q[0]*q[2]-2*q[1]*q[3]],
+      [2*q[0]*q[1]-2*q[2]*q[3], 2*q[1]**2-1+2*q[3]**2,   2*q[1]*q[2]+2*q[0]*q[3]],
+      [2*q[0]*q[2]+2*q[1]*q[3], 2*q[1]*q[2]-2*q[0]*q[3], 2*q[2]**2-1+2*q[3]**2]   ]
+      )
   return np.reshape(Q,(3,3))
 
 ### Exponential Map of Quaternion
@@ -221,12 +218,9 @@ def exp_map(x):
   if np.shape(x)[0] !=3:
     print("Vector size is not 3")
     return -1
-#     print(x)
   norm_x = norm(x)
   x = np.asarray(x)
-
-  if norm_x ==0:
-    return np.array([1,0,0,0])
+  if norm_x ==0: return np.array([1,0,0,0])
   temp_ = np.sin(norm_x/2)*x/norm_x
   temp_2 = np.cos(norm_x/2)
   return [temp_[0],temp_[1],temp_[2],temp_2]
@@ -240,7 +234,6 @@ def Q_log(q):
     q_v=1
   if q_v<-1:
     q_v=-1
-
   if (norm_q_n!=0 and q_v>=0):
     return 2*np.arccos(q_v)*q_n/norm_q_n
   elif (norm_q_n!=0 and q_v<0):
@@ -333,18 +326,14 @@ class ExtendedKalmanFilter(object):
 
     self.y = residual(self.z[0:6,0], hx.T).T
 #         set_trace()
-#
     q_estimate = Quaternion(self.x_prior[6:10,0]) ## w,x,y,z
     q_measurement = Quaternion(self.z[6],self.z[3],self.z[4],self.z[5]) # w,x,y,z
     e__ = ((q_measurement*q_estimate.inverse)) ## check
     e__log = Q_log(e__.elements)#
 #         set_trace()
     self.y[3:6,0] = [e__log[0],e__log[1],e__log[2]]
-
     ky = dot(self.K, self.y)
-
     self.x_post = x_temp + ky # dot(self.K, self.y)
-
 #         print(e__.elements)
     temp_exp_map = exp_map(ky[6:9])
 #         print(temp_exp_map)
@@ -392,7 +381,6 @@ class ExtendedKalmanFilter(object):
       for j in range(self.dim_x):
         self.P[i,j] = gamma[i]*gamma[j]*self.P_post[i,j]+(1-gamma[i]*gamma[j])*self.P_prior[i,j]
 
-
   def set_F(self):
     self.F = np.eye(self.dim_x)
     self.F[0:3,3:6] = self.T_*np.eye(3)
@@ -400,7 +388,6 @@ class ExtendedKalmanFilter(object):
     self.F[3:6,9:12] = -self.T_* self.C.T
     self.F[6:9,6:9] = np.eye(3) - self.T_*get_skew_symm_X(self.sensor_measurements[6:9,0])
     self.F[6:9,12:15] = - self.T_*np.eye(3)
-
 
   def set_G(self,W,Omega,V):
     self.G = np.zeros((self.dim_x,9))
@@ -419,27 +406,6 @@ class ExtendedKalmanFilter(object):
     self.sensor_measurements[6:9,0] = gyro
     self.sensor_measurements[9:13,0] = quat
     self.sensor_measurements[13:16,0] = gyro_bias
-
-
-def read_utari_data_raw(imu_dir):
-  acc_file = open(imu_dir+'/acce.txt', "r")
-  gyro_file = open(imu_dir+'/gyro.txt', "r")
-  quat_file = open(imu_dir+'/rv.txt', "r")
-
-  acc_lines = acc_file.readlines()
-  gyro_lines = gyro_file.readlines()
-  quat_lines = quat_file.readlines()
-
-#     sz = len(acc_lines)-1
-  acceleration = np.zeros((len(acc_lines)-1,4))
-  _gyro = []
-#     _quat = []
-  _acc = []
-  for i in range(len(acc_lines)-1-1):
-    data = acc_lines[i+1].split()
-    acceleration[i,:] = data[0:4]
-  return acceleration
-
 
 def read_utari_data_raw(imu_dir):
   acc_file = open(imu_dir+'/acce.txt', "r")
@@ -586,7 +552,9 @@ def main():
   vicon_q = Quaternion(rotation[i,3],rotation[i,1],rotation[i,0],rotation[i,2])
 
   new_q = imu_q * vicon_q.conjugate
-  print(new_q)
+  print('new quaternion from imu & vicon data: '+str(new_q))
+
+  pdb.set_trace()
 
   # #fix quaternion sign change
   # def avoidQjumps(q):
