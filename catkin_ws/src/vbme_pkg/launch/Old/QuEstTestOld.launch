@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<group ns="Test">
+		
+		<!-- rosparam command="load" file="$(find my_pkg)/config/my_file.yaml" / -->
+		
+		<node name="QuEst" pkg="vbme_pkg" type="QuEst" output="screen" >
+		</node>
+		
+		<remap from="/Test/image_publisher_1/image_raw" to="/Test/cam1/rgb/image_color" />
+<!--
+		<node name="image_publisher_1" pkg="image_publisher" type="image_publisher" output="screen" args="/home/codyl/Downloads/2011_09_26_drive_0002_extract/image_00/data/0000000000.png">
+-->
+		<node name="image_publisher_1" pkg="image_publisher" type="image_publisher" output="screen" args="/home/codyl/Desktop/image_00/0000000000.png">
+			<param name="publish_rate" value="1" />
+		</node>
+		
+		<remap from="/Test/image_publisher_2/image_raw" to="/Test/cam2/rgb/image_color" />
+<!--
+		<node name="image_publisher_2" pkg="image_publisher" type="image_publisher" output="screen" args="/home/codyl/Downloads/2011_09_26_drive_0002_extract/image_00/data/0000000001.png">
+-->
+		<node name="image_publisher_2" pkg="image_publisher" type="image_publisher" output="screen" args="/home/codyl/Desktop/image_00/0000000001.png">
+			<param name="publish_rate" value="1" />
+		</node>
+		
+<!--
+		<param name="video_source" value="/home/codyl/Desktop/image_00/" />
+		<node name="KittiPublisher" pkg="vbme_pkg" type="image_publisher.py" output="screen">
+			<remap from="/input/image_raw/uncompressed" to="/Test/cam2/rgb/image_color" />
+		</node>
+-->
+		
+<!--
+		<remap from="/vbme/Transform" to="/Test/quest_msg" />
+-->
+<!--
+		<remap from="/Test/quest_msg" to="/vbme/Transform" />
+-->
+		<node name="TransformPlotter" pkg="vbme_pkg" type="transform_plotter.py" output="screen" >
+			<remap from="Transform" to="quest_msg" />
+		</node>
+		<param name="UseRansac" value="True" />
+		
+	</group>
+</launch>

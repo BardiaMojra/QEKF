@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!--
+	<param name="output_path" value="/home/developer/Documents/vbme_results/" />
+-->
+	<param name="output_path" value="/tmp/" />
+	
+	<node pkg="testing_and_analyzing" name="data_writer" type="test_vbme.py" />
+	<node pkg="kalman_filter" name="kalman_angular" type="kalman_angular.py" >
+		<remap from="/vbme/EKF" to="/vbme/EKF_Angular"/> 				<!-- remap output -->
+	</node>
+	<node pkg="kalman_filter" name="kalman_linear" type="kalman_linear.py" >
+		<remap from="/vbme/VestData" to="/vbme/EKF_Angular"/> 			<!-- remap input -->
+	</node>	
+	<node pkg="vbme_heading_pkg" name="CalculateHeading" type="CalculateHeading.py" />
+
+	<include file="$(find optical_flow)/launch/optic.launch" />
+	<include file="$(find vbme_pkg)/launch/QuEstTestFlowNoImages.launch" />
+
+
+</launch>

@@ -1,0 +1,24 @@
+
+<launch>
+
+  <param name="video_source" value="/home/developer/Desktop/2011_09_26/2011_09_26_drive_0051_sync/image_00/" />
+  <param name="truth_source" value="/home/developer/Desktop/2011_09_26/2011_09_26_drive_0051_sync/oxts/data/" />
+  <param name="num_images" value="400" />
+  <param name="num_trials" value="1" />
+  <param name="hertz" value="30" />
+  <param name="poly_limit" value="1" />
+
+
+
+  <rosparam param="camera_calibration">[578, 0, 328, 0, 581, 258, 0, 0, 1]</rosparam>
+
+  <group ns="optical_flow_group">
+    <remap from="image_pub/image_raw/compressed" to="/input/image_raw/compressed" />
+    <node pkg="usb_cam" name="image_pub" type="usb_cam_node" args="/dev/bus/usb/003/003"/>
+    <node pkg="optical_flow" name="image_sub" type="lk_track_ros.py"/>
+    <node pkg="optical_flow" name="velocity_estimator" type="velest.py"/>
+  </group>
+
+</launch>
+
+

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!--
+	<param name="output_path" value="/home/developer/Documents/vbme_results/" />
+-->
+	<param name="output_path" value="/tmp/" />
+	
+	
+
+	<include file="$(find optical_flow)/launch/optic_csvinput.launch" />
+	
+	<group ns="quat">
+		<rosparam file="$(find vbme_pkg)/config/QuestConfigQuatOnly.yaml" command="load" />
+
+		<node name="QuatPublisher" pkg="vbme_pkg" type="questflow_data_pub" output="screen" >
+			<remap from="/quat/optical_flow" to="/vbme/optical_flow"/> 			<!-- remap input -->
+		</node>
+	</group>
+	
+	<node pkg="kalman_filter" name="kalman_angular" type="kalman_angular.py" >
+		<remap from="/vbme/VestData" to="/quat/QuatData"/> 						<!-- remap input -->
+		<remap from="/vbme/EKF" to="/trans/quest_pipeline_input"/> 				<!-- remap output -->
+	</node>
+	
+	<group ns="trans">
+		<rosparam file="$(find vbme_pkg)/config/QuestConfigTransOnly.yaml" command="load" />
+
+		<node name="QuEstPublisher" pkg="vbme_pkg" type="questflow_data_pub" output="screen" >
+		</node>
+	</group>
+	
+	
+	<node pkg="kalman_filter" name="kalman_linear" type="kalman_linear.py" >
+		<remap from="/vbme/VestData" to="/vbme/EKF_Angular"/> 			<!-- remap input -->
+	</node>	
+	
+	
+	
+	
+	
+	<node pkg="testing_and_analyzing" name="data_writer" type="test_vbme.py" />
+	<node pkg="vbme_heading_pkg" name="CalculateHeading" type="CalculateHeading.py" />
+
+</launch>

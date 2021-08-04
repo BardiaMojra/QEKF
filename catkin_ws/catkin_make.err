@@ -1,0 +1,57 @@
+CMake Warning at /home/smerx/QVPose/catkin_ws/build/testing_and_analyzing/cmake/testing_and_analyzing-genmsg.cmake:3 (message):
+  Invoking generate_messages() without having added any message or service
+  file before.
+
+  You should either add add_message_files() and/or add_service_files() calls
+  or remove the invocation of generate_messages().
+Call Stack (most recent call first):
+  /opt/ros/melodic/share/genmsg/cmake/genmsg-extras.cmake:307 (include)
+  testing_and_analyzing/CMakeLists.txt:72 (generate_messages)
+
+
+CMake Warning at /opt/ros/melodic/share/cmake_modules/cmake/Modules/FindEigen.cmake:62 (message):
+  The FindEigen.cmake Module in the cmake_modules package is deprecated.
+
+  Please use the FindEigen3.cmake Module provided with Eigen.  Change
+  instances of find_package(Eigen) to find_package(Eigen3).  Check the
+  FindEigen3.cmake Module for the resulting CMake variable names.
+
+Call Stack (most recent call first):
+  vbme_pkg/CMakeLists.txt:23 (find_package)
+
+
+In file included from /usr/include/armadillo:87:0,
+                 from /home/smerx/QVPose/catkin_ws/src/vbme_pkg/src/test_files/QuEst.cpp:25:
+/usr/include/armadillo_bits/include_hdf5.hpp:19:14: fatal error: hdf5.h: No such file or directory
+     #include <hdf5.h>
+              ^~~~~~~~
+compilation terminated.
+make[2]: *** [vbme_pkg/CMakeFiles/QuEst.dir/src/test_files/QuEst.cpp.o] Error 1
+make[1]: *** [vbme_pkg/CMakeFiles/QuEst.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+In file included from /usr/include/armadillo:87:0,
+                 from /home/smerx/QVPose/catkin_ws/src/vbme_pkg/src/quest_transform_pub.cpp:25:
+/usr/include/armadillo_bits/include_hdf5.hpp:19:14: fatal error: hdf5.h: No such file or directory
+     #include <hdf5.h>
+              ^~~~~~~~
+compilation terminated.
+make[2]: *** [vbme_pkg/CMakeFiles/quest_transform_pub.dir/src/quest_transform_pub.cpp.o] Error 1
+make[1]: *** [vbme_pkg/CMakeFiles/quest_transform_pub.dir/all] Error 2
+In file included from /usr/include/armadillo:87:0,
+                 from /home/smerx/QVPose/catkin_ws/src/vbme_pkg/src/questflow_transform_pub.cpp:28:
+/usr/include/armadillo_bits/include_hdf5.hpp:19:14: fatal error: hdf5.h: No such file or directory
+     #include <hdf5.h>
+              ^~~~~~~~
+compilation terminated.
+make[2]: *** [vbme_pkg/CMakeFiles/questflow_transform_pub.dir/src/questflow_transform_pub.cpp.o] Error 1
+make[1]: *** [vbme_pkg/CMakeFiles/questflow_transform_pub.dir/all] Error 2
+In file included from /usr/include/armadillo:87:0,
+                 from /home/smerx/QVPose/catkin_ws/src/vbme_pkg/src/questflow_data_pub.cpp:27:
+/usr/include/armadillo_bits/include_hdf5.hpp:19:14: fatal error: hdf5.h: No such file or directory
+     #include <hdf5.h>
+              ^~~~~~~~
+compilation terminated.
+make[2]: *** [vbme_pkg/CMakeFiles/questflow_data_pub.dir/src/questflow_data_pub.cpp.o] Error 1
+make[1]: *** [vbme_pkg/CMakeFiles/questflow_data_pub.dir/all] Error 2
+make: *** [all] Error 2
+Invoking "make -j12 -l12" failed

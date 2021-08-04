@@ -1,0 +1,25 @@
+# Produced by CVXGEN, 2020-09-14 19:22:53 -0400.
+# CVXGEN is Copyright (C) 2006-2017 Jacob Mattingley, jem@cvxgen.com.
+# The code in this file is Copyright (C) 2006-2017 Jacob Mattingley.
+# CVXGEN, or solvers produced by CVXGEN, cannot be used for commercial
+# applications without prior written permission from Jacob Mattingley.
+
+# Filename: description.cvxgen.
+# Description: A description of the CVXGEN problem.
+
+parameters
+  Q (13,13) symmetric psd # quadratic penalty.
+  A (10,13)
+end
+
+variables
+  x(13)
+end
+
+minimize
+  quad(x,Q)
+
+subject to
+  A*x>=0.0001
+
+end

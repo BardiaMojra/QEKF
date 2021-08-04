@@ -1,0 +1,3 @@
+<launch>
+<node pkg="rosbag" type="play" name="rosbag_images" args="/home/developer/Desktop/Asif_Dataset/April_8.bag"/>
+</launch>

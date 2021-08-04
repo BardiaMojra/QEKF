@@ -1,0 +1,89 @@
+@author Bardia Mojra
+
+@brief This test aims to study the effects of different scale factors for
+velocity data for 'dataset-iPhone1_clean'. Moreover, R matrix noise range is
+experimented with.
+
+
+Test_001:
+  x_state_dim = 9 #
+  z_meas_dim = 12 #
+  df_len = dataset.df.shape[0]
+  start_= 0
+  deltaT = 1/30
+  # Q noise
+  T_xyz_noise = 1e-7
+  V_xyz_noise = 1.5e-6
+  Q_xyz_noise = 0.5e-6
+  # R noise
+  r_noise = 0.1e-6
+  P_est_init = 1e-4
+  VScale = 1
+  \-->
+
+Test_002:
+  x_state_dim = 9 #
+  z_meas_dim = 12 #
+  df_len = dataset.df.shape[0]
+  start_= 0
+  deltaT = 1/30
+  # Q noise
+  T_xyz_noise = 1e-7
+  V_xyz_noise = 1.5e-6
+  Q_xyz_noise = 0.5e-6
+  # R noise
+  r_noise = 0.1e-6
+  P_est_init = 1e-4
+  VScale = 100
+  \-->
+
+Test_003: - In H matrix, changed velcity term sign to correct direction of velcity estimation.
+ x_state_dim = 9 #
+  z_meas_dim = 12 #
+  df_len = dataset.df.shape[0]
+  start_= 0
+  deltaT = 1/30
+  # Q noise
+  T_xyz_noise = 1e-7
+  V_xyz_noise = 1.5e-5
+  Q_xyz_noise = 0.5e-6
+  # R noise
+  r_noise = 0.1e-7
+  P_est_init = 1e-4
+  VScale = 200
+  \-->
+
+Test_004:
+  x_state_dim = 9 #
+  z_meas_dim = 12 #
+  df_len = dataset.df.shape[0]
+  start_= 0
+  deltaT = 1/30
+  # Q noise
+  T_xyz_noise = 1e-7
+  V_xyz_noise = 1.5e-5
+  Q_xyz_noise = 0.5e-6
+  # R noise
+  r_noise = 0.1e-8
+  P_est_init = 1e-4
+  VScale = 250
+  \-->
+
+Test_005
+  x_state_dim = 9 #
+  z_meas_dim = 12 #
+  df_len = dataset.df.shape[0]
+  start_= 0
+  deltaT = 1/30
+  # Q noise
+  T_xyz_noise = 1e-7
+  V_xyz_noise = 1.5e-2
+  Q_xyz_noise = 0.5e-6
+  # R noise
+  r_noise = 0.1e-11
+  P_est_init = 1e-4
+  VScale = 250
+
+
+
+# EOF

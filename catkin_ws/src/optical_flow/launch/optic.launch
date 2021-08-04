@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<launch>
+
+  <group ns="optical_flow_group">
+
+<!--
+  <param name="video_source" value="/home/codyl/Desktop/2011_09_26_drive_0009_sync/2011_09_26/2011_09_26_drive_0009_sync/image_00/" />
+  <rosparam param="camera_calibration">[984.2439,   0.0,    690.0, 
+                                          0.0,    980.8141, 233.1966, 
+                                          0.0,      0.0,      1.0]</rosparam>
+-->
+<!--
+  <param name="video_source" value="/home/developer/Downloads/fake_missile_images/" />
+-->
+<!--
+  <param name="video_source" value="/home/codyl/Downloads/fake_missile_images/" />
+-->
+<!--
+  <param name="video_source" value="/home/codyl/Downloads/PptVideos/arrow_diagonal/" />
+-->
+<!--
+  <param name="video_source" value="/home/codyl/Downloads/PptVideos/arrow_l2r/" />
+-->
+<!--
+  <param name="video_source" value="/home/codyl/Downloads/PptVideos/fake_missile_slow_curve/" />
+-->
+  <param name="video_source" value="/home/codyl/Downloads/PptVideos/fake_missile_slow_straight/" />
+<!--
+  <param name="video_source" value="/home/codyl/Downloads/PptVideos/fake_missile_zoom/" />
+-->
+<!--
+  <rosparam param="camera_calibration">[1000.0, 0.0, 960.0, 0.0, 1000.0, 512.0, 0.0, 0.0, 1.0]</rosparam>
+-->
+<!--
+  <rosparam param="camera_calibration">[1.0, 0.0, 960, 0.0, 1.0, 512, 0.0, 0.0, 1.0]</rosparam>
+-->
+<!-- PPT -->
+<!--
+  <rosparam param="camera_calibration">[1.0, 0.0, 960, 0.0, 1.0, 540, 0.0, 0.0, 1.0]</rosparam>
+-->
+<!--
+  <rosparam param="camera_calibration">[959.661112, 0.0, 960, 0.0, 959.661112, 540, 0.0, 0.0, 1.0]</rosparam>
+-->
+<!--
+  <rosparam param="camera_calibration">[1000.0, 0.0, 960, 0.0, 1000.0, 512, 0.0, 0.0, 1.0]</rosparam>
+-->
+<!--
+  <rosparam param="camera_calibration">[780, 0, 256, 0, 780, 256, 0, 0, 1]</rosparam> 
+-->
+<!-- Off1 1 -->
+<!--
+  <rosparam param="camera_calibration">[769.030, 0, 512, 0, 769.030, 512, 0, 0, 1]</rosparam> 
+-->
+  <!-- Off1 2 -->
+<!--
+  <rosparam param="camera_calibration">[1056.1, 0.0, 512.0, 0.0, 950.50, 512.0, 0.0, 0.0, 1.0]</rosparam> 
+-->
+<!-- iphone -->
+  <rosparam param="camera_calibration">[570, 0, 160, 0, 570, 284, 0, 0, 1]</rosparam> 
+<!--
+  <param name="video_source" value="/home/developer/Desktop/simulation_datasets/black/" />
+-->
+<!--
+  <param name="truth_source" value="/home/developer/Desktop/2011_09_26/2011_09_26_drive_0009_sync/oxts/data/" />
+-->
+  <!--
+  this is probably an unnecessary param
+  <param name="truth_source" value="/home/developer/Desktop/2011_09_26/2011_09_26_drive_0009_sync/oxts/data/" />
+  -->
+  
+<!--
+  <param name="num_images" value="447" />
+-->
+<!--
+  <param name="num_images" value="153" />
+-->
+  <param name="num_trials" value="1" />
+<!--
+  <param name="hertz" value="2" />
+-->
+  <param name="hertz" value="1000" />
+  
+  <param name="poly_limit" value="2" />
+	  
+    <node pkg="optical_flow" name="image_pub" type="image_publisher.py" output="screen">     
+        <param name="kitti_data" value="false"/> <!-- true for kitti data set, configures timestamps and file names  -->      
+        <param name="missile_data" value="false"/> <!--   -->      
+        <param name="mp4_data" value="true"/> <!-- for PPT datasets  --> 
+	</node>  
+    <node pkg="optical_flow" name="image_sub" type="lk_track_ros.py" output="screen"/>
+    <node pkg="optical_flow" name="velocity_estimator" type="velest.py" output="screen" >        
+        <param name="NormalizeMode" value="0"/> <!-- 0=scaled with vest depth, 1=Magnitude of 1.0, 2=scaled with quest and vest depth  --> 
+    </node>  
+    
+  </group>
+
+</launch>
+
+

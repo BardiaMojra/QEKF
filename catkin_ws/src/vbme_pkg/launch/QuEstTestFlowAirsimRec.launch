@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<group ns="vbme">
+		
+		<!-- rosparam command="load" file="$(find my_pkg)/config/my_file.yaml" / -->
+		
+<!--
+		old image publisher for static images
+-->
+<!--
+		<node name="image_publisher1" pkg="image_publisher" type="image_publisher" output="screen" args="/home/codyl/Downloads/2011_09_26_drive_0002_extract/image_00/data/0000000000.png">
+			<param name="publish_rate" value="1" />
+			<remap from="image_publisher1/image_raw" to="/vbme/FeatPubImages" />
+		</node>
+		<node name="image_publisher2" pkg="image_publisher" type="image_publisher" output="screen" args="/home/codyl/Downloads/2011_09_26_drive_0002_extract/image_00/data/0000000001.png">
+			<param name="publish_rate" value="1" />
+			<remap from="image_publisher2/image_raw" to="/vbme/FeatPubImages" />
+		</node>
+-->
+		<param name="LoopSlow" value="False" />
+		<!-- If you are drawing images, you should also loop slow -->
+		<param name="LoopSleep" value="0.2" />
+		<!-- sleep in seconds, this is for images to load -->
+<!--
+		<param name="video_source" value="/home/codyl/Downloads/airsim_rec_orig/" />
+-->
+		<param name="video_source" value="/home/codyl/Downloads/airsim_rec_4/" />
+<!--
+		<param name="video_source" value="/home/developer/Desktop/2011_09_26/2011_09_26_drive_0002_sync/image_00/" />
+-->
+		<!-- Location of the kitti data set for image publisher -->
+		<param name="PrintToScreen" value="False" />
+		<!-- print more messages to the screen -->
+		<param name="DrawImages" value="False" />
+		<!-- create display windows -->
+		
+		<!-- Optical flow variables -->
+		<param name="track_len" value="50" /> 						<!-- Max number of points in point trail before dropping the end point -->
+		<param name="ActivateChaining" value="True" /> 				<!-- Calculate chaining when input array shrinks -->
+		
+		<!-- QuEst variables -->
+		<param name="Quest/CalibrationMatrix" value="
+				[9.842439e+02, 	0.0, 			6.90e+02, 
+				0.0,			9.808141e+02, 	2.331966e+02, 
+				0.0,			0.0,	 		1.0]" /> 			<!-- calibration matrix in array form, Kitti -->
+		<param name="UseRansac" value="False" /> 					<!--  -->
+		<param name="NormalizeOutput" value="1" /> 					<!-- Normalize the output translation. 0, no normalization. 1, to a norm of 1. 2 by chaining first depth scaling -->
+		
+		<param name="Ransac/DistanceThreshold" value="0.00001" /> 	<!-- distance threshold between data and model. original 0.000001 -->
+		<param name="Ransac/DesiredProbability" value="0.99" /> 	<!-- desired probability of choosing at least one sample free from outliers  -->
+		<param name="Ransac/MaxDataTrials" value="100" /> 			<!-- max number to select non-degenerate data set. origianl 100 -->
+		<param name="Ransac/MaxIter" value="500" /> = ;  			<!-- max number of iterations. original 1000 -->
+		
+		<!-- Plot variables -->
+		<param name="Plot/Type" value="2" /> = ;  					<!-- 1 RPY/Eular, 2 Quaternion, 3 AngleAxis -->
+		
+		<node name="KittiPublisher" pkg="vbme_pkg" type="image_publisher_airsim_rec.py" output="screen">
+			<remap from="/input/image_raw/uncompressed" to="/vbme/FeatPubImages" />
+		</node>
+		
+<!--
+		<node name="FeaturePublisher" pkg="vbme_pkg" type="feat_descp_pub" output="screen" >
+		</node>
+-->
+		
+		<node name="FlowFilter" pkg="vbme_pkg" type="optical_flow_length_filter.py" output="screen" >
+		</node>
+		
+		<node name="MatchesPub" pkg="vbme_pkg" type="quest_trails.py" output="screen" >
+		</node>
+		
+		<node name="QuEstPublisher" pkg="vbme_pkg" type="questflow_transform_pub" output="screen" >
+		</node>
+		
+		<node name="TransformPlotter" pkg="vbme_pkg" type="transform_plotter.py" output="screen" >
+		</node>
+		
+		
+	</group>
+</launch>

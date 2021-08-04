@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<group ns="vbme">
+		
+<!--
+	<arg name="NameNode" value="QuEstPublisher" />
+	<arg name="NameNode" value="QuEstPublisher" />
+	<arg name="OutputQuest" value="QuestData" />
+	<arg name="InputQuestOptic" value="optical_flow" />
+	<arg name="InputQuestPipe" value="quest_pipeline_input" />
+	<arg name="CalcQuat" value="true" /> 							 calculate quaternion or skip. used for more complicated pipleline 
+	<arg name="CalcTrans" value="true" /> 							 calculate translation or skip. used for more complicated pipleline. not implemented 
+-->
+		
+		
+<!--
+		<param name="LoopSlow" value="True" />
+-->
+		<!-- If you are drawing images, you should also loop slow -->
+<!--
+		<param name="LoopSleep" value="10.05" />
+-->
+		<!-- sleep in seconds, this is for images to load -->
+<!--
+		<param name="video_source" value="/home/codyl/Desktop/image_00/" />
+-->
+<!--
+		<param name="video_source" value="/home/developer/Desktop/2011_09_26/2011_09_26_drive_0002_sync/image_00/" />
+-->
+		<!-- Location of the kitti data set for image publisher -->
+		
+		<!-- general quest ros settings -->
+		<param name="InputTopicOptical" value="$(arg InputQuestOptic)" />
+		<param name="InputTopicPipeline" value="$(arg InputQuestPipe)" />
+		<param name="OutputTopic" value="$(arg OutputQuest)" />
+		
+		
+		<!-- How to solve for the QuEst solution -->
+		<!-- 0=SVD, 1=QuadraticProgaming -->
+		<param name="SolveMode" value="0" />
+		<!-- How to solve for the depth solution -->
+		<!-- 0=primary C matrix, 1=alternative C matrix, does not work with QuadraticProgaming -->
+		<param name="DepthMode" value="0" />
+		
+		
+		
+		<param name="PrintToScreen" value="False" />
+		<!-- print more messages to the screen -->
+		<param name="DrawImages" value="False" />
+		<!-- create display windows -->
+		
+		<!-- Optical flow variables -->
+		<param name="track_len" value="1000" /> 						<!-- Max number of points in point trail before dropping the end point -->
+		<param name="ActivateChaining" value="False" /> 			<!-- Calculate chaining when input array shrinks -->
+		
+		<!-- QuEst variables -->
+		<param name="UseRansac" value="True" /> 					<!-- Use ransac to find quat -->
+		<param name="UseRansacTrans" value="False" /> 				<!-- Use ransac to find translation. If True, UsRansac must also be true -->
+		<param name="PostFilter" value="1" /> 						<!-- filter output, window/kernal of 3. 0=none, 1=median -->
+		<param name="CalcQuat" value="$(arg CalcQuat)" /> 			<!-- calculate quaternion or skip. used for more complicated pipleline -->
+		<param name="CalcTrans" value="$(arg CalcTrans)" /> 		<!-- calculate translation or skip. used for more complicated pipleline. not implemented -->
+	
+		<!-- Normalize the output translation. 0, no normalization. 
+		1: to a norm of 1. 
+		2: by  first depth scaling at t(0). 
+		3: by first alternative depth scaling at t(0)
+		4: by  first depth scaling at t(i). 
+		5: by first alternative depth scaling at t(i) -->
+		<param name="NormalizeOutput" value="4" /> 					
+		
+		<param name="Ransac/DistanceThreshold" value="0.00001" /> 	<!-- distance threshold between data and model. original 0.000001 -->
+		<param name="Ransac/DesiredProbability" value="0.99" /> 	<!-- desired probability of choosing at least one sample free from outliers  -->
+		<param name="Ransac/MaxDataTrials" value="50" /> 			<!-- max number to select non-degenerate data set. origianl 100 -->
+		<param name="Ransac/MaxIter" value="500" />;  				<!-- max number of iterations. original 1000 -->
+		
+		<!-- Plot variables -->
+		<param name="Plot/Type" value="2" />  						<!-- 1 RPY/Eular, 2 Quaternion, 3 AngleAxis -->
+		
+		<node name="QuEstPublisher" pkg="vbme_pkg" type="questflow_data_pub" output="screen" >
+		</node>
+		<node name="TransformPlotter" pkg="vbme_pkg" type="transform_plotter.py" output="screen" >
+		</node>
+		
+	</group>
+</launch>

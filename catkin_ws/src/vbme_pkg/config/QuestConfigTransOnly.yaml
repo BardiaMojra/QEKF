@@ -1,0 +1,47 @@
+
+
+# input output topics
+OutputTopic: 'QuestData'
+InputTopicOptical: 'unused2'
+InputTopicPipeline: 'quest_pipeline_input'
+CalcQuat: false
+CalcTrans: true
+
+
+# How to solve for the QuEst solution 
+# 0=SVD, 1=QuadraticProgaming 
+SolveMode: 0
+# How to solve for the depth solution 
+# 0=primary C matrix, 1=alternative C matrix, does not work with QuadraticProgaming 
+DepthMode: 0
+
+PrintToScreen: false
+# print more messages to the screen 
+
+# Optical flow variables 
+track_len: 1000                         # Max number of points in point trail before dropping the end point -->
+ActivateChaining: false                 # Calculate chaining when input array shrinks -->
+
+# QuEst variables 
+UseRansac: true                         # Use ransac to find quat -->
+UseRansacTrans: false                   # Use ransac to find translation. If True, UsRansac must also be true -->
+PostFilter: 1                           # filter output, window/kernal of 3. 0=none, 1=median -->
+CalcQuat:   true                        # calculate quaternion or skip. used for more complicated pipleline -->
+CalcTrans:  true                        # calculate translation or skip. used for more complicated pipleline. not implemented -->
+
+# Normalize the output translation. 0, no normalization. 
+# 1: to a norm of 1. 
+# 2: by  first depth scaling at t(0). 
+# 3: by first alternative depth scaling at t(0)
+# 4: by  first depth scaling at t(i). 
+# 5: by first alternative depth scaling at t(i) 
+NormalizeOutput: 4
+
+Ransac/DistanceThreshold: 0.00001               # distance threshold between data and model. original 0.000001 -->
+Ransac/DesiredProbability: 0.99                 # desired probability of choosing at least one sample free from outliers  -->
+Ransac/MaxDataTrials: 50                        # max number to select non-degenerate data set. origianl 100 -->
+Ransac/MaxIter: 500                             # max number of iterations. original 1000 -->
+
+
+
+

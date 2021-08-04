@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<group ns="vbme">
+		
+		<rosparam file="$(find vbme_pkg)/config/QuestConfigQuatOnly.yaml" command="load" />
+
+		<node name="QuEstPublisher" pkg="vbme_pkg" type="questflow_data_pub" output="screen" >
+		</node>
+		
+	</group>
+</launch>
