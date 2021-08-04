@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*/data/*
+*/opencv-3.4.9/*
+*/build/*
+*/devel/*
+*/build_isolated/*
+*/devel_isolated/*
