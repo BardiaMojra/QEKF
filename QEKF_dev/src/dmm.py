@@ -3,42 +3,54 @@ import sys
 import pandas as pd
 from pdb import set_trace as st
 import numpy as np
-import matplotlib as mpl
-import mpl.pyplot as plt
-from mpl import cm
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib import cm
 import os
 from pprint import pprint as pp
 
 ''' matplotlib config '''
-mpl.pyplot.ion()
+matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
 longhead = '\n\n  \--->> '
 shorthead = '\n  \--->> '
 longtail = '\n\n'
+shorttail = '\n'
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-
-
 class dmm:
   ''' Data Management Module
   '''
-  def __init__(self,
-    name,
-    source_dir,
-    ext,
-    dtype='float64',
-    options=None,
-    labels=None,
-    prt=True,
-    output_dir='../out/'):
+  def __init__(self, name):
+    # config
+    prt = True
+    labels = None
+    # set dataset configs
+    if name == 'dataset-iphone1_clean':
+      src_dir = '../data/dataset-iphone1_clean/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'xlsx'
+      opt = None
+    elif name =='bigC_06-Aug2021':
+      src_dir = '../data/bigC_06-Aug2021/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = ' ' # space separator for csv file
+    elif name =='kitti_imu_001':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+    else:
+      eprint(longhead+'Err--->> no data selected.....\n\n')
     self.name = name
-    self.src_dir = source_dir
+    self.src_dir = src_dir
     self.ext = ext
-    self.dtype = dtype
-    self.options = options
+    self.dtype = 'float64'
+    self.options = opt
     self.labels = labels
     self.prt = prt
     self.output_dir = output_dir
@@ -69,56 +81,97 @@ class dmm:
       dataset-iphone1 (_clean):
         quest.xlsx
         vest.xlsx
+      bigC:
+        quest.xlsx
+        vest.xlsx
+      kitti_imu_001:
+        data/KITTI/
+        └── 2011_09_26
+            ├── 2011_09_26_drive_0001_sync
+            │   ├── image_00
+            │   ├── image_01
+            │   ├── image_02
+            │   ├── image_03
+            │   ├── oxts <<---------------------  IMU data
+            │   ├── tracklet_labels.xml
+            │   └── velodyne_points
     '''
     if self.name=="iphone_mouse_zoom_2" and self.ext=='csv':
       fname = 'u_cord_subpix.csv'
       self.df = pd.read_csv(self.src_dir+fname)
-      if self.prt == True:
-        print(longhead+fname+':')
-        pp(self.df)
     elif self.name=="dataset-iphone1_clean" and self.ext=='xlsx':
       # load QuEst data
       fname = 'quest.xlsx'
       self.quest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
         index_col=0, dtype=self.dtype)
-      if self.prt == True:
-        print(longhead+fname+':')
-        pp(self.quest)
       # load VEst data
       fname = 'vest.xlsx'
       self.vest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
         index_col=0, dtype=self.dtype)
-      if self.prt == True:
-        print(longhead+fname+':')
-        pp(self.vest)
       # load data frame
       self.df = pd.concat([self.quest, self.vest], axis=1)
-      if self.prt == True:
-        print(longhead+'dmm.df:')
-        pp(self.df)
     elif self.name=="bigC_06-Aug2021" and self.ext=='csv':
       # load QuEst data
       fname = 'quest_post_vest.csv'
       self.quest = pd.read_csv(self.src_dir+fname,
         sep=self.options, index_col=0, dtype=self.dtype)
-      if self.prt == True:
-        print(longhead+fname+':')
-        pp(self.quest)
       # load VEst data
       fname = 'vest.csv'
       self.vest = pd.read_csv(self.src_dir+fname,
         sep=self.options, index_col=0, dtype=self.dtype)
-      if self.prt == True:
-        print(longhead+fname+':')
-        pp(self.vest)
       # load data frame
       self.df = pd.concat([self.quest, self.vest], axis=1)
-      if self.prt == True:
-        print(longhead+'dmm.df:')
-        pp(self.df)
+    elif self.name=="kitti_imu_001" and self.ext=='csv':
+      '''
+        /data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/.
+          ├── data/ <<< each datum is in separate file
+          ├── dataformat.txt
+          └── timestamps.txt
+      '''
+
+      # get time stamp
+      tstamp_dir = self.src_dir+'timestamps.txt'
+      data_dir = self.src_dir+'data/'
+      tstamp_df = pd.read_csv(tstamp_dir, sep=' ', header=None, names=['date', 'time'])
+      '''NBUG'''
+      #print(longhead+tstamp_dir+':')
+      #pp(tstamp_df.head(5))
+
+      # get data format
+      labels = list()
+      labels_ = {}
+      format_dir = self.src_dir+'dataformat.txt'
+      with open('format_dir') as file:
+        for line in file:
+          (key, val) = line.split(sep=':')
+          labels.append(key, val)
+          labels_[int(key)] = val
+        '''NBUG'''
+        print(shorthead+'labels:')
+        print(labels); print(shorttail)
+        print(shorthead+'labels_:')
+        print(labels_); print(shorttail)
+
+      st()
+
+
+      # get data
+      files = os.listdir(data_dir)
+      print(longhead+data_dir+':')
+      print(sorted(files))
+
+      st()
+      for file in sorted(files):
+        datum = np.genfromtxt(data_dir+file, delimiter=' ')
+        '''NBUG'''
+        print(shorthead+file+':')
+        print(datum); print(shorttail)
+
+
     else:
-      print(longhead+'Err: invalid name and/or ext!', file=sys.stderr)
-      return
+      eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
+      exit()
+    st()
     # load state variables
     self.trans_xyz = self.df[['Tx', 'Ty', 'Tz']]
     self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]

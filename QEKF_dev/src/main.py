@@ -1,7 +1,7 @@
 
 import numpy as np
-import matplotlib as mpl
-import mpl.pyplot as plt
+import matplotlib
+from matplotlib import pyplot as plt
 import pandas as pd
 import time
 from scipy.spatial.transform import Rotation as R
@@ -37,7 +37,7 @@ shorttail = '\n'
 attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
 
 ''' matplotlib config '''
-mpl.pyplot.ion()
+matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
 ''' random number generator seed '''
@@ -45,39 +45,11 @@ np.random.seed(5555)
 
 
 def main():
-  #data = 'iphone1_clean'
+  #data = 'dataset-iphone1_clean'
   #data = 'bigC_06-Aug2021'
   data = 'kitti_imu_001'
 
-  if data == 'iphone1_clean':
-    dName = 'dataset-iphone1_clean'
-    src_dir = '../data/dataset-iphone1_clean/'
-    output_dir = '../out/out_iphone1_clean/'
-    file_ext = 'xlsx'
-    opt = None
-  elif data =='bigC_06-Aug2021':
-    dName = 'bigC_06-Aug2021'
-    src_dir = '../data/bigC_06-Aug2021/'
-    output_dir = '../out/out_bigC_06-Aug2021/'
-    file_ext = 'csv'
-    opt = ' ' # space separator for csv file
-  elif data =='kitti_imu_001':
-    dName = 'kitti_imu_001'
-    src_dir = '../data/kitti/2011_09_26/'
-    output_dir = '../out/out_bigC_06-Aug2021/'
-    file_ext = 'csv'
-    opt = ' '
-  else:
-    eprint(longhead+'Err--->> no data selected.....\n\n')
-
-  dataset = dmm(name=dName,
-    source_dir=src_dir,
-    ext=file_ext,
-    dtype='float64',
-    output_dir=output_dir,
-    prt=_prt,
-    options=opt)
-
+  dataset = dmm(name=data)
   dataset.format()
   dataset.plot(labels=dataset.labels, title='Quest and Vest Data', show=_show)
   dataset.plot_trans_3d(title='Quest Translation in 3D', show=_show)
@@ -114,7 +86,7 @@ def main():
             --->> 9 (+1 for q_w) state variables
   '''
 
-  ''' EKF Config
+  ''' EKF Config #TODO add a set and store config routine
   '''
   x_state_dim = 9 #
   z_meas_dim = 12 #
