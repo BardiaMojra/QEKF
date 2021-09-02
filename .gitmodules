@@ -1,0 +1,6 @@
+[submodule "opencv_setup/opencv-3.4.9/opencv"]
+	path = opencv_setup/opencv-3.4.9/opencv
+	url = https://github.com/opencv/opencv.git
+[submodule "opencv_setup/opencv-3.4.9/opencv_contrib"]
+	path = opencv_setup/opencv-3.4.9/opencv_contrib
+	url = https://github.com/opencv/opencv_contrib.git

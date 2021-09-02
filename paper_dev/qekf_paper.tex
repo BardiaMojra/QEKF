@@ -1,0 +1,420 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
+
+\IEEEoverridecommandlockouts                              % This command is only needed if
+                                                          % you want to use the \thanks command
+
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
+
+%In case you encounter the following error:
+%Error 1010 The PDF file may be corrupt (unable to open PDF file) OR
+%Error 1000 An error occurred while parsing a contents stream. Unable to analyze the PDF file.
+%This is a known problem with pdfLaTeX conversion filter. The file cannot be opened with acrobat reader
+%Please use one of the alternatives below to circumvent this error by uncommenting one or the other
+%\pdfobjcompresslevel=0
+%\pdfminorversion=4
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphicx}
+%\usepackage{graphics} % for pdf, bitmapped graphics files
+%\usepackage{epsfig} % for postscript graphics files
+\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amssymb}  % assumes amsmath package installed
+\newcommand{\transpose}[1]{\ensuremath{#1^{\scriptscriptstyle T}}}
+\title{\LARGE \bf
+Quaternion EKF
+}
+
+
+\author{Albert Author$^{1}$ and Bernard D. Researcher$^{2}$% <-this % stops a space
+\thanks{*This work was not supported by any organization}% <-this % stops a space
+\thanks{$^{1}$Albert Author is with Faculty of Electrical Engineering, Mathematics and Computer Science,
+        University of Twente, 7500 AE Enschede, The Netherlands
+        {\tt\small albert.author@papercept.net}}%
+\thanks{$^{2}$Bernard D. Researcheris with the Department of Electrical Engineering, Wright State University,
+        Dayton, OH 45435, USA
+        {\tt\small b.d.researcher@ieee.org}}%
+}
+
+
+\begin{document}
+
+
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+This electro
+
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{INTRODUCTION}
+
+This template pro
+
+\subsection{Notation}
+
+For clarity, we decided to dedicate this section to
+
+
+In this paper, scalar values are represented by \underline{underlined} variables,
+i.e. $\underline{a},\underline{x},\underline{y},\underline{z}$.
+Vectors are represented by normal font variables, i.e. $a,x,y,z$.
+Matrices are represented by UPPERCASE letters, i.e. $\mathbf{A,X,Y,Z}$.
+Approximated vectors are represented as normal vectors with a \textit{tilde} on top
+to signify its \textit{approximation} designation, i.e.  $\mathbf{\widetilde{a},\widetilde{x},\widetilde{y},\widetilde{z}}$.
+The same notation is applied to matrices and scalars.
+Estimated vectors are represented as normal vectors with a \textit{hat} on top
+to signify its \textit{estimation} designation, i.e.  $\mathbf{\widehat{a},\widehat{x},\widehat{y},\widehat{z}}$.
+The same notation is applied to matrices and scalars.
+
+
+
+\section{OBSERVATION AND ESTIMATION MODELS}
+
+\subsection{Inertial Model}
+
+We start with a Newtonian dynamic model, where the system is described by forces
+acting onto robot's rigid body.
+
+
+First, we calculate the \textit{proper acceleration}, $a_{proper}$, which presents
+forces acting onto robot's rigid body. We subtract gravity from the absolute acceleration
+or \textit{coordinate acceleration}, $a_{abs}$
+
+and its \textit{Body Frame} acceleration, $a$.
+We remove Earth's gravity from system dynamics.
+
+\begin{equation}
+\label{eq:1}
+a_{proper} = {C}^{I}_{B}(a_{abs} - g),
+\end{equation}
+
+
+Where matrix ${C}^{I}_{B}$ represents the orthonormal rotation from \textit{inertial frame},
+\textit{I}, to robots \textit{body frame}, \textit{B}.
+
+
+
+
+
+Linear are force
+
+\begin{equation}
+\label{eq:2}
+\widetilde{a} ~or~ f = a + \omega_{a}
+\end{equation}
+
+
+\begin{equation}
+\label{eq:3}
+\widetilde{\omega} = \omega + \omega_{\omega}
+\end{equation}
+
+
+
+
+
+\subsection{Observation State Definition}
+
+The measurement state definition is defined by linear position, $r$, linear
+velocity, $v$, angular velocity, $\omega$, and angular orientation in the quaternion
+space, $q$. The observation state vector, $z$, is defined as the following:
+
+\begin{equation}
+\label{eq:4}
+\transpose{z} :=  \left[r~v~\omega~q \right],
+\end{equation}
+
+
+Where the observed quaternion state is used to compute the corresponding state
+rotation matrix, ${C}^{I}_{B}$.
+It is important to note that the observation data is treated as the groundtruth.
+
+
+
+
+\subsection{EKF Model}
+
+To deploy a modified Kalman filter, we start with the assumption of continuous-time nonlinear system described by the following:
+
+\begin{equation}
+\dot{x} = f(x,u,\omega_{f}),
+\end{equation}
+\begin{equation}
+y = h(x,u,\omega_{h}).
+\end{equation}
+
+Where $f()$ represents the \textit{process} model and $h()$ represent the
+\textit{observation} model. Variables $\omega_{f}$ and $\omega_{h}$ represent the
+\textit{process} and \textit{observation} noise, respectively. Vector $u$
+represent input to the system.
+
+\subsection{Estimation State Definition}
+
+The estimation state is defined by the robot's linear position, $r$, and velocity,
+$v$, and the body frame orientation in quaternion space.
+
+\begin{equation}
+\label{eq:5}
+\transpose{x} :=  \left[r~v~q \right]
+\end{equation}
+
+\begin{equation}
+\label{eq:6}
+P := Cov(\delta x),
+\end{equation}
+
+Estimation residual is denoted by $\delta x$
+
+
+\begin{equation}
+\label{eq:7}
+\delta \transpose{x} = \left[\delta r~\delta v~\delta \phi \right]
+\end{equation}
+
+\subsection{Estimation Model}
+
+\begin{equation}
+\label{eq:8}
+\delta \transpose{x} = \left[\delta r~\delta v~\delta \phi \right]
+\end{equation}
+
+
+
+\section{QUATERNION ALGEBRA}
+
+Quaternion intro paragraph
+Quaternion space is a non-minimal representation belonging to \textit{SO(3)} Lie group.
+
+\subsection{Unit Quaternion}
+Moreover, the quaternion term from the dataset has \textit{four terms} with $xyzw$
+format.
+Hamilton's quaternion defined by 3 perpendicular imaginary axes $i,j,k$ with
+real scalars $x,y,z$ and a real term $w$ which constraints other 3 dimension to
+a \textit{unit magnitude}. Thus, the fourth term normalizes the vector's magnitude
+conveniently and preserves the 3D rotation (3 DOF). We define \textbf{Unit Hamiltonian}
+or \textbf{Unit Quaternion} as,
+
+
+\begin{eqnarray}\nonumber
+\label{eq:9}
+\mathbb{H}^{1} &:=&\left\{ q_{wxyz}=w+xi+yj+zk~\in \mathbb{H}~| \right.\\
+                   && \left.~w^{2}+x^{2}+y^{2}+z^{2}=1 \right\}
+\end{eqnarray}
+% page 27, sec 2.4.2 of "Quaternion Algebra"
+
+Where superscript 1 in $\mathbb{H}^{1}$ denotes a unit quaternion space with 4
+terms. There are two equal representations for $\mathbb{H}^{1}$ subgroup; thus,
+we provide a concise definition and notation for both to avoid confusion. The
+the first representation is shown in \ref{eq:5} where the four terms of the
+quaternion are arranged in $wxyz$ order and it is represented by $q_{wxyz}$.
+The second quaternion is arranged in $xyzw$ format and is represented by $q_{xyzw}$.
+It is important to note the difference as both are used in our derivation and
+implementation.
+
+\begin{equation}
+\label{eq:10}
+q_{wxyz} = q_{xyzw} ~; ~~~ q_{wxyz},~q_{xyzw} \in \mathbb{H}^{1}
+\end{equation}
+
+
+\subsection{Pure Quaternion}
+As previously mention, the three imaginary terms of the quaternion represent the
+angles of interest in 3D and the fourth dimension constraints the magnitude. Thus
+to avoid computational errors, we use quaternion only with its three imaginary
+terms, $xyz$.
+This quaternion space representation is defined by $\mathbb{H}^{0}$ and
+denoted by $q_xyz$ variables.
+
+
+
+\begin{eqnarray}\nonumber
+\label{eq:11}
+\mathbb{H}^{0} &:=& \left\{ q_{xyz}=xi+yj+zk~ \in \mathbb{H}~| \right.\\
+&& \left. ~x,y,z \in \mathbb{R} \right\} \backsimeq  \mathbb{R}^3
+\end{eqnarray}
+% page 27, sec 2.4.2 of "Quaternion Algebra"
+
+
+
+\subsection{Exponential Map}
+
+For calculating incremental rotation in
+
+Incremental rotation estimation using the skew-symmetric matrix obtained form
+the rotational rate vector and matrix exponential mapping function, [QEKF01].
+Gamma, $\Gamma$, represents incremental
+
+\begin{equation}
+\label{eq:}
+\Gamma_{0} := \sum_{i=0}^{\infty} \frac{ \left( \Delta t^{i+n}  \right)}{ \\
+\left( i + n \right) \! } \\
+\omega^{\times i},
+\end{equation}
+
+Where $(.)^{\times}$
+
+
+\subsection{Updating Quaternion State}
+\begin{equation}
+\label{eq:12}
+q_{i+1} = \delta q_{i} \otimes \widehat{q}_{i}
+\end{equation}
+
+
+
+\subsection{Capturing Quaternion Error}
+We use the mapping function $\zeta(.)$ to calculate the quaternion
+state error from the error rotation vector, [QEKF01].
+
+\begin{equation}
+\label{eq:13}
+\delta q = \zeta(\delta \phi),
+\end{equation}
+
+\begin{equation}
+\label{eq:14}
+\zeta : v \rightarrow \zeta(v) =
+        \begin{bmatrix}
+        \sin(\frac{1}{2}\|v\|) \frac{v}{\|v\|} \\
+        \cos(\frac{1}{2}\|v\|)
+        \end{bmatrix}
+\end{equation}
+
+
+
+\section{MATH}
+
+Before you
+
+\begin{equation}
+\label{eq:}
+
+\end{equation}
+
+
+Finally, comp
+
+\subsection{Abbreviations and Acronyms}
+Defib
+
+\subsection{Units}
+
+
+
+\subsection{Equations}
+
+The equations
+
+
+
+Note
+
+\subsection{Some Common Mistakes}
+
+\section{USING THE TEMPLATE}
+
+Use this sample docu
+
+\subsection{Headings, etc}
+
+Text heads organiz
+
+\subsection{Figures and Tables}
+
+Positioning Figure
+
+
+
+\begin{table}[h]
+\caption{An Example of a Table}
+\label{table_example}
+\begin{center}
+\begin{tabular}{|c||c|}
+\hline
+One & Two\\
+\hline
+Three & Four\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+   \begin{figure}[thpb]
+      \centering
+      \framebox{\parbox{3in}{We suggest }}
+      %\includegraphics[scale=1.0]{figurefile}
+      \caption{Inductance ofd}
+      \label{figurelabel}
+   \end{figure}
+
+
+
+
+\section{CONCLUSIONS}
+
+A conclu
+
+\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+                                  % on the last page of the document manually. It shortens
+                                  % the textheight of the last page by a suitable amount.
+                                  % This command does not take effect until the next page
+                                  % so it should come on the page before the last. Make
+                                  % sure that you do not shorten the textheight too much.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{APPENDIX}
+
+Appendixes should appear before the acknowledgment.
+
+\section*{ACKNOWLEDGMENT}
+
+The preferr
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+References are
+\begin{thebibliography}{99}
+
+\bibitem{c1} G. O. Young, ÒSynthetic structure of industrial plastics (Book style with paper title and editor),Ó 	in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 15Ð64.
+\bibitem{c2} W.-K. Chen, Linear Networks and Systems (Book style).	Belmont, CA: Wadsworth, 1993, pp. 123Ð135.
+\bibitem{c3} H. Poor, An Introduction to Signal Detection and Estimation.   New York: Springer-Verlag, 1985, ch. 4.
+
+
+
+
+\end{thebibliography}
+
+
+
+
+\end{document}

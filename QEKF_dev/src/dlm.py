@@ -45,6 +45,8 @@ class dlm:
     return
 
   def log_predicted_quat(self, x_q, x_pr_q):
+    ''' Not used
+    '''
     if self.enabled == True:
       st()
       #if np.all(np.isnan(self.x_q_hist)) or np.all(np.isnan(self.x_prior_q_hist)):
@@ -63,9 +65,6 @@ class dlm:
 
       self.x_prior_q_hist = np.concatenate((self.x_prior_q_hist,\
         x_pr_q.T), axis=0)
-      print('self.x_q_hist:'); print(self.x_q_hist)
-      print('x_prior_q_hist:'); print(self.x_prior_q_hist)
-
     st()
     return
 
@@ -87,13 +86,13 @@ class dlm:
          (self.K_hist is None):
         self.v_hist = np.copy(v.T)
         self.x_post_hist = np.copy(x_post.T)
-        self.P_post_hist = np.copy(P_post.flatten())
-        self.K_hist = np.copy(K.flatten())
+        self.P_post_hist = np.copy(P_post.reshape(1,-1))
+        self.K_hist = np.copy(K.reshape(1,-1))
       else:
         self.v_hist = np.concatenate((self.v_hist, v.T), axis=0)
         self.x_post_hist = np.concatenate((self.x_post_hist, x_post.T), axis=0)
-        self.P_post_hist = np.concatenate((self.P_post_hist, P_post.flatten()), axis=0)
-        self.K_hist = np.concatenate((self.K_hist, K.flatten()), axis=0)
+        self.P_post_hist = np.concatenate((self.P_post_hist, P_post.reshape(1,-1)), axis=0)
+        self.K_hist = np.concatenate((self.K_hist, K.reshape(1,-1)), axis=0)
     return
 
 

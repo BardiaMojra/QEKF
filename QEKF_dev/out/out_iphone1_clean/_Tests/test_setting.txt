@@ -37,7 +37,7 @@ Test_002:
   VScale = 100
   \-->
 
-Test_003: - In H matrix, changed velcity term sign to correct direction of velcity estimation.
+Test_003: - In H matrix, changed velocity term sign to correct direction of velcity estimation.
  x_state_dim = 9 #
   z_meas_dim = 12 #
   df_len = dataset.df.shape[0]

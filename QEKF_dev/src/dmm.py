@@ -1,4 +1,4 @@
-
+from util import exp_map
 import sys
 import pandas as pd
 from pdb import set_trace as st
@@ -8,26 +8,31 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
 from pprint import pprint as pp
+from nbug import *
+from scipy.spatial.transform import Rotation as R
+
 
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
-longhead = '\n\n  \--->> '
-shorthead = '\n  \--->> '
-longtail = '\n\n'
-shorttail = '\n'
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
+    # config
+qlabels = ['idx', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
+vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
 class dmm:
   ''' Data Management Module
   '''
-  def __init__(self, name):
-    # config
-    prt = True
-    labels = None
+  def __init__(self,
+               name,
+               VestScale=1.0,
+               data_rate_inv=1/30,
+               start=0,
+               end=None,
+               prt=True,
+               save=True):
+
+
+
     # set dataset configs
     if name == 'dataset-iphone1_clean':
       src_dir = '../data/dataset-iphone1_clean/'
@@ -39,27 +44,117 @@ class dmm:
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name =='kitti_imu_001':
+    elif name =='kitti_imu_0926_0001':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0926_0002':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0926_0005':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0926_0018':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0926_0060':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0926_0084':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0926_0113':
+      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='kitti_imu_0928_0001':
+      src_dir = '../data/KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = None
+      data_rate_inv = 0.1
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
+    elif name =='Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off':
+      src_dir = '../data/'+name+'/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = ' ' # space separator for csv file
+    elif name == 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
+      src_dir = '../data/'+name+'/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = ' ' # space separator for csv file
+    elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
+      src_dir = '../data/'+name+'/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = ' ' # space separator for csv file
+    elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
+      src_dir = '../data/'+name+'/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = ' ' # space separator for csv file
+    elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
+      src_dir = '../data/'+name+'/'
+      output_dir = '../out/out_'+name+'/'
+      ext = 'csv'
+      opt = ' ' # space separator for csv file
     else:
-      eprint(longhead+'Err--->> no data selected.....\n\n')
+      eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
+
+    ''' check '''
+    if not os.path.exists(output_dir):
+      print(longhead+'the following directory DOES NOT EXIST: '+output_dir)
+      print(shorthead+"create is it with 'mkdir "+output_dir+"'\n\n")
+      exit()
+
+    ''' init '''
+    # data
     self.name = name
     self.src_dir = src_dir
     self.ext = ext
     self.dtype = 'float64'
     self.options = opt
-    self.labels = labels
     self.prt = prt
+    self.save = save
     self.output_dir = output_dir
-    if not os.path.exists(self.output_dir):
-      #os.makedirs(self.output_dir)
-      print(longhead+'the following directory DOES NOT EXIST: '+self.output_dir)
-      print(shorthead+"create is it with 'mkdir "+self.output_dir+"'\n\n")
-      exit()
+    # data config
+    self.VestScale = VestScale
+    self.data_rate_inv = data_rate_inv
+    self.start = start
+    self.end = end
+    # df init
     self.df = None
+    self.len = None
+    self.qlabels = qlabels
+    self.vlabels = vlabels
+    self.labels = qlabels + vlabels
     self.quest = None
     self.vest = None
     self.trans_xyz = None
@@ -69,15 +164,11 @@ class dmm:
     self.quat_wxyz = None # rotation in quaternion - w,x,y,z
     self.vel_rpy = None # rad/sec - roll, pitch, yaw
     self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
-    # end of __init__()
+    # end of __init__() <<--------------------------------------
 
   def format(self):
     ''' data files:
       iphone_mouse_zoom_2:
-        u_cord_subpix.csv: u axes position for 8 points: x1, x2, ... x8;
-        u_flow_subpix.csv
-        v_cord_subpix.csv
-        v_flow_subpix.csv
       dataset-iphone1 (_clean):
         quest.xlsx
         vest.xlsx
@@ -95,6 +186,8 @@ class dmm:
             │   ├── oxts <<---------------------  IMU data
             │   ├── tracklet_labels.xml
             │   └── velodyne_points
+      Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off
+      Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6
     '''
     if self.name=="iphone_mouse_zoom_2" and self.ext=='csv':
       fname = 'u_cord_subpix.csv'
@@ -103,94 +196,63 @@ class dmm:
       # load QuEst data
       fname = 'quest.xlsx'
       self.quest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
-        index_col=0, dtype=self.dtype)
+        index_col=0, dtype=self.dtype, header=0)
       # load VEst data
       fname = 'vest.xlsx'
       self.vest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
-        index_col=0, dtype=self.dtype)
+        index_col=0, dtype=self.dtype, header=0)
       # load data frame
       self.df = pd.concat([self.quest, self.vest], axis=1)
+      self.labels = self.df.columns# load state variable labels
     elif self.name=="bigC_06-Aug2021" and self.ext=='csv':
-      # load QuEst data
-      fname = 'quest_post_vest.csv'
-      self.quest = pd.read_csv(self.src_dir+fname,
-        sep=self.options, index_col=0, dtype=self.dtype)
-      # load VEst data
-      fname = 'vest.csv'
-      self.vest = pd.read_csv(self.src_dir+fname,
-        sep=self.options, index_col=0, dtype=self.dtype)
-      # load data frame
-      self.df = pd.concat([self.quest, self.vest], axis=1)
-    elif self.name=="kitti_imu_001" and self.ext=='csv':
-      '''
-        /data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/.
-          ├── data/ <<< each datum is in separate file
-          ├── dataformat.txt
-          └── timestamps.txt
-      '''
-
-      # get time stamp
-      tstamp_dir = self.src_dir+'timestamps.txt'
-      data_dir = self.src_dir+'data/'
-      tstamp_df = pd.read_csv(tstamp_dir, sep=' ', header=None, names=['date', 'time'])
-      '''NBUG'''
-      #print(longhead+tstamp_dir+':')
-      #pp(tstamp_df.head(5))
-
-      # get data format
-      labels = list()
-      labels_ = {}
-      format_dir = self.src_dir+'dataformat.txt'
-      with open('format_dir') as file:
-        for line in file:
-          (key, val) = line.split(sep=':')
-          labels.append(key, val)
-          labels_[int(key)] = val
-        '''NBUG'''
-        print(shorthead+'labels:')
-        print(labels); print(shorttail)
-        print(shorthead+'labels_:')
-        print(labels_); print(shorttail)
-
-      st()
-
-
-      # get data
-      files = os.listdir(data_dir)
-      print(longhead+data_dir+':')
-      print(sorted(files))
-
-      st()
-      for file in sorted(files):
-        datum = np.genfromtxt(data_dir+file, delimiter=' ')
-        '''NBUG'''
-        print(shorthead+file+':')
-        print(datum); print(shorttail)
-
-
+      self.load_QuVest_set()
+    elif self.name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'\
+      and self.ext=='csv':
+      self.load_QuVest_set()
+    elif self.name == 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'\
+      and self.ext=='csv':
+      self.load_QuVest_set()
+    elif self.name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'\
+      and self.ext=='csv':
+      self.load_QuVest_set()
+    elif self.name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'\
+      and self.ext=='csv':
+      self.load_QuVest_set()
+    elif self.name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'\
+      and self.ext=='csv':
+      self.load_QuVest_set()
+    elif self.name=="kitti_imu_0926_0001" and self.ext=='csv':
+        self.load_kitti_set()
+    elif self.name=="kitti_imu_0926_0002" and self.ext=='csv':
+      self.load_kitti_set()
+    elif self.name=="kitti_imu_0926_0005" and self.ext=='csv':
+      self.load_kitti_set()
+    elif self.name=="kitti_imu_0926_0018" and self.ext=='csv':
+      self.load_kitti_set()
+    elif self.name=="kitti_imu_0926_0060" and self.ext=='csv':
+      self.load_kitti_set()
+    elif self.name=="kitti_imu_0926_0084" and self.ext=='csv':
+      self.load_kitti_set()
+    elif self.name=="kitti_imu_0926_0113" and self.ext=='csv':
+      self.load_kitti_set()
+    elif self.name=="kitti_imu_0928_0001" and self.ext=='csv':
+      self.load_kitti_set()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
-    st()
+    ''' common df section '''
     # load state variables
     self.trans_xyz = self.df[['Tx', 'Ty', 'Tz']]
     self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]
     self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
     self.vel_xyz = self.df[['vx', 'vy', 'vz']]
     self.vel_rpy = self.df[['wr', 'wp', 'wy']]
-    self.labels = self.df.columns
+    self.len = len(self.df.index)
+    if self.end == None:
+      self.end = self.len
+    # save dataset to output dir
     if self.prt == True:
-      print(longhead+'trans_xyz:')
-      pp(self.trans_xyz)
-      print(longhead+'rot_xyzw:')
-      pp(self.quat_xyzw)
-      print(longhead+'rot_wxyz:')
-      pp(self.quat_wxyz)
-      print(longhead+'vel_xyz:')
-      pp(self.vel_xyz)
-      print(longhead+'vel_rpy:')
-      pp(self.vel_rpy)
-      print(longtail)
+      self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return
 
   def get(self, quat_format=None):
@@ -213,7 +275,7 @@ class dmm:
     plt.ylabel('Magnitute')
     # save and show image utility
     if save==True and self.output_dir is not None:
-      file_name = self.output_dir+'/'+'{}'.format(figname+'_'+title)
+      file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
       print(longhead+'saving figure: '+file_name)
     if show==True:
@@ -247,7 +309,142 @@ class dmm:
       plt.close()
     return
 
-# # 3d plot
+  def load_kitti_set(self):
+    '''
+      /data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/.
+        ├── data/ <<< each datum is in separate file
+        ├── dataformat.txt
+        └── timestamps.txt
+    '''
+    # get time stamp
+    times_dir = self.src_dir+'timestamps.txt'
+    times = list()
+    periods = list()
+    with open(times_dir) as file:
+      for i, line in enumerate(file):
+        date, time = line.split(sep=' ', maxsplit=1)
+        time = time.replace('\n','')
+        _, __, time = time.split(':')
+        time = float(time)
+        if i == 0:
+          time_zero = time
+          time = 0.0
+          period = 0.0
+        else:
+          time = time - time_zero
+          period = time - times[-1]
+        times.append(time)
+        periods.append(period)
+    # get data format
+    labels = list()
+    briefs = list()
+    format_dir = self.src_dir+'dataformat.txt'
+    with open(format_dir) as file:
+      for line in file:
+        [label, brief] = line.split(sep=':', maxsplit=1)
+        labels.append(label)
+        brief = brief.replace('\n','')
+        briefs.append(brief)
+    # get data
+    data_dir = self.src_dir+'data/'
+    files = os.listdir(data_dir)
+    imu_data = None
+    for file in sorted(files):
+      datum = np.genfromtxt(data_dir+file, delimiter=' ')
+      if len(labels) != datum.shape[0]:
+        eprint(longhead+"Err--->> bad datum: "+file+longtail)
+        exit()
+      if imu_data is None:
+        imu_data = np.expand_dims(datum, axis=1)
+      else:
+        datum = np.expand_dims(datum, axis=1)
+        imu_data = np.concatenate((imu_data, datum), axis=1)
+    imu_data = imu_data.T
+    # add time
+    labels.append('time')
+    times = np.asarray(times)
+    times = np.expand_dims(times, axis=1)
+    imu_data = np.concatenate((imu_data,times), axis=1)
+    # add period
+    labels.append('period')
+    periods = np.asarray(periods)
+    periods = np.expand_dims(periods, axis=1)
+    imu_data = np.concatenate((imu_data, periods), axis=1)
+    # load df
+    self.df = pd.DataFrame(imu_data, columns=labels)
+    self.df.rename(columns={'roll':           'Rr',
+                            'pitch':          'Rp',
+                            'yaw':            'Ry',
+                            'vf':             'vx',
+                            'vl':             'vy',
+                            'vu':             'vz',
+                            'wx':             'wr',
+                            'wy':             'wp',
+                            'wz':             'wy',
+                            'pos_accuracy':   'Pos_acc',
+                            'vel_accuracy':   'Vel_acc',
+                            },
+                    inplace=True,
+                    errors='raise')
+    self.df = get_quat_data(self.df)
+    self.df = get_pose_data(self.df)
+    return
+
+  def load_QuVest_set(self):
+    # load QuEst data
+    fname = 'quest_post_vest.csv'
+    self.quest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load VEst data
+    fname = 'vest.csv'
+    self.vest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load data frame
+    self.df = pd.concat([self.quest, self.vest], axis=1)
+    #self.df.columns = self.labels# load state variables
+    return
+
+  ''' end of dmm class...
+  '''
+
+def get_quat_data(df:pd.DataFrame):
+  Rrpy = df[['Rr', 'Rp', 'Ry']]
+  Q_xyzw = list()
+  Qxyzw_labels = ['qx', 'qy', 'qz', 'qw']
+  for i, row in Rrpy.iterrows():
+    rot_vec = np.asarray([[row[0]], [row[1]], [row[2]]])
+    q_xyzw = np.asarray(exp_map(rot_vec), dtype=object)
+    # TODO: add in scipy implementation for intrinsic config
+    #q_xyzw2 = np.asarray(q_xyzw2)
+    q_xyzw = np.reshape(q_xyzw, (1,-1))
+    Q_xyzw.append(q_xyzw)
+  Q_xyzw = np.asarray(Q_xyzw, dtype=object)
+  Q_xyzw = np.reshape(Q_xyzw, (-1,4))
+  Qxyzw_df = pd.DataFrame(Q_xyzw, columns=Qxyzw_labels)
+  df = pd.concat([df, Qxyzw_df], axis=1)
+  return df
+
+def get_pose_data(df:pd.DataFrame):
+  Vxyz = df[['vx', 'vy', 'vz']]
+  period = df[['period']]
+  Txyz_labels = ['Tx', 'Ty', 'Tz']
+  for i, row in Vxyz.iterrows():
+    if i == 0: # initial frame, reference position
+      Txyz = np.asarray([0,0,0])
+      Txyz = Txyz.reshape((-1, 3))
+    else:
+      vxyz = np.asarray([row[0], row[1], row[2]])
+      txyz = period.iloc[i,0]*vxyz
+      txyz = txyz.reshape((-1, 3))
+      txyz = txyz + Txyz[-1,:]
+      Txyz = np.concatenate((Txyz, txyz), axis=0)
+  #nprint('Txyz', Txyz)
+  pos_df = pd.DataFrame(Txyz, columns=Txyz_labels)
+  df = pd.concat([df, pos_df], axis=1)#, ignore_index=True)
+  #nprint('df', df.head(5))
+  return df
+
+# 3d plot
 def set_axes_equal(ax):
   '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
   cubes as cubes, etc..  This is one possible solution to Matplotlib's
@@ -284,7 +481,7 @@ def plot_quat_vs_quat(quat_A_df,
   end=None,
   labels=None,
   y_range=None,
-  figsize=[8,8]):
+  figsize=[6,6]):
   if end is None:
     end = min(quat_A_df.size, quat_B_df.size)-1
   if labels is None or len(labels) != len(colors):
@@ -348,7 +545,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   end=None,
   labels=None,
   y_range=[-1.1,1.1],
-  figsize=[8,8]):
+  figsize=[6,6]):
   if end is None:
     end = min(quat_A_df.size, quat_B_df.size, quat_C_df.size)-1
   if labels is None or len(labels) != len(colors):
@@ -413,8 +610,8 @@ def plot_df(df:pd.DataFrame,
   start=0,
   end=None,
   labels=None,
-  range_padding:float=1.0,
-  figsize=[5,10]):
+  range_padding:float=0.5,
+  figsize=[5,8]):
   if end is None:
     end = df.index.size-1
   if labels is None:
@@ -461,9 +658,11 @@ def plot_df(df:pd.DataFrame,
   title = title.replace(' ', '_')
   # save and show image
   if save==True and output_dir is not None:
-    file_name = output_dir+'{}'.format(figname+'_'+title)
-    plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name)
+    fig_name = output_dir+'{}'.format(figname+'_'+title)
+    plt.savefig(fig_name, bbox_inches='tight',dpi=400)
+    csv_name = output_dir+title
+    df.to_csv(csv_name+'.csv', columns=df.columns)
+    print(longhead+'saving figure: '+fig_name)
   if show==True: fig.show()
   else: plt.close()
   return
@@ -479,17 +678,20 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   end=None,
   labels=None,
   colors=['r','b'],
-  figsize=[8,8]):
+  figsize=[6,6]):
   if end is None:
+    #st()
     end = min(z_Txyz_df.index.size, x_Txyz_df.index.size)-1
   if labels is None:
     labels = ['z_Txyz', 'x_Txyz']
   plt.figure(figsize=figsize)
   ax = plt.subplot(111, projection='3d')
-  ax.scatter3D(z_Txyz_df['Tx'].iloc[start], z_Txyz_df['Ty'].iloc[start], z_Txyz_df['Tz'].iloc[start], s=100, marker='*',c='y', label='start')
-  ax.scatter3D(z_Txyz_df.Tx, z_Txyz_df.Ty, z_Txyz_df.Tz, marker='.',c=colors[0], label=labels[0])
-  ax.scatter3D(x_Txyz_df.Tx, x_Txyz_df.Ty, x_Txyz_df.Tz, marker='.',c=colors[1], label=labels[1])
-  ax.scatter3D(z_Txyz_df['Tx'].iloc[end], z_Txyz_df['Ty'].iloc[end], z_Txyz_df['Tz'].iloc[end], s=100, marker='*',c='k', label='end')
+  ax.scatter3D(z_Txyz_df['Tx'].iloc[start], z_Txyz_df['Ty'].iloc[start], z_Txyz_df['Tz'].iloc[start], s=50, marker='*',c=colors[0], label='z_0')
+  ax.scatter3D(x_Txyz_df['Tx'].iloc[start], x_Txyz_df['Ty'].iloc[start], x_Txyz_df['Tz'].iloc[start], s=50, marker='*',c=colors[1], label='x_0')
+  ax.scatter3D(z_Txyz_df['Tx'].iloc[start:end], z_Txyz_df['Ty'].iloc[start:end], z_Txyz_df['Tz'].iloc[start:end], marker='.',c=colors[0], label=labels[0])
+  ax.scatter3D(x_Txyz_df['Tx'].iloc[start:end], z_Txyz_df['Ty'].iloc[start:end], z_Txyz_df['Tz'].iloc[start:end], marker='.',c=colors[1], label=labels[1])
+  ax.scatter3D(z_Txyz_df['Tx'].iloc[end], z_Txyz_df['Ty'].iloc[end], z_Txyz_df['Tz'].iloc[end], s=50, marker='^',c=colors[0], label='z_f')
+  ax.scatter3D(x_Txyz_df['Tx'].iloc[end], x_Txyz_df['Ty'].iloc[end], x_Txyz_df['Tz'].iloc[end], s=50, marker='^',c=colors[1], label='x_f')
   ax.set_xlabel('x')
   ax.set_ylabel('y')
   ax.set_zlabel('z')
@@ -509,7 +711,7 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
     plt.close()
   return
 
-def plot_z_df_vs_x_df(z_df:pd.DataFrame,
+def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   x_df:pd.DataFrame,
   labels:list,
   rows=None,
@@ -523,20 +725,21 @@ def plot_z_df_vs_x_df(z_df:pd.DataFrame,
   end=None,
   labels_z=None,
   labels_x=None,
-  range_padding:float=1.0,
-  range_q_padding:float=0.1,
-  figsize=[5,10]):
+  range_padding:float=0.5,
+  range_q_padding:float=0.2,
+  figsize=[5,8]):
   # check
   if len(z_df.columns) != len(x_df.columns):
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df(), dataframes have UNMATCHED \
+    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), dataframes have UNMATCHED \
       number of columns...'+longtail)
   if labels is None:
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df(), no df label passed...'+longtail)
+    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), no df label passed...'+longtail)
   if end is None:
     end = min(z_df.index.size,x_df.index.size)-1
   if rows is None or cols is None:
     rows = len(z_df.columns)
     cols = int(1)
+    #cols = int(2)
   if labels_z is None:
     labels_z = z_df.columns
   if labels_x is None:
@@ -562,7 +765,7 @@ def plot_z_df_vs_x_df(z_df:pd.DataFrame,
   '''
   #plt.style.use("seaborn-dark")
   #plot_colors = iter([plt.cm.tab20(i) for i in range(20)])
-  palette_size = 25
+  palette_size = 20
   cmap01 = cm.get_cmap('autumn',palette_size)
   palette01 = iter(cmap01(np.linspace(0,1,20)))
   cmap02 = cm.get_cmap('winter',palette_size)
@@ -578,7 +781,7 @@ def plot_z_df_vs_x_df(z_df:pd.DataFrame,
     ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=.01, label=xlab)
     if zcol != xcol:
       print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
-      eprint(longhead+'Err--->> plot_z_df_vs_x_df(): UNMATCHED column LABELS...')
+      eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
     else:
       ax.set_title(str(zcol), size=8,)
     # col y range limits
@@ -604,7 +807,13 @@ def plot_z_df_vs_x_df(z_df:pd.DataFrame,
                       max(x_df[x_df.columns[x_df.columns.isin(w_cols)]].max(skipna=True)))
       ax.set_ylim(pad*w_df_min, pad*w_df_max)
     elif zcol in q_cols:
-      ax.set_ylim(-qpad, qpad)
+      if q_df_min is None or q_df_max is None:
+        q_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(q_cols)]].min(skipna=True)),\
+                      min(x_df[x_df.columns[x_df.columns.isin(q_cols)]].min(skipna=True)))
+        q_df_max =max(max(z_df[z_df.columns[z_df.columns.isin(q_cols)]].max(skipna=True)),\
+                      max(x_df[x_df.columns[x_df.columns.isin(q_cols)]].max(skipna=True)))
+      ax.set_ylim(pad*q_df_min, pad*q_df_max)
+      #ax.set_ylim(-qpad, qpad)
     else:
       eprint(longhead+'Err--->> column label missing for figure: '+figname+'...')
   fig.subplots_adjust(wspace=0.05)
@@ -615,16 +824,278 @@ def plot_z_df_vs_x_df(z_df:pd.DataFrame,
     fig.suptitle('{}'.format(title), y = 0.95)
   plt.suptitle(title)
   title = title.replace(' ', '_')
+  title = title.replace('.','-')
   # save and show image
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name)
+    print(longhead+'saving figure: '+file_name+'.png')
+    csv_name = output_dir+title
+    z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
+    x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
   if show==True:
     fig.show()
   else:
     plt.close()
   return
 
+#TODO: finish this variation of plotting routines
+def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
+  x_df:pd.DataFrame,
+  labels:list,
+  title='_',
+  figname='fig_0x',
+  show=False,
+  save=True,
+  output_dir='../out/',
+  start=0,
+  end=None,
+  labels_z=None,
+  labels_x=None,
+  range_padding:float=0.5,
+  range_q_padding:float=0.2,
+  figsize=[5,8]):
+  # check
+  if len(z_df.columns) != len(x_df.columns):
+    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), dataframes have UNMATCHED \
+      number of columns...'+longtail)
+  if labels is None:
+    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), no df label passed...'+longtail)
+  if end is None:
+    end = min(z_df.index.size,x_df.index.size)-1
+  rows = int(3)
+  cols = int(2)
+  if labels_z is None:
+    labels_z = z_df.columns
+  if labels_x is None:
+    labels_x = x_df.columns
+  # column labels
+  t_cols = ['Tx', 'Ty', 'Tz']
+  v_cols = ['vx', 'vy', 'vz']
+  w_cols = ['wr', 'wp', 'wy']
+  q_cols = ['qx', 'qy', 'qz', 'qw']
+  # range padding
+  pad = 1+range_padding
+  qpad = 1+range_q_padding
+  # init min and max variables
+  t_df_min = None
+  t_df_max = None
+  v_df_min = None
+  v_df_max = None
+  w_df_min = None
+  w_df_max = None
+  q_df_min = None
+  q_df_max = None
+  ''' set plot colors
+  '''
+  #plt.style.use("seaborn-dark")
+  #plot_colors = iter([plt.cm.tab20(i) for i in range(20)])
+  palette_size = 20
+  cmap01 = cm.get_cmap('autumn',palette_size)
+  palette01 = iter(cmap01(np.linspace(0,1,20)))
+  cmap02 = cm.get_cmap('winter',palette_size)
+  palette02 = iter(cmap02(np.linspace(0,1,20)))
+  # fig
+  fig, axs = plt.subplots(nrows=rows, ncols=cols, figsize=figsize, sharex=True,\
+    sharey=False)
+  for n, ax in enumerate(axs.flatten()):
+    zcol = labels_z[n]; xcol = labels_x[n]
+    zlab = labels[0]+'_'+zcol
+    xlab = labels[1]+'_'+xcol
+    #ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
+    #ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=.01, label=xlab)
+    if zcol != xcol:
+      print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
+      eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
+    else:
+      ax.set_title(str(zcol), size=8,)
+    # col y range limits
+    if zcol in t_cols:
+      if n%2 == 1:  # z
+        ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=1, label=zlab)
+      elif n%2 == 0: # x
+        ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
+      else:
+        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+      if t_df_min is None or t_df_max is None:
+        t_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(t_cols)]].min(skipna=True)),\
+                      min(x_df[x_df.columns[x_df.columns.isin(t_cols)]].min(skipna=True)))
+        t_df_max =max(max(z_df[z_df.columns[z_df.columns.isin(t_cols)]].max(skipna=True)),\
+                      max(x_df[x_df.columns[x_df.columns.isin(t_cols)]].max(skipna=True)))
+      ax.set_ylim(pad*t_df_min, pad*t_df_max)
+    elif zcol in v_cols:
+      if n%2 == 1:  # z
+        ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
+      elif n%2 == 0: # x
+        ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
+      else:
+        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+      if v_df_min is None or v_df_max is None:
+        v_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(v_cols)]].min(skipna=True)),\
+                      min(x_df[x_df.columns[x_df.columns.isin(v_cols)]].min(skipna=True)))
+        v_df_max =max(max(z_df[z_df.columns[z_df.columns.isin(v_cols)]].max(skipna=True)),\
+                      max(x_df[x_df.columns[x_df.columns.isin(v_cols)]].max(skipna=True)))
+      ax.set_ylim(pad*v_df_min, pad*v_df_max)
+    elif zcol in w_cols:
+      if n%2 == 1:  # z
+        ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
+      elif n%2 == 0: # x
+        ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
+      else:
+        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+      if w_df_min is None or w_df_max is None:
+        w_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(w_cols)]].min(skipna=True)),\
+                      min(x_df[x_df.columns[x_df.columns.isin(w_cols)]].min(skipna=True)))
+        w_df_max =max(max(z_df[z_df.columns[z_df.columns.isin(w_cols)]].max(skipna=True)),\
+                      max(x_df[x_df.columns[x_df.columns.isin(w_cols)]].max(skipna=True)))
+      ax.set_ylim(pad*w_df_min, pad*w_df_max)
+    elif zcol in q_cols:
+      if n%2 == 1:  # z
+        ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
+      elif n%2 == 0: # x
+        ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
+      else:
+        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+      if q_df_min is None or q_df_max is None:
+        q_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(q_cols)]].min(skipna=True)),\
+                      min(x_df[x_df.columns[x_df.columns.isin(q_cols)]].min(skipna=True)))
+        q_df_max =max(max(z_df[z_df.columns[z_df.columns.isin(q_cols)]].max(skipna=True)),\
+                      max(x_df[x_df.columns[x_df.columns.isin(q_cols)]].max(skipna=True)))
+      ax.set_ylim(pad*q_df_min, pad*q_df_max)
+      #ax.set_ylim(-qpad, qpad)
+    else:
+      eprint(longhead+'Err--->> column label missing for figure: '+figname+'...')
+  fig.subplots_adjust(wspace=0.05)
+  ax.set_xlabel('time')
+  fig.legend()
+  # set title
+  if title != '_':
+    fig.suptitle('{}'.format(title), y = 0.95)
+  plt.suptitle(title)
+  title = title.replace(' ', '_')
+  title = title.replace('.','-')
+  # save and show image
+  if save==True and output_dir is not None:
+    file_name = output_dir+'{}'.format(figname+'_'+title)
+    plt.savefig(file_name, bbox_inches='tight',dpi=400)
+    print(longhead+'saving figure: '+file_name)
+    csv_name = output_dir+title
+    z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
+    x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
+  if show==True:
+    fig.show()
+  else:
+    plt.close()
+  return
+
+def plot_df_grp(df:pd.DataFrame,
+  rows,
+  cols,
+  title='_',
+  figname='fig_0x',
+  show=False,
+  save=True,
+  output_dir='../out/',
+  start=0,
+  end=None,
+  labels=None,
+  range_padding:float=0.5,
+  figsize=[5,8]):
+  if end is None:
+    end = df.index.size-1
+  if labels is None:
+    labels = df.columns
+  # set plot colors
+  cmap = cm.get_cmap('plasma', 15)
+  plot_colors = iter(cmap(np.linspace(0, 1, 15)))
+  #plot_colors = iter([plt.cm.tab100(i) for i in range(20)])
+  # column labels
+  t_cols = ['Tx', 'Ty', 'Tz']
+  v_cols = ['vx', 'vy', 'vz']
+  w_cols = ['wr', 'wp', 'wy']
+  q_cols = ['qx', 'qy', 'qz', 'qw']
+  # range padding
+  pad = 1+range_padding
+  # fig
+  fig, axs = plt.subplots(nrows=rows, ncols=cols, figsize=figsize, sharex=True, sharey=False)
+  for n, ax in enumerate(axs.flatten()):
+    col = labels[n]
+    ax.plot(df.loc[start:end,col], marker='.',c=next(plot_colors), ms=1, label=col)
+    #ticks = [n % 5 == 0, n > end]
+    #ax.tick_params(left=ticks[start], bottom=ticks[end])
+    ax.set_title(str(col), size=12)
+    if col in t_cols:
+      ax.set_ylim(pad*min(df[df.columns[df.columns.isin(t_cols)]].min(skipna=False)),\
+                  pad*max(df[df.columns[df.columns.isin(t_cols)]].max(skipna=False)))
+    elif col in v_cols:
+      ax.set_ylim(pad*min(df[df.columns[df.columns.isin(v_cols)]].min(skipna=False)),\
+                  pad*max(df[df.columns[df.columns.isin(v_cols)]].max(skipna=False)))
+    elif col in w_cols:
+      ax.set_ylim(pad*min(df[df.columns[df.columns.isin(w_cols)]].min(skipna=False)),\
+                  pad*max(df[df.columns[df.columns.isin(w_cols)]].max(skipna=False)))
+    elif col in q_cols:
+      #ax.set_ylim(-1.1,1.1)
+      ax.set_ylim(pad*min(df[df.columns[df.columns.isin(q_cols)]].min(skipna=False)),\
+                  pad*max(df[df.columns[df.columns.isin(q_cols)]].max(skipna=False)))
+    else:
+      eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
+  fig.subplots_adjust(wspace=0.05)
+  ax.set_xlabel('time')
+  fig.legend()
+  # set title
+  if title != '_':
+    fig.suptitle('{}'.format(title), y=0.95)
+  plt.suptitle(title)
+  title = title.replace(' ', '_')
+  # save and show image
+  if save==True and output_dir is not None:
+    fig_name = output_dir+'{}'.format(figname+'_'+title)
+    plt.savefig(fig_name, bbox_inches='tight',dpi=400)
+    csv_name = output_dir+title
+    df.to_csv(csv_name+'.csv', columns=df.columns)
+    print(longhead+'saving figure: '+fig_name)
+  if show==True: fig.show()
+  else: plt.close()
+  return
+
+
+def plot_df_grp_K(df:pd.DataFrame,
+  title='_',
+  figname='fig_0x',
+  show=False,
+  save=True,
+  output_dir='../out/',
+  start=0,
+  end=None,
+  labels=None,
+  range_padding:float=0.5,
+  figsize=[6,6]):
+  if end is None:
+    end = df.index.size-1
+  if labels is None:
+    labels = df.columns
+  # set plot colors
+  cmap = cm.get_cmap('plasma', 15)
+  plot_colors = iter(cmap(np.linspace(0, 1, 15)))
+  #plot_colors = iter([plt.cm.tab100(i) for i in range(20)])
+  ax = df.plot(figsize=figsize)
+  ax.set_xlabel('time')
+  #plt.legend(loc='best')
+  # set title
+  if title != '_':
+    plt.suptitle('{}'.format(title), y = 0.95)
+  plt.suptitle(title)
+  title = title.replace(' ', '_')
+  title = title.replace('.', '-')
+  # save and show image
+  if save==True and output_dir is not None:
+    fig_name = output_dir+'{}'.format(figname+'_'+title)
+    plt.savefig(fig_name, bbox_inches='tight',dpi=400)
+    csv_name = output_dir+title
+    df.to_csv(csv_name+'.csv', columns=df.columns)
+    print(longhead+'saving figure: '+fig_name)
+  if show==True: plt.show()
+  else: plt.close()
+  return
 
 # EOF
