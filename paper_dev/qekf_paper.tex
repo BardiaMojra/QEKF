@@ -74,16 +74,17 @@ This template pro
 For clarity, we decided to dedicate this section to
 
 
-In this paper, scalar values are represented by \underline{underlined} variables,
-i.e. $\underline{a},\underline{x},\underline{y},\underline{z}$.
 Vectors are represented by normal font variables, i.e. $a,x,y,z$.
 Matrices are represented by UPPERCASE letters, i.e. $\mathbf{A,X,Y,Z}$.
-Approximated vectors are represented as normal vectors with a \textit{tilde} on top
-to signify its \textit{approximation} designation, i.e.  $\mathbf{\widetilde{a},\widetilde{x},\widetilde{y},\widetilde{z}}$.
-The same notation is applied to matrices and scalars.
-Estimated vectors are represented as normal vectors with a \textit{hat} on top
-to signify its \textit{estimation} designation, i.e.  $\mathbf{\widehat{a},\widehat{x},\widehat{y},\widehat{z}}$.
-The same notation is applied to matrices and scalars.
+Approximated vectors are denoted with a \textit{tilde} on top
+to signify its \textit{approximation} designation, i.e.  $\widetilde{a},\widetilde{x},\widetilde{y},\widetilde{z}$. For clarity, we define approximate value representation
+in \ref{eq:1} as the original function with added bias and uniform distribution noise.
+This form representation is used to represent high-resolution measurements that
+are used as approximated input to the system. This is an essential part the EKF
+implementation which we describe in detail in later sections.
+Estimated vectors are represented with a \textit{hat} on top
+to signify its \textit{estimation} designation, i.e.  $\widehat{a},\widehat{x},\widehat{Y},\widehat{Z}$.
+
 
 
 
@@ -92,41 +93,42 @@ The same notation is applied to matrices and scalars.
 \subsection{Inertial Model}
 
 We start with a Newtonian dynamic model, where the system is described by forces
-acting onto robot's rigid body.
+acting on a rigid body.
 
 
-First, we calculate the \textit{proper acceleration}, $a_{proper}$, which presents
-forces acting onto robot's rigid body. We subtract gravity from the absolute acceleration
-or \textit{coordinate acceleration}, $a_{abs}$
-
-and its \textit{Body Frame} acceleration, $a$.
-We remove Earth's gravity from system dynamics.
+For this paper, we decided to use linear and angular velocities as known input
+to the system, where we define $u$ as the following.
 
 \begin{equation}
 \label{eq:1}
-a_{proper} = {C}^{I}_{B}(a_{abs} - g),
+\transpose{u} := \left[ \transpose{v} \transpose{w} \right],
+\end{equation}
+
+\begin{equation}
+\label{eq:2}
+u_{B} = {C}^{I}_{B} u,
 \end{equation}
 
 
-Where matrix ${C}^{I}_{B}$ represents the orthonormal rotation from \textit{inertial frame},
+Where matrix ${C}^{I}_{B}$ represents the orthanormal rotation from \textit{inertial frame},
 \textit{I}, to robots \textit{body frame}, \textit{B}.
 
 
 
-
-
-Linear are force
-
-\begin{equation}
-\label{eq:2}
-\widetilde{a} ~or~ f = a + \omega_{a}
-\end{equation}
-
-
 \begin{equation}
 \label{eq:3}
-\widetilde{\omega} = \omega + \omega_{\omega}
+\widetilde{v}= v + n_{v} + b_{v},
 \end{equation}
+
+
+\begin{equation}
+\label{eq:4}
+\widetilde{\omega} = \omega + n_{\omega} + b_{\omega}.
+\end{equation}
+
+where $n$ and $b$ represent a normal distribution noise and bias added to the
+
+
 
 
 
@@ -140,13 +142,13 @@ space, $q$. The observation state vector, $z$, is defined as the following:
 
 \begin{equation}
 \label{eq:4}
-\transpose{z} :=  \left[r~v~\omega~q \right],
+\transpose{z} :=  \left[\transpose{r}~\transpose{v}~\transpose{\omega}~\transpose{q_xyzw} \right],
 \end{equation}
 
 
-Where the observed quaternion state is used to compute the corresponding state
+Where the observed the quaternion state is used to compute the corresponding state
 rotation matrix, ${C}^{I}_{B}$.
-It is important to note that the observation data is treated as the groundtruth.
+It is important to note that the observation data is treated as the groundtruth (Keep?????).
 
 
 
@@ -156,25 +158,25 @@ It is important to note that the observation data is treated as the groundtruth.
 To deploy a modified Kalman filter, we start with the assumption of continuous-time nonlinear system described by the following:
 
 \begin{equation}
-\dot{x} = f(x,u,\omega_{f}),
+\dot{x} = f(x,u),
 \end{equation}
 \begin{equation}
-y = h(x,u,\omega_{h}).
+y = h(x,u).
 \end{equation}
 
 Where $f()$ represents the \textit{process} model and $h()$ represent the
-\textit{observation} model. Variables $\omega_{f}$ and $\omega_{h}$ represent the
-\textit{process} and \textit{observation} noise, respectively. Vector $u$
-represent input to the system.
+\textit{observation} model.
+%Variables $\omega_{f}$ and $\omega_{h}$ represent the \textit{process} and \textit{observation} noise, respectively.
+Vector $u$ represent input to the system.
 
 \subsection{Estimation State Definition}
 
 The estimation state is defined by the robot's linear position, $r$, and velocity,
-$v$, and the body frame orientation in quaternion space.
+$v$, and the body frame orientation in the quaternion space.
 
 \begin{equation}
 \label{eq:5}
-\transpose{x} :=  \left[r~v~q \right]
+\transpose{x} :=  \left[\transpose{r}~\transpose{v}~\transpose{q_{xyz}} \right]
 \end{equation}
 
 \begin{equation}
@@ -270,7 +272,7 @@ Gamma, $\Gamma$, represents incremental
 \omega^{\times i},
 \end{equation}
 
-Where $(.)^{\times}$
+Where $(.)^{\times}$ represents skew-symmetry matrix of a vector
 
 
 \subsection{Updating Quaternion State}
@@ -305,10 +307,10 @@ state error from the error rotation vector, [QEKF01].
 
 Before you
 
-\begin{equation}
-\label{eq:}
+%\begin{equation}
+%\label{eq:}
 
-\end{equation}
+%\end{equation}
 
 
 Finally, comp
@@ -405,8 +407,8 @@ The preferr
 References are
 \begin{thebibliography}{99}
 
-\bibitem{c1} G. O. Young, ÒSynthetic structure of industrial plastics (Book style with paper title and editor),Ó 	in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 15Ð64.
-\bibitem{c2} W.-K. Chen, Linear Networks and Systems (Book style).	Belmont, CA: Wadsworth, 1993, pp. 123Ð135.
+\bibitem{c1} G. O. Young, Synthetic structure of industrial plastics (Book style with paper title and editor), 	in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 1564.
+\bibitem{c2} W.-K. Chen, Linear Networks and Systems (Book style).	Belmont, CA: Wadsworth, 1993, pp. 123135.
 \bibitem{c3} H. Poor, An Introduction to Signal Detection and Estimation.   New York: Springer-Verlag, 1985, ch. 4.
 
 
