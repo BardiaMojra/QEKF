@@ -201,8 +201,6 @@ class ExtendedKalmanFilter(object):
 
     self.y_TVWQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]]
 
-
-
     self.K = self.K * self.K_scale
 
     ky = dot(self.K, self.y_TVWQxyz)

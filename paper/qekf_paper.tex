@@ -142,7 +142,7 @@ space, $q$. The observation state vector, $z$, is defined as the following:
 
 \begin{equation}
 \label{eq:4}
-\transpose{z} :=  \left[\transpose{r}~\transpose{v}~\transpose{\omega}~\transpose{q_xyzw} \right],
+\transpose{z} :=  \left[\transpose{r}~\transpose{v}~\transpose{\omega}~\transpose{q_{xyzw}} \right],
 \end{equation}
 
 
@@ -189,14 +189,17 @@ Estimation residual is denoted by $\delta x$
 
 \begin{equation}
 \label{eq:7}
-\delta \transpose{x} = \left[\delta r~\delta v~\delta \phi \right]
+\delta \transpose{x} = \left[\transpose{\delta r} ~\transpose{\delta v} ~\transpose{\delta \phi} \right]
 \end{equation}
+
+How was $ \transpose{\delta \phi} $ obtained?
+
 
 \subsection{Estimation Model}
 
 \begin{equation}
 \label{eq:8}
-\delta \transpose{x} = \left[\delta r~\delta v~\delta \phi \right]
+\hat{x} =
 \end{equation}
 
 
@@ -306,6 +309,22 @@ state error from the error rotation vector, [QEKF01].
 \section{MATH}
 
 Before you
+
+
+Diagonal matrix Q is in $dim_x \times dim_x$ dimensions and represent the process
+noise tolerance or innovation (if I recall correctly--------).
+
+\begin{equation}
+%\label{eq:}
+Q_{c} =
+        \begin{bmatrix}
+                Q_{t}
+        \end{bmatrix}
+\end{equation}
+
+
+
+
 
 %\begin{equation}
 %\label{eq:}
