@@ -99,13 +99,11 @@ acting on a rigid body.
 For this paper, we decided to use linear and angular velocities as known input
 to the system, where we define $u$ as the following.
 
-\begin{equation}
-\label{eq:1}
+\begin{equation} \label{eqn:1}
 \transpose{u} := \left[ \transpose{v} \transpose{w} \right],
 \end{equation}
 
-\begin{equation}
-\label{eq:2}
+\begin{equation} \label{eq:2}
 u_{B} = {C}^{I}_{B} u,
 \end{equation}
 
@@ -115,14 +113,12 @@ Where matrix ${C}^{I}_{B}$ represents the orthanormal rotation from \textit{iner
 
 
 
-\begin{equation}
-\label{eq:3}
+\begin{equation} \label{eq:3}
 \widetilde{v}= v + n_{v} + b_{v},
 \end{equation}
 
 
-\begin{equation}
-\label{eq:4}
+\begin{equation} \label{eq:4}
 \widetilde{\omega} = \omega + n_{\omega} + b_{\omega}.
 \end{equation}
 
@@ -140,8 +136,7 @@ The measurement state definition is defined by linear position, $r$, linear
 velocity, $v$, angular velocity, $\omega$, and angular orientation in the quaternion
 space, $q$. The observation state vector, $z$, is defined as the following:
 
-\begin{equation}
-\label{eq:4}
+\begin{equation} \label{eq:5}
 \transpose{z} :=  \left[\transpose{r}~\transpose{v}~\transpose{\omega}~\transpose{q_{xyzw}} \right],
 \end{equation}
 
@@ -155,19 +150,24 @@ It is important to note that the observation data is treated as the groundtruth 
 
 \subsection{EKF Model}
 
-To deploy a modified Kalman filter, we start with the assumption of continuous-time nonlinear system described by the following:
+To deploy a modified Kalman filter which uses \textit{Quaternions} for representing
+rotation. We explain these modifications in detail in the \textit{Quaternion Algebra}.
+We start with the LaGrangian system representation, a continuous-time nonlinear
+system described by the following:
 
-\begin{equation}
+\begin{equation} \label{eq:6}
 \dot{x} = f(x,u),
 \end{equation}
-\begin{equation}
+\begin{equation} \label{eq:7}
 y = h(x,u).
 \end{equation}
 
 Where $f()$ represents the \textit{process} model and $h()$ represent the
 \textit{observation} model.
 %Variables $\omega_{f}$ and $\omega_{h}$ represent the \textit{process} and \textit{observation} noise, respectively.
-Vector $u$ represent input to the system.
+Vector $u$ represents input to the system.
+Vector $y$ represents the system output.
+
 
 \subsection{Estimation State Definition}
 
@@ -175,12 +175,12 @@ The estimation state is defined by the robot's linear position, $r$, and velocit
 $v$, and the body frame orientation in the quaternion space.
 
 \begin{equation}
-\label{eq:5}
+\label{eq:8}
 \transpose{x} :=  \left[\transpose{r}~\transpose{v}~\transpose{q_{xyz}} \right]
 \end{equation}
 
 \begin{equation}
-\label{eq:6}
+\label{eq:9}
 P := Cov(\delta x),
 \end{equation}
 
@@ -188,7 +188,7 @@ Estimation residual is denoted by $\delta x$
 
 
 \begin{equation}
-\label{eq:7}
+\label{eq:10}
 \delta \transpose{x} = \left[\transpose{\delta r} ~\transpose{\delta v} ~\transpose{\delta \phi} \right]
 \end{equation}
 
@@ -197,9 +197,16 @@ How was $ \transpose{\delta \phi} $ obtained?
 
 \subsection{Estimation Model}
 
+Calculate the incremental rotation matrix $R_k$ from $q_{xyzw}$ from observation
+vector $z$, \ref{eq:5}.
+
+How is this done? scipy spatial transform module, Rotation object.
+
+This spatial transform is carried out using an \textit{extension of Euler's formula}
+
 \begin{equation}
-\label{eq:8}
-\hat{x} =
+\label{eq:11}
+R_{k} = Rot_{from_q} \left( ~\transpose{q_{xyzw} } \right)
 \end{equation}
 
 
@@ -236,16 +243,16 @@ It is important to note the difference as both are used in our derivation and
 implementation.
 
 \begin{equation}
-\label{eq:10}
+\label{eq:12}
 q_{wxyz} = q_{xyzw} ~; ~~~ q_{wxyz},~q_{xyzw} \in \mathbb{H}^{1}
 \end{equation}
 
 
 \subsection{Pure Quaternion}
-As previously mention, the three imaginary terms of the quaternion represent the
-angles of interest in 3D and the fourth dimension constraints the magnitude. Thus
-to avoid computational errors, we use quaternion only with its three imaginary
-terms, $xyz$.
+As previously mentioned, the three imaginary terms of the quaternion represent the
+3D angles of interest in radians and the fourth dimension constraints the vector
+magnitude. Thus to avoid computational errors, in the prediction step, we use
+the unit quaternion where it only has its three imaginary terms, $xyz$.
 This quaternion space representation is defined by $\mathbb{H}^{0}$ and
 denoted by $q_xyz$ variables.
 
@@ -269,7 +276,7 @@ the rotational rate vector and matrix exponential mapping function, [QEKF01].
 Gamma, $\Gamma$, represents incremental
 
 \begin{equation}
-\label{eq:}
+\label{eq:2}
 \Gamma_{0} := \sum_{i=0}^{\infty} \frac{ \left( \Delta t^{i+n}  \right)}{ \\
 \left( i + n \right) \! } \\
 \omega^{\times i},
@@ -280,7 +287,7 @@ Where $(.)^{\times}$ represents skew-symmetry matrix of a vector
 
 \subsection{Updating Quaternion State}
 \begin{equation}
-\label{eq:12}
+\label{eq:13}
 q_{i+1} = \delta q_{i} \otimes \widehat{q}_{i}
 \end{equation}
 
@@ -291,12 +298,12 @@ We use the mapping function $\zeta(.)$ to calculate the quaternion
 state error from the error rotation vector, [QEKF01].
 
 \begin{equation}
-\label{eq:13}
+\label{eq:14}
 \delta q = \zeta(\delta \phi),
 \end{equation}
 
 \begin{equation}
-\label{eq:14}
+\label{eq:15}
 \zeta : v \rightarrow \zeta(v) =
         \begin{bmatrix}
         \sin(\frac{1}{2}\|v\|) \frac{v}{\|v\|} \\
@@ -322,9 +329,44 @@ Q_{c} =
         \end{bmatrix}
 \end{equation}
 
+H is the \textit{observation model}.
+H is dimz by dimx which 12 by 9 where $q_xyz$ is used.
+
+\begin{equation}
+%\label{eq:}
+H =
+\begin{bmatrix}
+        I && 0 && 0  \\
+        0 && I && 0  \\
+        0 && 0 && I  \\
+        0 && 0 && 0  \\
+\end{bmatrix}
+\end{equation}
+
+L is dimx by dimx matrix and here it is 9x9.
+
+\begin{equation}
+%\label{eq:}
+L =
+\begin{bmatrix}
+        0 && 0 && 0  \\
+        0 && -\transpose{C} && 0  \\
+        0 && 0 && -I  \\
+\end{bmatrix}
+\end{equation}
 
 
+F is dimx by dimx matrix and here it is 9x9.
 
+\begin{equation}
+%\label{eq:}
+F =
+\begin{bmatrix}
+        I && \Delta t   I && 0  \\
+        0 && I && 0  \\
+        0 && 0 && I- \Delta t \omega^{\times}  \\
+\end{bmatrix}
+\end{equation}
 
 %\begin{equation}
 %\label{eq:}
