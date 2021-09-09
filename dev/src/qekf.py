@@ -300,10 +300,10 @@ class ExtendedKalmanFilter(object):
 
   def set_L(self):
     ## QEKF2 L matrix
-    self.L = np.eye(self.dim_x)
+    self.L = -np.eye(self.dim_x)
     self.L[3:6,3:6] = -self.C.T
-    self.L[0:3,0:3] = 0
-    self.L[6:9,6:9] = -np.eye(3)
+    #self.L[0:3,0:3] = 0
+    #self.L[6:9,6:9] = -np.eye(3)
     return self
 
   def get_Qwxyz_from_Qxyz(self, xyz: np.array):
