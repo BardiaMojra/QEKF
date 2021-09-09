@@ -58,13 +58,13 @@ def main():
   #data = 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'
   #data = 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off' #TODO: name index bug: df.columns and labels
   #data = 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
-  data = 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
+  #data = 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
   #data = 'kitti_imu_0926_0001'
   #data = 'kitti_imu_0926_0002'
   #data = 'kitti_imu_0926_0005'
   #data = 'kitti_imu_0926_0018'
   #data = 'kitti_imu_0926_0060'
-  #data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
+  data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
   #data = 'kitti_imu_0926_0113' #todo: show this to Dr. Gans - Quat flips
   #data = 'kitti_imu_0928_0001'
 
