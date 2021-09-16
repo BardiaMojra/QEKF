@@ -59,7 +59,12 @@ Quaternion EKF
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-This electro
+Pose estimation has long been a subject of interest to researchers\\
+
+This paper presents an EKF based pose estimation and tracking for situations where direct sensing is not feasible. We expand on the work of Fathian and Dani, \cite{quest} and \cite{vest}, by using their vision based pose and velocity estimation as remote sensing measurements to our EKF model.
+
+
+Short sentences on what we will present
 
 \end{abstract}
 
@@ -67,48 +72,58 @@ This electro
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
 
-This template pro
+\textbf{Similar to Abstract but in past tense and in more detail}\\
+
+In this paper, we combine QUEST and VEST with Kalman Filter.\\
+
+\subsection{Background}
+
+% start with the template for structure and how the material is presented!!
+The Kalman Filter (KF) was formally introduced in the summer of 1960 by Rudolf E. Kalman where, he formulated the state-space representation of dynamical systems \cite{KF}.
+
+
+
 
 \subsection{Notation}
 
-For clarity, we decided to dedicate this section to
-
-
-Vectors are represented by normal font variables, i.e. $a,x,y,z$.
+For clarity, we dedicated this section to formally present the notation used in this paper.Vectors are represented by normal font variables, i.e. $a,x,y,z$.
 Matrices are represented by UPPERCASE letters, i.e. $\mathbf{A,X,Y,Z}$.
-Approximated vectors are denoted with a \textit{tilde} on top
-to signify its \textit{approximation} designation, i.e.  $\widetilde{a},\widetilde{x},\widetilde{y},\widetilde{z}$. For clarity, we define approximate value representation
-in \ref{eq:1} as the original function with added bias and uniform distribution noise.
-This form representation is used to represent high-resolution measurements that
-are used as approximated input to the system. This is an essential part the EKF
-implementation which we describe in detail in later sections.
-Estimated vectors are represented with a \textit{hat} on top
-to signify its \textit{estimation} designation, i.e.  $\widehat{a},\widehat{x},\widehat{Y},\widehat{Z}$.
+\textit{Approximation} vectors are denoted with a \textit{tilde} i.e. $\widetilde{a},\widetilde{x},\widetilde{y},\widetilde{z}$.
+We define approximate function representation
+in \ref{eq:3} and \ref{eq:4} as the original function with added bias and uniform distribution noise.
+This form of representation is used to express measurements that
+are used as approximate control input to the system. This is an essential part the EKF
+implementation which, we describe in detail in later sections.
+\textit{Estimation} vectors are represented with a \textit{hat} on top, i.e. $\widehat{a},\widehat{x},\widehat{Y},\widehat{Z}$.
 
 
+\subsection{Paper Structure}
 
 
 \section{OBSERVATION AND ESTIMATION MODELS}
 
 \subsection{Inertial Model}
 
-We start with a Newtonian dynamic model, where the system is described by forces
-acting on a rigid body.
+We start with a basic linear continuous-time state-space representation of a dynamical system and derive
 
 
-For this paper, we decided to use linear and angular velocities as known input
-to the system, where we define $u$ as the following.
+For this paper, we used linear and angular velocities obtained from  as known input
+to the system, where we define $u \in \mathbb{R}^6$ as,
 
-\begin{equation} \label{eqn:1}
-\transpose{u} := \left[ \transpose{v} \transpose{w} \right],
+\begin{equation} \label{eq:1}
+\transpose{u} := \left[ \transpose{v} \transpose{\omega} \right],
 \end{equation}
 
 \begin{equation} \label{eq:2}
-u_{B} = {C}^{I}_{B} u,
+u_{B} =
+\begin{bmatrix}
+        {C}^{I}_{B}  \\
+        {C}^{I}_{B}  \\
+\end{bmatrix} u,
 \end{equation}
 
-
-Where matrix ${C}^{I}_{B}$ represents the orthanormal rotation from \textit{inertial frame},
+\noindent
+where matrix ${C}^{I}_{B}$ represents the orthanormal rotation from \textit{inertial frame},
 \textit{I}, to robots \textit{body frame}, \textit{B}.
 
 
@@ -122,11 +137,19 @@ Where matrix ${C}^{I}_{B}$ represents the orthanormal rotation from \textit{iner
 \widetilde{\omega} = \omega + n_{\omega} + b_{\omega}.
 \end{equation}
 
-where $n$ and $b$ represent a normal distribution noise and bias added to the
+\noindent
+where $n$ and $b$ represent a uniform distribution or Brownian noise and bias from the measurement. Both $n$ and $b$ belong to $\mathbb{R}^3$
 
 
+\subsection{Linearization}
 
 
+\subsection{Discretization}
+
+\subsection{QUEST}
+
+
+\subsection{VEST}
 
 
 
@@ -143,17 +166,16 @@ space, $q$. The observation state vector, $z$, is defined as the following:
 
 Where the observed the quaternion state is used to compute the corresponding state
 rotation matrix, ${C}^{I}_{B}$.
-It is important to note that the observation data is treated as the groundtruth (Keep?????).
+It is important to note that the observation data for position and orientation are treated as \textit{estimation groundtruth} (Keep?????) and velocity values are treated as \textit{control inputs} to the system. Both estimation groundtruth and control inputs carry \textit{process and observation noise}, respectively.
 
 
 
 
 \subsection{EKF Model}
 
-To deploy a modified Kalman filter which uses \textit{Quaternions} for representing
-rotation. We explain these modifications in detail in the \textit{Quaternion Algebra}.
-We start with the LaGrangian system representation, a continuous-time nonlinear
-system described by the following:
+We deployed a modified EKF filter that uses \textit{Quaternion} for representing
+rotations. We explain these modifications in detail in the \textit{Quaternion Algebra}.
+We start with a nonlinear continuous-time system model described by,
 
 \begin{equation} \label{eq:6}
 \dot{x} = f(x,u),
@@ -164,15 +186,15 @@ y = h(x,u).
 
 Where $f()$ represents the \textit{process} model and $h()$ represent the
 \textit{observation} model.
-%Variables $\omega_{f}$ and $\omega_{h}$ represent the \textit{process} and \textit{observation} noise, respectively.
-Vector $u$ represents input to the system.
-Vector $y$ represents the system output.
+Variables $\omega_{f}$ and $\omega_{h}$ represent the \textit{process} and \textit{observation} noise, respectively.
+Vector $u$ represents input to the system and $u \in \mathbb{R}^{6}$ .
+Vector $y$ represents the system output and $y \sim \in \mathbb{R}^6$ .
 
 
 \subsection{Estimation State Definition}
 
-The estimation state is defined by the robot's linear position, $r$, and velocity,
-$v$, and the body frame orientation in the quaternion space.
+The estimation state, $x$, is defined by the robot's linear position $r \in \mathbb{R}^3$, velocity
+$v \in \mathbb{R}^3$ (MUST GO!!), and the body frame (GLOBAL???????) orientation $q_{xyz} \in \mathbb{H}^0$. We provide a detailed description for quaternion space representation in \ref{}
 
 \begin{equation}
 \label{eq:8}
@@ -184,7 +206,7 @@ $v$, and the body frame orientation in the quaternion space.
 P := Cov(\delta x),
 \end{equation}
 
-Estimation residual is denoted by $\delta x$
+Estimation residual is denoted by $\delta x \in \mathbb{R + H}$  (How can define the space here??)
 
 
 \begin{equation}
@@ -211,16 +233,15 @@ R_{k} = Rot_{from_q} \left( ~\transpose{q_{xyzw} } \right)
 
 
 
-\section{QUATERNION ALGEBRA}
+\section{QUATERNION ALGEBRA} \label{sec:QuatAlg}
 
-Quaternion intro paragraph
 Quaternion space is a non-minimal representation belonging to \textit{SO(3)} Lie group.
 
 \subsection{Unit Quaternion}
 Moreover, the quaternion term from the dataset has \textit{four terms} with $xyzw$
 format.
 Hamilton's quaternion defined by 3 perpendicular imaginary axes $i,j,k$ with
-real scalars $x,y,z$ and a real term $w$ which constraints other 3 dimension to
+real scalars $x,y,z$ and a real term $w$ which, constraints other 3 dimension to
 a \textit{unit magnitude}. Thus, the fourth term normalizes the vector's magnitude
 conveniently and preserves the 3D rotation (3 DOF). We define \textbf{Unit Hamiltonian}
 or \textbf{Unit Quaternion} as,
@@ -330,7 +351,7 @@ Q_{c} =
 \end{equation}
 
 H is the \textit{observation model}.
-H is dimz by dimx which 12 by 9 where $q_xyz$ is used.
+H is dimz by dimx which, 12 by 9 where $q_{xyz}$ is used.
 
 \begin{equation}
 %\label{eq:}
@@ -338,8 +359,8 @@ H =
 \begin{bmatrix}
         I && 0 && 0  \\
         0 && I && 0  \\
-        0 && 0 && I  \\
         0 && 0 && 0  \\
+        0 && 0 && I  \\
 \end{bmatrix}
 \end{equation}
 
@@ -349,7 +370,7 @@ L is dimx by dimx matrix and here it is 9x9.
 %\label{eq:}
 L =
 \begin{bmatrix}
-        0 && 0 && 0  \\
+        -I && 0 && 0  \\
         0 && -\transpose{C} && 0  \\
         0 && 0 && -I  \\
 \end{bmatrix}
@@ -465,19 +486,7 @@ The preferr
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-References are
-\begin{thebibliography}{99}
-
-\bibitem{c1} G. O. Young, Synthetic structure of industrial plastics (Book style with paper title and editor), 	in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 1564.
-\bibitem{c2} W.-K. Chen, Linear Networks and Systems (Book style).	Belmont, CA: Wadsworth, 1993, pp. 123135.
-\bibitem{c3} H. Poor, An Introduction to Signal Detection and Estimation.   New York: Springer-Verlag, 1985, ch. 4.
-
-
-
-
-\end{thebibliography}
-
-
-
+\bibliography{ref}
+\bibliographystyle{ieeetr}
 
 \end{document}
