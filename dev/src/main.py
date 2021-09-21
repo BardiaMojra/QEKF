@@ -52,11 +52,13 @@ def main():
   fignum = int(0)
 
   # select dataset
-  #data = 'dataset-iphone1_clean'
+  #todo - close estimation
+  data = 'dataset-iphone1_clean'
   #data = 'bigC_06-Aug2021'
   #data = 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
   #data = 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'
   #data = 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off' #TODO: name index bug: df.columns and labels
+  #todo - close estimation
   #data = 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
   #data = 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
   #data = 'kitti_imu_0926_0001'
@@ -64,7 +66,7 @@ def main():
   #data = 'kitti_imu_0926_0005'
   #data = 'kitti_imu_0926_0018'
   #data = 'kitti_imu_0926_0060'
-  data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
+  #data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
   #data = 'kitti_imu_0926_0113' #todo: show this to Dr. Gans - Quat flips
   #data = 'kitti_imu_0928_0001'
 
@@ -228,7 +230,8 @@ def main():
   fignum+=1; get_fignum_str(fignum)
   plot_Txyz_vs_Txyz_3d(z_Txyz_df,
     x_post_Txyz_df,
-    title='z vs x_posterior translation',
+    #title='z vs x_posterior translation',
+    title='Translation',
     figname='fig_11',
     show=_show,
     #show=True,
