@@ -190,6 +190,7 @@ class ExtendedKalmanFilter(object):
     '''
     self.y_TVWQxyz = np.subtract(self.z_TVWQxyzw[0:12,0], hx.T).T # TVWQxyz
 
+
     ''' quat part
     '''
     x_prior_est_Qwxyz_q = Quaternion(self.x_prior_TVQwxyz[6:10,0]) # wxyz input
@@ -312,6 +313,7 @@ class ExtendedKalmanFilter(object):
     # sqrt(1-x^2-y%2-z^2) to confirm real part calc
     w = np.sqrt(1 -xyz[0]**2 -xyz[1]**2 -xyz[2]**2)
     return [w, xyz[0], xyz[1], xyz[2]]
+
 
 
 # EOF

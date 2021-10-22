@@ -85,16 +85,16 @@ The Kalman Filter (KF) was formally introduced in the summer of 1960 by Rudolf E
 
 
 \subsection{Notation}
-
-For clarity, we dedicated this section to formally present the notation used in this paper.Vectors are represented by normal font variables, i.e. $a,x,y,z$.
+% For clarity, we dedicated this section to formally present the notation used in this paper.
+Vectors are represented by normal font variables, i.e. $a,x,y,z$.
 Matrices are represented by UPPERCASE letters, i.e. $\mathbf{A,X,Y,Z}$.
 \textit{Approximation} vectors are denoted with a \textit{tilde} i.e. $\widetilde{a},\widetilde{x},\widetilde{y},\widetilde{z}$.
 We define approximate function representation
 in \ref{eq:3} and \ref{eq:4} as the original function with added bias and uniform distribution noise.
 This form of representation is used to express measurements that
 are used as approximate control input to the system. This is an essential part the EKF
-implementation which, we describe in detail in later sections.
-\textit{Estimation} vectors are represented with a \textit{hat} on top, i.e. $\widehat{a},\widehat{x},\widehat{Y},\widehat{Z}$.
+implementation, which we describe in detail in later sections.
+\textit{Estimation} vectors are represented with a \textit{hat}, i.e. $\widehat{a},\widehat{x},\widehat{Y},\widehat{Z}$.
 
 
 \subsection{Paper Structure}
@@ -253,8 +253,8 @@ or \textbf{Unit Quaternion} as,
                    && \left.~w^{2}+x^{2}+y^{2}+z^{2}=1 \right\}
 \end{eqnarray}
 % page 27, sec 2.4.2 of "Quaternion Algebra"
-
-Where superscript 1 in $\mathbb{H}^{1}$ denotes a unit quaternion space with 4
+\noindent
+where superscript 1 in $\mathbb{H}^{1}$ denotes a unit quaternion space with 4
 terms. There are two equal representations for $\mathbb{H}^{1}$ subgroup; thus,
 we provide a concise definition and notation for both to avoid confusion. The
 the first representation is shown in \ref{eq:5} where the four terms of the

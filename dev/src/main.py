@@ -330,7 +330,7 @@ def main():
   '''
 
   ''' L2 loss '''
-  #L2loss_df = get_L2loss(residual_df)
+  L2loss_df = get_L2loss(residual_df)
 
   # plot L2 loss
   #fignum+=1; get_fignum_str(fignum)
