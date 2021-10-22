@@ -188,14 +188,14 @@ def main():
              'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz'])
 
-
+  residual_df = get_losses(residual_df)
   fignum+=1; get_fignum_str(fignum)
   plot_df(df=residual_df,
-    rows=12,
+    rows=14,
     cols=1,
     title='v residual',
-    show=_show,
-    #show=True,
+    #show=_show,
+    show=True,
     figname='fig_10',
     output_dir=dset.output_dir)
 
@@ -271,7 +271,7 @@ def main():
     labels=['z', 'x_post'],
     title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
     figname='fig_13',
-    show=_show,
+    # show=_show,
     #show=True,
     output_dir=dset.output_dir)
 
@@ -298,7 +298,7 @@ def main():
     figname='fig_14',
     #show=True,
     show=_show,
-    output_dir=dset. output_dir)
+    output_dir=dset.output_dir)
 
 
   # x_quat_wxyz
@@ -329,14 +329,17 @@ def main():
     figsize=[5,10])
   '''
 
-  ''' L2 loss '''
-  L2loss_df = get_L2loss(residual_df)
+  ''' get losses '''
+  res = get_losses(residual_df)
 
   # plot L2 loss
-  #fignum+=1; get_fignum_str(fignum)
-  #plot_df(L2loss_df)
+  # fignum+=1;
+  # plot_df(df=L2_df,
+  #   title='L2 loss',
+  #   figname=get_fignum_str(fignum),
+  #   show=_show,
+  #   output_dir=dset.output_dir)
 
-  #todo: L2 norm
 
 
   '''NBUG'''

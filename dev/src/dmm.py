@@ -625,6 +625,7 @@ def plot_df(df:pd.DataFrame,
   v_cols = ['vx', 'vy', 'vz']
   w_cols = ['wr', 'wp', 'wy']
   q_cols = ['qx', 'qy', 'qz', 'qw']
+  loss_cols = ['L1', 'L2']
   # range padding
   pad = 1+range_padding
   # fig
@@ -634,7 +635,7 @@ def plot_df(df:pd.DataFrame,
     ax.plot(df.loc[start:end,col], marker='.',c=next(plot_colors), ms=1, label=col)
     #ticks = [n % 5 == 0, n > end]
     #ax.tick_params(left=ticks[start], bottom=ticks[end])
-    ax.set_title(str(col), size=12)
+    ax.set_title(str(col), size=rows)
     if col in t_cols:
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin(t_cols)]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin(t_cols)]].max(skipna=False)))
@@ -646,6 +647,9 @@ def plot_df(df:pd.DataFrame,
                   pad*max(df[df.columns[df.columns.isin(w_cols)]].max(skipna=False)))
     elif col in q_cols:
       ax.set_ylim(-1.1,1.1)
+    elif col in loss_cols:
+      ax.set_ylim(pad*min(df[df.columns[df.columns.isin(loss_cols)]].min(skipna=False)),\
+                  pad*max(df[df.columns[df.columns.isin(loss_cols)]].max(skipna=False)))
     else:
       eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
   fig.subplots_adjust(wspace=0.05)

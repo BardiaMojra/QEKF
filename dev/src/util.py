@@ -87,24 +87,26 @@ def set_axes_equal(ax):
 
 
 
-def get_L2loss(res: pd.DataFrame):
-  st()
-
+def get_losses(res: pd.DataFrame):
+  L1 = list()
+  L2 = list()
   nprint_2('get_L2loss: res', res.head(5))
 
-  L2 = np.zeros((len(res.index), len(res.columns)))
-
-  for i in range(len(res.columns)):
-    for j in range(len(res.index)):
-      if j == 0:
-        L2[j,i] = res.iloc[j,i] ** 2
-      else:
-        L2[j,i] = (res.iloc[j,i] ** 2) + L2[j-1,i]
-  # calc total L2 loss
-  tL2 = np.zeros((res.index))
-  for j in range(len(res.index)):
-    tL2[j] = sum(L2[j,:])
-
+  # L2 = np.zeros((len(res.index), len(res.columns)))
+  for i in range(len(res.index)):
+    state_l1 = 0
+    state_l2 = 0
+    for j in range(len(res.columns)):
+      # st()
+      l1 = res.iloc[i,j]
+      l2 = res.iloc[i,j] ** 2
+      state_l1 += l1
+      state_l2 += l2
+      # nprint(shorthead+'row sum ', res.iloc[i,:].sum())
+    L1.append(state_l1)
+    L2.append(state_l2)
+  L1_df = pd.DataFrame(L1, columns=['L1'])
+  L2_df = pd.DataFrame(L2, columns=['L2'])
+  pd.concat([res,L1_df, L2_df], axis=1)
   st()
-#  return L2loss
-  return
+  return res

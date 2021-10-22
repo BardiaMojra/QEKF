@@ -2,7 +2,7 @@
 import sys
 
 # enable nbug print
-nprt_en = False
+nprt_en = True #False
 nprt_en2 = True
 
 
