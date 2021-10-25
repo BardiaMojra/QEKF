@@ -617,8 +617,8 @@ def plot_df(df:pd.DataFrame,
   if labels is None:
     labels = df.columns
   # set plot colors
-  cmap = cm.get_cmap('plasma', 15)
-  plot_colors = iter(cmap(np.linspace(0, 1, 15)))
+  cmap = cm.get_cmap('plasma', 25)
+  plot_colors = iter(cmap(np.linspace(0, 1, 25)))
   #plot_colors = iter([plt.cm.tab100(i) for i in range(20)])
   # column labels
   t_cols = ['Tx', 'Ty', 'Tz']
@@ -648,8 +648,8 @@ def plot_df(df:pd.DataFrame,
     elif col in q_cols:
       ax.set_ylim(-1.1,1.1)
     elif col in loss_cols:
-      ax.set_ylim(pad*min(df[df.columns[df.columns.isin(loss_cols)]].min(skipna=False)),\
-                  pad*max(df[df.columns[df.columns.isin(loss_cols)]].max(skipna=False)))
+      ax.set_ylim(pad*min(df[df.columns[df.columns.isin([col])]].min(skipna=False)),\
+                  pad*max(df[df.columns[df.columns.isin([col])]].max(skipna=False)))
     else:
       eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
   fig.subplots_adjust(wspace=0.05)

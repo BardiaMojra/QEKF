@@ -199,6 +199,10 @@ def main():
     figname='fig_10',
     output_dir=dset.output_dir)
 
+  # print losses
+  print_losses(residual_df)
+
+
   # z_TVWQxyzw
   z_df = pd.DataFrame(qekf.log.z_hist,
     index=qekf.log.idx,\
@@ -330,7 +334,7 @@ def main():
   '''
 
   ''' get losses '''
-  res = get_losses(residual_df)
+  # res = get_losses(residual_df)
 
   # plot L2 loss
   # fignum+=1;
