@@ -294,7 +294,6 @@ class ExtendedKalmanFilter(object):
     #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
     #self.H[3:6,3:6] = -self.C.T
     #self.H[6:9,6:9] = np.eye(3)
-
     self.H[0:9,0:9] = np.eye(9)
     #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
     return

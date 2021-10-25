@@ -191,20 +191,20 @@ Vector $u$ represents input to the system and $u \in \mathbb{R}^{6}$ .
 Vector $y$ represents the system output and $y \sim \in \mathbb{R}^6$ .
 
 
-\subsection{Estimation State Definition}
+\subsection{State Definition}
 
 The estimation state, $x$, is defined by the robot's linear position $r \in \mathbb{R}^3$, velocity
-$v \in \mathbb{R}^3$ (MUST GO!!), and the body frame (GLOBAL???????) orientation $q_{xyz} \in \mathbb{H}^0$. We provide a detailed description for quaternion space representation in \ref{}
+$v \in \mathbb{R}^3$ (MUST GO!!), and the body frame (GLOBAL???????) orientation $q_{xyz} \in \mathbb{H}^0$. We provide a detailed description for quaternion space representation in section 3.
 
 \begin{equation}
 \label{eq:8}
 \transpose{x} :=  \left[\transpose{r}~\transpose{v}~\transpose{q_{xyz}} \right]
 \end{equation}
 
-\begin{equation}
-\label{eq:9}
-P := Cov(\delta x),
-\end{equation}
+% \begin{equation}
+% \label{eq:9}
+% \hat{P}_t := Cov(\delta x),
+% \end{equation}
 
 Estimation residual is denoted by $\delta x \in \mathbb{R + H}$  (How can define the space here??)
 
@@ -241,7 +241,7 @@ Quaternion space is a non-minimal representation belonging to \textit{SO(3)} Lie
 Moreover, the quaternion term from the dataset has \textit{four terms} with $xyzw$
 format.
 Hamilton's quaternion defined by 3 perpendicular imaginary axes $i,j,k$ with
-real scalars $x,y,z$ and a real term $w$ which, constraints other 3 dimension to
+real scalars $x,y,z$ and a real term $w$, which constraints other 3 dimension to
 a \textit{unit magnitude}. Thus, the fourth term normalizes the vector's magnitude
 conveniently and preserves the 3D rotation (3 DOF). We define \textbf{Unit Hamiltonian}
 or \textbf{Unit Quaternion} as,
@@ -334,10 +334,21 @@ state error from the error rotation vector, [QEKF01].
 
 
 
-\section{MATH}
+\section{Extended Kalman Filter}
+The ELF handle nonlinearities by forming approximate Gaussian distributions to
 
-Before you
-
+\subsection{State Estimation}
+In the estimation state, first we estimate current state based on \textit{prior}
+knowledge or observations.
+\begin{equation}
+\label{eq:16}
+        \hat{\mathbf{x}}_t = \mathbf{f}(\mathbf{x}_{t-1}, \mathbf{u}_t)
+\end{equation}
+\begin{equation}
+\label{eq:17}
+\hat{\mathbf{P}}_t = \mathbf{F}(\mathbf{x}_{t-1}, \mathbf{u}_t) \mathbf{P}_{t-1}
+\mathbf{F}^T(\mathbf{x}_{t-1}, \mathbf{u}_{t}) + \mathbf{Q}_t
+\end{equation}
 
 Diagonal matrix Q is in $dim_x \times dim_x$ dimensions and represent the process
 noise tolerance or innovation (if I recall correctly--------).
@@ -350,8 +361,7 @@ Q_{c} =
         \end{bmatrix}
 \end{equation}
 
-H is the \textit{observation model}.
-H is dimz by dimx which, 12 by 9 where $q_{xyz}$ is used.
+H is a \(12x9\) \textit{observation model}
 
 \begin{equation}
 %\label{eq:}
@@ -364,7 +374,7 @@ H =
 \end{bmatrix}
 \end{equation}
 
-L is dimx by dimx matrix and here it is 9x9.
+L is \(9x9\) matrix and here it is 9x9.
 
 \begin{equation}
 %\label{eq:}
@@ -377,7 +387,7 @@ L =
 \end{equation}
 
 
-F is dimx by dimx matrix and here it is 9x9.
+F is 9 by 9 matrix and here it is 9x9.
 
 \begin{equation}
 %\label{eq:}
@@ -389,6 +399,17 @@ F =
 \end{bmatrix}
 \end{equation}
 
+% https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/07-Kalman-Filter-Math.ipynb
+
+% \begin{split}
+\begin{array}{rcl}
+        \mathbf{v}_t &=& \mathbf{z}_t - \mathbf{h}(\mathbf{x}_t) \\
+        \mathbf{S}_t &=& \mathbf{H}(\mathbf{x}_t) \hat{\mathbf{P}}_t \mathbf{H}^T(\mathbf{x}_t) + \mathbf{R}_t \\
+        \mathbf{K}_t &=& \hat{\mathbf{P}}_t \mathbf{H}^T(\mathbf{x}_t) \mathbf{S}_t^{-1} \\
+        \mathbf{x}_t &=& \hat{\mathbf{x}}_t + \mathbf{K}_t \mathbf{v}_t \\
+        \mathbf{P}_t &=& \big(\mathbf{I}_4 - \mathbf{K}_t\mathbf{H}(\mathbf{x}_t)\big)\hat{\mathbf{P}}_t
+\end{array}
+% \end{split}
 %\begin{equation}
 %\label{eq:}
 
