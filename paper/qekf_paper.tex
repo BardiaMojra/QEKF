@@ -361,7 +361,7 @@ Q_{c} =
         \end{bmatrix}
 \end{equation}
 
-H is a \(12x9\) \textit{observation model}
+H is a \(12 \times 9\) \textit{observation model}
 
 \begin{equation}
 %\label{eq:}
@@ -374,7 +374,7 @@ H =
 \end{bmatrix}
 \end{equation}
 
-L is \(9x9\) matrix and here it is 9x9.
+L is \(9 \times 9\) matrix and here it is 9x9.
 
 \begin{equation}
 %\label{eq:}
@@ -402,16 +402,31 @@ F =
 % https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/07-Kalman-Filter-Math.ipynb
 
 % \begin{split}
-\begin{array}{rcl}
+% \[%
+
+\subsection{Estimation Step}
+\begin{equation}
+% \label{eq:}
+\begin{split}\begin{array}{rcl}
+        \hat{\mathbf{x}}_t &=& \mathbf{f}(\mathbf{x}_{t-1}, \mathbf{u}_t) \\
+        \hat{\mathbf{P}}_t &=& \mathbf{F}(\mathbf{x}_{t-1}, \mathbf{u}_t)\mathbf{P}_{t-1}\mathbf{F}^T(\mathbf{x}_{t-1}, \mathbf{u}_t) + \mathbf{Q}_t
+        \end{array}\end{split}
+\end{equation}
+
+\subsection{Correction Step}
+\begin{equation}
+% \label{eq:}
+\begin{split}\begin{array}{rcl}
         \mathbf{v}_t &=& \mathbf{z}_t - \mathbf{h}(\mathbf{x}_t) \\
         \mathbf{S}_t &=& \mathbf{H}(\mathbf{x}_t) \hat{\mathbf{P}}_t \mathbf{H}^T(\mathbf{x}_t) + \mathbf{R}_t \\
         \mathbf{K}_t &=& \hat{\mathbf{P}}_t \mathbf{H}^T(\mathbf{x}_t) \mathbf{S}_t^{-1} \\
         \mathbf{x}_t &=& \hat{\mathbf{x}}_t + \mathbf{K}_t \mathbf{v}_t \\
         \mathbf{P}_t &=& \big(\mathbf{I}_4 - \mathbf{K}_t\mathbf{H}(\mathbf{x}_t)\big)\hat{\mathbf{P}}_t
-\end{array}
+\end{array}\end{split}
+\end{equation}
+
+                % \end{equation}
 % \end{split}
-%\begin{equation}
-%\label{eq:}
 
 %\end{equation}
 
