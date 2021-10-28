@@ -337,32 +337,48 @@ state error from the error rotation vector, [QEKF01].
 \section{Extended Kalman Filter}
 The ELF handle nonlinearities by forming approximate Gaussian distributions to
 
-\subsection{State Estimation}
+\subsection{Estimation Step}
+The following is the standard EKG
+\begin{equation}
+% \label{eq:}
+\begin{split}\begin{array}{rcl}
+        \hat{\mathbf{x}}_t &=& \mathbf{f}(\mathbf{x}_{t-1}, \mathbf{u}_t) \\
+        \hat{\mathbf{P}}_t &=& \mathbf{F}(\mathbf{x}_{t-1}, \mathbf{u}_t)\mathbf{P}_{t-1}\mathbf{F}^T(\mathbf{x}_{t-1}, \mathbf{u}_t) + \mathbf{Q}_t
+        \end{array}\end{split}
+\end{equation}
+
+
+\subsection{Setting Up Matrices}
 In the estimation state, first we estimate current state based on \textit{prior}
 knowledge or observations.
+% \begin{equation}
+% \label{eq:16}
+%         \hat{\mathbf{x}}_t = \mathbf{f}(\mathbf{x}_{t-1}, \mathbf{u}_t)
+% \end{equation}
+% \begin{equation}
+% \label{eq:17}
+% \hat{\mathbf{P}}_t = \mathbf{F}(\mathbf{x}_{t-1}, \mathbf{u}_t) \mathbf{P}_{t-1}
+% \mathbf{F}^T(\mathbf{x}_{t-1}, \mathbf{u}_{t}) + \mathbf{Q}_t
+% \end{equation}
+
+The rotation matrix, C, has \(3 \times 3\) dimensions.
+
 \begin{equation}
-\label{eq:16}
-        \hat{\mathbf{x}}_t = \mathbf{f}(\mathbf{x}_{t-1}, \mathbf{u}_t)
-\end{equation}
-\begin{equation}
-\label{eq:17}
-\hat{\mathbf{P}}_t = \mathbf{F}(\mathbf{x}_{t-1}, \mathbf{u}_t) \mathbf{P}_{t-1}
-\mathbf{F}^T(\mathbf{x}_{t-1}, \mathbf{u}_{t}) + \mathbf{Q}_t
-\end{equation}
-
-Diagonal matrix Q is in $dim_x \times dim_x$ dimensions and represent the process
-noise tolerance or innovation (if I recall correctly--------).
-
-\begin{equation}
-%\label{eq:}
-Q_{c} =
-        \begin{bmatrix}
-                Q_{t}
-        \end{bmatrix}
+% \label{eq:}
+\begin{aligned}
+\mathbf{R} &=
+{\begin{bmatrix}
+        1-2s(q_{j}^{2}+q_{k}^{2})&2s(q_{i}q_{j}-q_{k}q_{r})&2s(q_{i}q_{k}+q_{j}q_{r})\\
+        2s(q_{i}q_{j}+q_{k}q_{r})&1-2s(q_{i}^{2}+q_{k}^{2})&2s(q_{j}q_{k}-q_{i}q_{r})\\
+        2s(q_{i}q_{k}-q_{j}q_{r})&2s(q_{j}q_{k}+q_{i}q_{r})&1-2s(q_{i}^{2}+q_{j}^{2})
+\end{bmatrix}}
+\end{aligned}
 \end{equation}
 
-H is a \(12 \times 9\) \textit{observation model}
 
+
+
+H represents \textit{observation model} and it is a \(12 \times 9\) matrix.
 \begin{equation}
 %\label{eq:}
 H =
@@ -374,8 +390,7 @@ H =
 \end{bmatrix}
 \end{equation}
 
-L is \(9 \times 9\) matrix and here it is 9x9.
-
+L is \(9 \times 9\) matrix.
 \begin{equation}
 %\label{eq:}
 L =
@@ -387,8 +402,7 @@ L =
 \end{equation}
 
 
-F is 9 by 9 matrix and here it is 9x9.
-
+F is \(9 \times 9\) matrix.
 \begin{equation}
 %\label{eq:}
 F =
@@ -399,20 +413,46 @@ F =
 \end{bmatrix}
 \end{equation}
 
+
+
+% # eq 16-22 of QEKF2
+%     self.x_prior_TVQwxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]+\
+%                                   self.T_*self.x_post_TVQxyz[3:6,0]
+%     self.x_prior_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
+
+%     z_Wrpy = self.z_TVWQxyzw[6:9,0]
+%     z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
+
+%     x_obs_est_Qxyzw = exp_map(self.T_* self.C.T @ z_Wrpy)
+%     #x_obs_est_Qxyzw = exp_map(self.T_ * z_Wrpy)
+
+%     x_obs_est_Qwxyz = Quaternion(x_obs_est_Qxyzw[3],x_obs_est_Qxyzw[0],x_obs_est_Qxyzw[1],x_obs_est_Qxyzw[2]) ##w,x,y,z
+
+%     x_post_est_Qwxyz = Quaternion(self.get_Qwxyz_from_Qxyz(self.x_post_TVQxyz[6:9]))
+
+%     x_prior_Qwxyz = (x_obs_est_Qwxyz * x_post_est_Qwxyz)
+
+%     # equation 18
+%     self.x_prior_TVQwxyz[6:10,0] = x_prior_Qwxyz.elements ##wxyz
+
+
+
+
+
+
+Diagonal matrix Q has \( 9 \times 9\) dimensions and represent the process
+noise tolerance or innovation.
+\begin{equation}
+%\label{eq:}
+Q_{c} =
+        \begin{bmatrix}
+                Q_{t}
+        \end{bmatrix}
+\end{equation}
 % https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/07-Kalman-Filter-Math.ipynb
 
 % \begin{split}
 % \[%
-
-\subsection{Estimation Step}
-\begin{equation}
-% \label{eq:}
-\begin{split}\begin{array}{rcl}
-        \hat{\mathbf{x}}_t &=& \mathbf{f}(\mathbf{x}_{t-1}, \mathbf{u}_t) \\
-        \hat{\mathbf{P}}_t &=& \mathbf{F}(\mathbf{x}_{t-1}, \mathbf{u}_t)\mathbf{P}_{t-1}\mathbf{F}^T(\mathbf{x}_{t-1}, \mathbf{u}_t) + \mathbf{Q}_t
-        \end{array}\end{split}
-\end{equation}
-
 \subsection{Correction Step}
 \begin{equation}
 % \label{eq:}
@@ -424,6 +464,11 @@ F =
         \mathbf{P}_t &=& \big(\mathbf{I}_4 - \mathbf{K}_t\mathbf{H}(\mathbf{x}_t)\big)\hat{\mathbf{P}}_t
 \end{array}\end{split}
 \end{equation}
+
+
+
+
+
 
                 % \end{equation}
 % \end{split}
