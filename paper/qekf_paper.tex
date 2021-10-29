@@ -31,10 +31,16 @@
 \usepackage{amsmath} % assumes amsmath package installed
 \usepackage{amssymb}  % assumes amsmath package installed
 \newcommand{\transpose}[1]{\ensuremath{#1^{\scriptscriptstyle T}}}
-\title{\LARGE \bf
-Quaternion EKF
-}
+% --------------- GRAPHIC PACKAGES ----------------------------
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+\usepackage{xcolor}
 
+
+
+% --------------- Document Info ----------------------------
+
+\title{\LARGE \bf Quaternion EKF }
 
 \author{Albert Author$^{1}$ and Bernard D. Researcher$^{2}$% <-this % stops a space
 \thanks{*This work was not supported by any organization}% <-this % stops a space
@@ -280,7 +286,7 @@ denoted by $q_xyz$ variables.
 
 
 \begin{eqnarray}\nonumber
-\label{eq:11}
+\label{eq:13}
 \mathbb{H}^{0} &:=& \left\{ q_{xyz}=xi+yj+zk~ \in \mathbb{H}~| \right.\\
 && \left. ~x,y,z \in \mathbb{R} \right\} \backsimeq  \mathbb{R}^3
 \end{eqnarray}
@@ -297,7 +303,7 @@ the rotational rate vector and matrix exponential mapping function, [QEKF01].
 Gamma, $\Gamma$, represents incremental
 
 \begin{equation}
-\label{eq:2}
+\label{eq:14}
 \Gamma_{0} := \sum_{i=0}^{\infty} \frac{ \left( \Delta t^{i+n}  \right)}{ \\
 \left( i + n \right) \! } \\
 \omega^{\times i},
@@ -308,7 +314,7 @@ Where $(.)^{\times}$ represents skew-symmetry matrix of a vector
 
 \subsection{Updating Quaternion State}
 \begin{equation}
-\label{eq:13}
+\label{eq:15}
 q_{i+1} = \delta q_{i} \otimes \widehat{q}_{i}
 \end{equation}
 
@@ -319,12 +325,12 @@ We use the mapping function $\zeta(.)$ to calculate the quaternion
 state error from the error rotation vector, [QEKF01].
 
 \begin{equation}
-\label{eq:14}
+\label{eq:16}
 \delta q = \zeta(\delta \phi),
 \end{equation}
 
 \begin{equation}
-\label{eq:15}
+\label{eq:17}
 \zeta : v \rightarrow \zeta(v) =
         \begin{bmatrix}
         \sin(\frac{1}{2}\|v\|) \frac{v}{\|v\|} \\
@@ -413,11 +419,37 @@ F =
 \end{bmatrix}
 \end{equation}
 
-
-
+\subsection{Discrete, Nonlinear Model}
 % # eq 16-22 of QEKF2
-%     self.x_prior_TVQwxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]+\
-%                                   self.T_*self.x_post_TVQxyz[3:6,0]
+The QEKF2 paper (State Estimation for a Humanoid Robot) has the following discrete
+nonlinear model.
+
+
+\begin{figure}[h]
+        \includegraphics[width=.45\textwidth]{fig01.png}
+        \centering
+      \end{figure}
+
+
+\begin{equation}
+% \label{eq:8}
+  \hat{\transpose{x}} :=  \left<\transpose{r}~\transpose{v}~\transpose{q_{wxyz}} \right>
+\end{equation}
+
+\textcolor{red}{Note that instead of using an estimation value for \(\omega\), the observation
+value was used. Moreover note the additional term \(\tilde{\transpose{C}}_{k} \) instead of
+\(\hat{\transpose{C}}_{k} \)}
+
+\begin{equation}
+  \begin{array}{lll}
+    \hat{r}_{k+1}^{-} &  = & \hat{r}^{+}_{k} + \Delta t \hat{v}^{+}_{k} \\
+    \hat{v}_{k+1}^{-} &  = & \hat{v}^{+}_{k} \\
+    \hat{q}_{xyz,~k+1}^{-} &  = & \text{exp}\left(\Delta t \transpose{C} \cdot \tilde{\omega}_{k} \right)  \bigotimes \hat{q}_{k}^{+}\\
+  \end{array}
+\end{equation}
+
+% \begin{}
+
 %     self.x_prior_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
 
 %     z_Wrpy = self.z_TVWQxyzw[6:9,0]
