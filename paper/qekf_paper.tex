@@ -444,9 +444,22 @@ value was used. Moreover note the additional term \(\tilde{\transpose{C}}_{k} \)
   \begin{array}{lll}
     \hat{r}_{k+1}^{-} &  = & \hat{r}^{+}_{k} + \Delta t \hat{v}^{+}_{k} \\
     \hat{v}_{k+1}^{-} &  = & \hat{v}^{+}_{k} \\
-    \hat{q}_{xyz,~k+1}^{-} &  = & \text{exp}\left(\Delta t \transpose{C} \cdot \tilde{\omega}_{k} \right)  \bigotimes \hat{q}_{k}^{+}\\
+    \hat{q}_{wxyz,~k+1}^{-} &  = &  \tilde{q}_{k+1} \bigotimes \hat{q}_{k}^{+}\\
   \end{array}
 \end{equation}
+
+where \(\tilde{q}_{k+1}\) represent the current orientation estimation based on
+measured angular velocity \(\tilde{\omega}_{k+1}\) and \(\hat{\transpose{C}}_{k+1} \).
+
+
+\begin{equation}
+        \tilde{q}_{k+1} = \text{exp}\left(\Delta t  \tilde{\transpose{C}}_{k+1} \cdot \tilde{\omega}_{k+1} \right)
+\end{equation}
+
+
+It is important to note that in each iteration \(\hat{\transpose{C}}_{k+1} \) is
+read from the \(z\) matrix or the observation
+% \
 
 % \begin{}
 
