@@ -25,7 +25,11 @@ def get_omega(q):
 def check_symmetric(a, tol=1e-8):
   return np.all(np.abs(a-a.T) < tol)
 
-### Exponential Map of Quaternion
+
+
+### Exponential Map of Quaternion: this is correct...
+### https://www.cs.cmu.edu/~spiff/moedit99/expmap.pdf
+### https://arxiv.org/pdf/1711.02508.pdf
 def exp_map(x):
   if np.shape(x)[0] !=3:
     print("Vector size is not 3")
@@ -37,6 +41,9 @@ def exp_map(x):
   temp_ = np.sin(norm_x/2)*x/norm_x
   temp_2 = np.cos(norm_x/2)
   return [ temp_[0],temp_[1],temp_[2], temp_2]
+
+
+
 
 ### Logarithmic map of Quaternion
 def Q_log(q):

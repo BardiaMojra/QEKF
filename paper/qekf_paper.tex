@@ -383,8 +383,21 @@ The rotation matrix, C, has \(3 \times 3\) dimensions.
 
 
 
-
+What H currently is.
 H represents \textit{observation model} and it is a \(12 \times 9\) matrix.
+\begin{equation}
+%\label{eq:}
+H =
+\begin{bmatrix}
+        I && 0 && 0  \\
+        0 && I && 0  \\
+        0 && 0 && I  \\
+        0 && 0 && 0  \\
+\end{bmatrix}
+\end{equation}
+
+And what it should be,
+H represents \textit{observation model} with \(9 \times 9\) dimensions, .
 \begin{equation}
 %\label{eq:}
 H =
@@ -448,18 +461,20 @@ value was used. Moreover note the additional term \(\tilde{\transpose{C}}_{k} \)
   \end{array}
 \end{equation}
 
-where \(\tilde{q}_{k+1}\) represent the current orientation estimation based on
-measured angular velocity \(\tilde{\omega}_{k+1}\) and \(\hat{\transpose{C}}_{k+1} \).
+\noindent
+where \(\tilde{q}_{k+1}\) represent the incremental rotation change based on
+previous orientation \(\hat{\transpose{C}}_{k}^{+}\) and the measured angular velocity \(\tilde{\omega}_{k+1}\).
 
 
 \begin{equation}
-        \tilde{q}_{k+1} = \text{exp}\left(\Delta t  \tilde{\transpose{C}}_{k+1} \cdot \tilde{\omega}_{k+1} \right)
+  \tilde{q}_{k+1} = \text{exp}\left(\Delta t  \hat{\transpose{C}}_{k}^{+} \cdot \tilde{\omega}_{k+1} \right)
 \end{equation}
 
 
 It is important to note that in each iteration \(\hat{\transpose{C}}_{k+1} \) is
-read from the \(z\) matrix or the observation
-% \
+read from the \(z\) matrix or the observation. But in reality, should it be the
+prior belief state? Reading from the observation value instead of prior value at
+the beginning of each iteration will hide a potential drift problem with the algorithm.
 
 % \begin{}
 

@@ -104,7 +104,7 @@ class ExtendedKalmanFilter(object):
     # gain and residual are computed during the innovation step. We
     # save them so that in case you want to inspect them for various
     # purposes
-    self.K = np.zeros((dim_x,1)) # kalman gain
+    self.K = np.zeros((dim_x,1)) # kalman gain -- 9
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
     self.SI = np.zeros((dim_z, dim_z))  # inverse system uncertainty
     self.L = None
@@ -123,7 +123,7 @@ class ExtendedKalmanFilter(object):
 
 
     self.x_prior_TVQwxyz = zeros((dim_x+1,1)) # add 1 extra for Quat w term
-    self.H = np.zeros((dim_z, dim_x))
+    self.H = np.zeros((dim_z, dim_x)) #12x9
 
     # quaternion measurement is 4D - so is for updating estimation model
     #self.z = np.zeros((dim_z+1,1)) # trans_xyz, vel_xyz, rot_wxyz, vel_rpy
@@ -183,6 +183,12 @@ class ExtendedKalmanFilter(object):
     x_prior_TVQxyz_tmp[0:6,0] = self.x_prior_TVQwxyz[0:6,0]
     x_prior_TVQxyz_tmp[6:9,0] = self.x_prior_TVQwxyz[7:10,0]
 
+    # x_prior_TVWQxyz_tmp = zeros((self.dim_z,1))
+    # x_prior_TVWQxyz_tmp[0:6,0] = self.x_prior_TVQwxyz[0:6,0]
+    # x_prior_TVWQxyz_tmp[9:12,0] = self.x_prior_TVQwxyz[7:10,0]
+
+
+    # st()
     # calc est
     hx = np.dot(self.H, x_prior_TVQxyz_tmp)
 
@@ -197,24 +203,26 @@ class ExtendedKalmanFilter(object):
     x_obs_est_Qwxyz_q = Quaternion(self.z_TVWQxyzw[12], self.z_TVWQxyzw[9],
                                    self.z_TVWQxyzw[10], self.z_TVWQxyzw[11])
 
-    e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) ## check
-    e__log = Q_log(e__.elements)
+    e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
+    e__log = Q_log(e__.elements) # get the error rotation from subtracting two orientation
 
-    self.y_TVWQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]]
+    self.y_TVWQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]] # load quat to
 
     self.K = self.K * self.K_scale
 
     ky = dot(self.K, self.y_TVWQxyz)
     self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
+    # self.x_post_TVQxyz[0:6,0] = self.x_post_TVWQxyz[0:6,0]
+    # self.x_post_TVQxyz[6:9,0] = self.x_post_TVWQxyz[9:12,0]
 
     #temp_exp_map = exp_map(self.T_* self.C.T @ ky[6:9])
-    temp_exp_map = exp_map(self.T_*ky[6:9])
+    temp_exp_map = exp_map(self.T_*ky[6:9]) # quaternion correction
 
-    # equation 6 from EKF2 paper
+    # equation 6 from EKF2 paper # update quaternion
     exp_map_ = Quaternion([temp_exp_map[3],temp_exp_map[0],temp_exp_map[1],temp_exp_map[2]]) \
       * Quaternion(self.x_prior_TVQwxyz[6:10,0])  ## wxyz #TODO: should be quaternion object?
 
-    self.x_post_TVQxyz[6:9,0] = exp_map_.elements[1:4]
+    self.x_post_TVQxyz[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
 
     I_KH = self._I - dot(self.K, self.H)
     self.P_post = dot(I_KH, self.P_prior).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
@@ -245,6 +253,17 @@ class ExtendedKalmanFilter(object):
     return
 
   def predict(self, u=0):
+
+    #todo: change this from C = z_{q, k+1} to C = x_{q, k}^{+}
+    r = R.from_quat([ self.x_prior_TVQwxyz[7, 0], self.x_prior_TVQwxyz[8,0], \
+                      self.x_prior_TVQwxyz[9,0], self.x_prior_TVQwxyz[6,0]])
+    # r = R.from_quat([ self.z_TVWQxyzw[9, 0], self.z_TVWQxyzw[10,0], \
+    #                   self.z_TVWQxyzw[11,0], self.z_TVWQxyzw[12,0]])
+    self.C = r.as_matrix()
+
+    '''NBUG'''
+    nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
+    nprint("r.as_quat() -  xyzw", r.as_quat())
     self.set_H()
     self.set_L()
     self.set_F() #
@@ -294,7 +313,8 @@ class ExtendedKalmanFilter(object):
     #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
     #self.H[3:6,3:6] = -self.C.T
     #self.H[6:9,6:9] = np.eye(3)
-    self.H[0:9,0:9] = np.eye(9)
+    self.H[0:6,0:6] = np.eye(6)
+    self.H[9:12,6:9] = np.eye(3)
     #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
     return
 

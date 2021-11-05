@@ -124,15 +124,6 @@ def main():
     nprint('qekf.z_TVWQxyzw[9:13] - Qxyzw', qekf.z_TVWQxyzw[9:13])
 
 
-    #todo move to predict routine?
-    r = R.from_quat([ qekf.z_TVWQxyzw[9, 0], qekf.z_TVWQxyzw[10,0], \
-                      qekf.z_TVWQxyzw[11,0], qekf.z_TVWQxyzw[12,0]])
-    qekf.C = r.as_matrix()
-
-    '''NBUG'''
-    nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
-    nprint("r.as_quat() -  xyzw", r.as_quat())
-
     qekf.predict()
     qekf.update(qekf.z_TVWQxyzw.T)
 
