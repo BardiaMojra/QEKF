@@ -33,7 +33,7 @@ print_output = True
 _show = True
 _save = True
 _prt = False
-_zoom = 40
+_zoom = 150
 
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
@@ -64,11 +64,11 @@ def main():
   # data = 'kitti_imu_0926_0001'
   # data = 'kitti_imu_0926_0002'
   # data = 'kitti_imu_0926_0005'
-  # data = 'kitti_imu_0926_0018'
-  # data = 'kitti_imu_0926_0060'
+  data = 'kitti_imu_0926_0018' # hook tail [150]
+  # data = 'kitti_imu_0926_0060' # swervy
   # data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
   # data = 'kitti_imu_0926_0113' #todo: show this to Dr. Gans - Quat flips
-  data = 'kitti_imu_0928_0001'
+  # data = 'kitti_imu_0928_0001'
 
   # init dataset object
   dset = dmm(name=data,
