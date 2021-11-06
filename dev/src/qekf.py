@@ -11,9 +11,9 @@ from dlm import *
 from util import *
 
 ''' general config '''
-longhead = '\n\n  \--->> '
-shorthead = '\n  \--->> '
-longtail = '\n\n'
+longhead  = '\n\--->> '
+shorthead = '\--->> '
+longtail  = '\n\n'
 attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
 
 class ExtendedKalmanFilter(object):
@@ -334,6 +334,41 @@ class ExtendedKalmanFilter(object):
     w = np.sqrt(1 -xyz[0]**2 -xyz[1]**2 -xyz[2]**2)
     return [w, xyz[0], xyz[1], xyz[2]]
 
+  def get_losses(self, res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):
+    L1 = list()
+    L2 = list()
+    # nprint_2('get_L2loss: res', res.head(5))
+
+    # L2 = np.zeros((len(res.index), len(res.columns)))
+    for i in range(len(res.index)):
+      state_l1 = 0.0
+      state_l2 = 0.0
+      for j in range(len(res.columns)):
+        # st()
+        l1 = abs(res.iloc[i,j])
+        l2 = res.iloc[i,j] ** 2
+        state_l1 += l1
+        state_l2 += l2
+        # nprint(shorthead+'row sum ', res.iloc[i,:].sum())
+      L1.append(state_l1)
+      L2.append(state_l2)
+    L1_df = pd.DataFrame(L1, columns=['L1'])
+    L2_df = pd.DataFrame(L2, columns=['L2'])
+    res = pd.concat([res,L1_df, L2_df], axis=1)
+    # nprint_2('get_L2loss: res', res.head(5))
+    # st()
+    if save_en==True and  output_dir is not None:
+      file_name = output_dir+'losses.txt'
+      # if os.path.exists(file_name):
+      with open(file_name, 'a+') as f:
+        L1_str = shorthead+f"L1 (total): {res['L1'].sum()}"
+        L2_str = shorthead+f"L2 (total): {res['L2'].sum()}"
+        f.write(L1_str)
+        f.write(L2_str+'\n\n')
+        f.close()
+
+
+    return res
 
 
 # EOF

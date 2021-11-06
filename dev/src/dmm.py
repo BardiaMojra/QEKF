@@ -19,6 +19,22 @@ plt.style.use('ggplot')
     # config
 qlabels = ['idx', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
 vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
+datasets = [  'dataset-iphone1_clean',
+              'bigC_06-Aug2021',
+              'kitti_imu_0926_0001',
+              'kitti_imu_0926_0002',
+              'kitti_imu_0926_0005',
+              'kitti_imu_0926_0018',
+              'kitti_imu_0926_0060',
+              'kitti_imu_0926_0084',
+              'kitti_imu_0926_0113',
+              'kitti_imu_0928_0001',
+              'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off',
+              'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off',
+              'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
+              'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
+              'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
+]
 class dmm:
   ''' Data Management Module
   '''
@@ -31,96 +47,94 @@ class dmm:
                prt=True,
                save=True):
 
-
-
     # set dataset configs
-    if name == 'dataset-iphone1_clean':
+    if name == datasets[0]:
       src_dir = '../data/dataset-iphone1_clean/'
       output_dir = '../out/out_'+name+'/'
       ext = 'xlsx'
       opt = None
-    elif name =='bigC_06-Aug2021':
+    elif name == datasets[1]:
       src_dir = '../data/bigC_06-Aug2021/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name =='kitti_imu_0926_0001':
+    elif name ==  datasets[2]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0926_0002':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[3]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0926_0005':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[4]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0926_0018':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[5]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0926_0060':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[6]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0926_0084':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[7]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0926_0113':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[8]:
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='kitti_imu_0928_0001':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[9]:
       src_dir = '../data/KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv)+longtail)
-    elif name =='Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off':
+      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == datasets[10]:
       src_dir = '../data/'+name+'/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
+    elif name == datasets[11]:
       src_dir = '../data/'+name+'/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
+    elif name == datasets[12]:
       src_dir = '../data/'+name+'/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
+    elif name == datasets[13]:
       src_dir = '../data/'+name+'/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
+    elif name == datasets[14]:
       src_dir = '../data/'+name+'/'
       output_dir = '../out/out_'+name+'/'
       ext = 'csv'
@@ -277,7 +291,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
-      print(longhead+'saving figure: '+file_name)
+      print(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -302,7 +316,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
-      print(longhead+'saving figure: '+file_name)
+      print(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -527,7 +541,7 @@ def plot_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name)
+    print(shorthead+'saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -594,7 +608,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name)
+    print(shorthead+'saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -708,7 +722,7 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name)
+    print(shorthead+'saving figure: '+file_name+'.png')
   if show==True:
     plt.show()
   else:
@@ -982,7 +996,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name)
+    print(shorthead+'saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)

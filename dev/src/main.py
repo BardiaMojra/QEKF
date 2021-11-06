@@ -30,7 +30,7 @@ def get_fignum_str(fignum):
 ''' general config '''
 NBUG = True
 print_output = True
-_show = True
+_show = False
 _save = True
 _prt = False
 _zoom = 150
@@ -52,23 +52,23 @@ def main():
   fignum = int(0)
 
   # select dataset
-  #todo - close estimation
-  # data = 'dataset-iphone1_clean'
-  # data = 'bigC_06-Aug2021'
-  # data = 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
-  # data = 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'
-  # data = 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off' #TODO: name index bug: df.columns and labels
-  #todo - close estimation
-  # data = 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
-  # data = 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
-  # data = 'kitti_imu_0926_0001'
-  # data = 'kitti_imu_0926_0002'
-  # data = 'kitti_imu_0926_0005'
-  data = 'kitti_imu_0926_0018' # hook tail [150]
-  # data = 'kitti_imu_0926_0060' # swervy
-  # data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
-  # data = 'kitti_imu_0926_0113' #todo: show this to Dr. Gans - Quat flips
-  # data = 'kitti_imu_0928_0001'
+  data = datasets[14]
+  # 00: 'dataset-iphone1_clean',
+  # 01: 'bigC_06-Aug2021',
+  # 02: 'kitti_imu_0926_0001',
+  # 03: 'kitti_imu_0926_0002',
+  # 04: 'kitti_imu_0926_0005',
+  # 05: 'kitti_imu_0926_0018', # hook tail [150]
+  # 06: 'kitti_imu_0926_0060', # swervy
+  # 07: 'kitti_imu_0926_0084', #todo: show this to Dr. Gans
+  # 08: 'kitti_imu_0926_0113', #todo: show this to Dr. Gans - Quat flips
+  # 09: 'kitti_imu_0928_0001',
+  # 10: 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off',
+  # 11: 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off',
+  # 12: 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
+  # 13: 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
+  # 14: 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
+
 
   # init dataset object
   dset = dmm(name=data,
@@ -109,11 +109,11 @@ def main():
   qekf.x_prior_TVQwxyz[8] = dset.df.qy.iloc[0]
   qekf.x_prior_TVQwxyz[9] = dset.df.qz.iloc[0]
 
-  nprint('qekf.x_prior_TVQwxyz', qekf.x_prior_TVQwxyz)
+  # nprint('qekf.x_prior_TVQwxyz', qekf.x_prior_TVQwxyz)
 
   # st()
   for i in range(dset.start, dset.end):
-    print('\\--->>> new state ------->>>>>:', i)
+    # print('\\--->>> new state ------->>>>>:', i)
     qekf.get_z_TVWQxyzw(lin_vel=dset.vel_xyz.to_numpy()[i,:],\
       translation=dset.trans_xyz.to_numpy()[i,:],\
       ang_vel=dset.vel_rpy.to_numpy()[i,:],\
@@ -181,7 +181,7 @@ def main():
              'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz'])
 
-  residual_df = get_losses(residual_df)
+  residual_df = qekf.get_losses(residual_df, dset.output_dir)
   fignum+=1; get_fignum_str(fignum)
   plot_df(df=residual_df,
     rows=14,
@@ -324,8 +324,6 @@ def main():
     figsize=[5,10])
   '''
 
-  ''' get losses '''
-  # res = get_losses(residual_df)
 
   # plot L2 loss
   # fignum+=1;
@@ -338,7 +336,7 @@ def main():
 
 
   '''NBUG'''
-  st()
+  # st()
 
   '''---------   End of QEKF  -->>>>>>>>>>>>>>>>>'''
 
@@ -347,8 +345,8 @@ def main():
 if __name__ == "__main__":
   main()
   print('---------   End   ---------')
-  st()
-  time.sleep(1000)
+  # st()
+  # time.sleep(1000)
   exit()
 
 # EOF

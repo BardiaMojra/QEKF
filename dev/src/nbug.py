@@ -7,8 +7,8 @@ nprt_en2 = True
 
 
 
-longhead = '\n  \--->> '
-shorthead = '  \--->> '
+longhead = '\n\-->> '
+shorthead = '\-->> '
 longtail = '\n\n'
 shorttail = '\n'
 attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
