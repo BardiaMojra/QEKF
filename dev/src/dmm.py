@@ -635,7 +635,7 @@ def plot_df(df:pd.DataFrame,
     ax.plot(df.loc[start:end,col], marker='.',c=next(plot_colors), ms=1, label=col)
     #ticks = [n % 5 == 0, n > end]
     #ax.tick_params(left=ticks[start], bottom=ticks[end])
-    ax.set_title(str(col), size=rows)
+    ax.set_title(str(col), size=8)
     if col in t_cols:
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin(t_cols)]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin(t_cols)]].max(skipna=False)))
@@ -787,7 +787,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
       print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
       eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
     else:
-      ax.set_title(str(zcol), size=8,)
+      ax.set_title(str(zcol), size=8)
     # col y range limits
     if zcol in t_cols:
       if t_df_min is None or t_df_max is None:
@@ -912,7 +912,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
       eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
     else:
-      ax.set_title(str(zcol), size=8,)
+      ax.set_title(str(zcol), size=8)
     # col y range limits
     if zcol in t_cols:
       if n%2 == 1:  # z
@@ -1027,7 +1027,7 @@ def plot_df_grp(df:pd.DataFrame,
     ax.plot(df.loc[start:end,col], marker='.',c=next(plot_colors), ms=1, label=col)
     #ticks = [n % 5 == 0, n > end]
     #ax.tick_params(left=ticks[start], bottom=ticks[end])
-    ax.set_title(str(col), size=12)
+    ax.set_title(str(col), size=8)
     if col in t_cols:
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin(t_cols)]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin(t_cols)]].max(skipna=False)))

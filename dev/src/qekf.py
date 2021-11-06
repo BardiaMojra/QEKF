@@ -255,15 +255,15 @@ class ExtendedKalmanFilter(object):
   def predict(self, u=0):
 
     #todo: change this from C = z_{q, k+1} to C = x_{q, k}^{+}
-    r = R.from_quat([ self.x_prior_TVQwxyz[7, 0], self.x_prior_TVQwxyz[8,0], \
+    r = R.from_quat([ self.x_prior_TVQwxyz[7,0], self.x_prior_TVQwxyz[8,0], \
                       self.x_prior_TVQwxyz[9,0], self.x_prior_TVQwxyz[6,0]])
     # r = R.from_quat([ self.z_TVWQxyzw[9, 0], self.z_TVWQxyzw[10,0], \
     #                   self.z_TVWQxyzw[11,0], self.z_TVWQxyzw[12,0]])
     self.C = r.as_matrix()
 
     '''NBUG'''
-    nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
-    nprint("r.as_quat() -  xyzw", r.as_quat())
+    # nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
+    # nprint("r.as_quat() -  xyzw", r.as_quat())
     self.set_H()
     self.set_L()
     self.set_F() #
@@ -328,6 +328,7 @@ class ExtendedKalmanFilter(object):
 
   def get_Qwxyz_from_Qxyz(self, xyz: np.array):
     ''' Calculate the real term (w), given the imaginary terms (xyz)
+      calculates unit quaternion from Qxyz (point quaternion)
     '''
     # sqrt(1-x^2-y%2-z^2) to confirm real part calc
     w = np.sqrt(1 -xyz[0]**2 -xyz[1]**2 -xyz[2]**2)

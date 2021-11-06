@@ -33,7 +33,7 @@ print_output = True
 _show = True
 _save = True
 _prt = False
-_zoom = 10
+_zoom = 40
 
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
@@ -53,36 +53,36 @@ def main():
 
   # select dataset
   #todo - close estimation
-  data = 'dataset-iphone1_clean'
-  #data = 'bigC_06-Aug2021'
-  #data = 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
-  #data = 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'
-  #data = 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off' #TODO: name index bug: df.columns and labels
+  # data = 'dataset-iphone1_clean'
+  # data = 'bigC_06-Aug2021'
+  # data = 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
+  # data = 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'
+  # data = 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off' #TODO: name index bug: df.columns and labels
   #todo - close estimation
-  #data = 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
-  #data = 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
-  #data = 'kitti_imu_0926_0001'
-  #data = 'kitti_imu_0926_0002'
-  #data = 'kitti_imu_0926_0005'
-  #data = 'kitti_imu_0926_0018'
-  #data = 'kitti_imu_0926_0060'
-  #data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
-  #data = 'kitti_imu_0926_0113' #todo: show this to Dr. Gans - Quat flips
-  #data = 'kitti_imu_0928_0001'
+  # data = 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
+  # data = 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
+  # data = 'kitti_imu_0926_0001'
+  # data = 'kitti_imu_0926_0002'
+  # data = 'kitti_imu_0926_0005'
+  # data = 'kitti_imu_0926_0018'
+  # data = 'kitti_imu_0926_0060'
+  # data = 'kitti_imu_0926_0084' #todo: show this to Dr. Gans
+  # data = 'kitti_imu_0926_0113' #todo: show this to Dr. Gans - Quat flips
+  data = 'kitti_imu_0928_0001'
 
   # init dataset object
   dset = dmm(name=data,
              VestScale=1,
-             data_rate_inv=1/30,
+             data_rate_inv=1/10,
              #start=0,
              #end=16,
              prt=_prt)
 
   dset.format()
   fignum+=1; get_fignum_str(fignum)
-  dset.plot(labels=dset.df.columns, title=data, show=_show)
+  dset.plot(labels=dset.df.columns, title=data, show=False)
   fignum+=1; get_fignum_str(fignum)
-  dset.plot_trans_3d(title='Ground Truth Translation', show=_show)
+  dset.plot_trans_3d(title='Ground Truth Translation', show=False)
 
   # init QEKF object
   qekf = QEKF(dim_x=9,
@@ -96,22 +96,24 @@ def main():
               K_scale=1.0)
 
   #qekf.x_post_Qwxyz= Quaternion(dset.quat_wxyz.head(1).to_numpy()[0])
-  nprint('qekf.x_Qwxyz', qekf.x_post_TVQxyz)
 
   ''' init state'''
-  qekf.x_post_TVQxyz[0] = dset.df.Tx.iloc[0]
-  qekf.x_post_TVQxyz[1] = dset.df.Ty.iloc[0]
-  qekf.x_post_TVQxyz[2] = dset.df.Tz.iloc[0]
-  qekf.x_post_TVQxyz[3] = dset.df.vx.iloc[0]
-  qekf.x_post_TVQxyz[4] = dset.df.vy.iloc[0]
-  qekf.x_post_TVQxyz[5] = dset.df.vz.iloc[0]
-  #qekf.x_post_TVQxyz[6] = dset.df.qw.iloc[0]
-  qekf.x_post_TVQxyz[6] = dset.df.qx.iloc[0]
-  qekf.x_post_TVQxyz[7] = dset.df.qy.iloc[0]
-  qekf.x_post_TVQxyz[8] = dset.df.qz.iloc[0]
+  qekf.x_prior_TVQwxyz[0] = dset.df.Tx.iloc[0]
+  qekf.x_prior_TVQwxyz[1] = dset.df.Ty.iloc[0]
+  qekf.x_prior_TVQwxyz[2] = dset.df.Tz.iloc[0]
+  qekf.x_prior_TVQwxyz[3] = dset.df.vx.iloc[0]
+  qekf.x_prior_TVQwxyz[4] = dset.df.vy.iloc[0]
+  qekf.x_prior_TVQwxyz[5] = dset.df.vz.iloc[0]
+  qekf.x_prior_TVQwxyz[6] = dset.df.qw.iloc[0]
+  qekf.x_prior_TVQwxyz[7] = dset.df.qx.iloc[0]
+  qekf.x_prior_TVQwxyz[8] = dset.df.qy.iloc[0]
+  qekf.x_prior_TVQwxyz[9] = dset.df.qz.iloc[0]
 
+  nprint('qekf.x_prior_TVQwxyz', qekf.x_prior_TVQwxyz)
+
+  # st()
   for i in range(dset.start, dset.end):
-    nprint(longhead+'   \\--->>> new state ------->>>>>', i)
+    print('\\--->>> new state ------->>>>>:', i)
     qekf.get_z_TVWQxyzw(lin_vel=dset.vel_xyz.to_numpy()[i,:],\
       translation=dset.trans_xyz.to_numpy()[i,:],\
       ang_vel=dset.vel_rpy.to_numpy()[i,:],\
@@ -121,7 +123,7 @@ def main():
 
     qekf.log.log_z_state(z=qekf.z_TVWQxyzw, idx=i)
 
-    nprint('qekf.z_TVWQxyzw[9:13] - Qxyzw', qekf.z_TVWQxyzw[9:13])
+    # nprint('qekf.z_TVWQxyzw[9:13] - Qxyzw', qekf.z_TVWQxyzw[9:13])
 
 
     qekf.predict()
@@ -161,8 +163,8 @@ def main():
     quat_B_df=quat_est_df,
     title='z vs x_prior unit range',
     figname='fig_09',
-    show=_show,
-    #show=True,
+    # show=_show,
+    show=False,
     colors=['maroon','darkgoldenrod'],
     save=True,
     output_dir=dset.output_dir,
@@ -225,11 +227,9 @@ def main():
   fignum+=1; get_fignum_str(fignum)
   plot_Txyz_vs_Txyz_3d(z_Txyz_df,
     x_post_Txyz_df,
-    #title='z vs x_posterior translation',
-    title='Translation',
+    title='z vs x_posterior translation',
     figname='fig_11',
     show=_show,
-    #show=True,
     labels=['z', 'x_post'],
     output_dir=dset.output_dir)
 
@@ -267,10 +267,10 @@ def main():
     title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
     figname='fig_13',
     # show=_show,
-    #show=True,
+    show=True,
     output_dir=dset.output_dir)
 
-  #todo: still working on this routine
+  #todo: still working on this routineshow=_showshow=_show
   #plot_z_df_vs_x_df_grp(z_TVQxyz_df,
   #  x_post_TVQxyz_df,
   #  labels=['z', 'x_post'],
@@ -292,7 +292,7 @@ def main():
     title='Kalman Gain - K_scalar '+str(qekf.K_scale),
     figname='fig_14',
     #show=True,
-    show=_show,
+    show=False,
     output_dir=dset.output_dir)
 
 
@@ -350,3 +350,5 @@ if __name__ == "__main__":
   st()
   time.sleep(1000)
   exit()
+
+# EOF

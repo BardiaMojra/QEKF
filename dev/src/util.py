@@ -119,6 +119,6 @@ def get_losses(res: pd.DataFrame):
   return res
 
 def print_losses(df: pd.DataFrame):
-  nprint(longhead+"L1 (total)", df['L1'].sum())
-  nprint(longhead+"L2 (total)", df['L2'].sum())
+  print(shorthead+"L1 (total): ", df['L1'].sum())
+  print(shorthead+"L2 (total): ", df['L2'].sum())
   return
