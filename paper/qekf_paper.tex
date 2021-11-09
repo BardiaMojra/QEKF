@@ -476,6 +476,13 @@ F =
 The following is our current implementation for estimation or prediction step.
 This dynamic model is based on discrete linear model in QEK2 paper
 \cite{rotella2014state}.
+\textcolor{red}{Note: the F and H matrices are not properly implemented?}
+
+\begin{equation}
+\begin{array}{lll}
+\hat{\mathbf{x}}  & = & F {x} + {B} \transpose{[\transpose{u}, \transpose{w}]}\\
+\end{array}
+\end{equation}
 
 \begin{equation}
   \begin{array}{lll}
@@ -557,11 +564,11 @@ The following is the standard EKF update step formulation.
 \begin{equation}
 % \label{eq:}
 \begin{split}\begin{array}{rcl}
-        \mathbf{v}_t &=& \mathbf{z}_t - \mathbf{h}(\mathbf{x}_t) \\
-        \mathbf{S}_t &=& \mathbf{H}(\mathbf{x}_t) \hat{\mathbf{P}}_t \mathbf{H}^T(\mathbf{x}_t) + \mathbf{R}_t \\
-        \mathbf{K}_t &=& \hat{\mathbf{P}}_t \mathbf{H}^T(\mathbf{x}_t) \mathbf{S}_t^{-1} \\
-        \mathbf{x}_t &=& \hat{\mathbf{x}}_t + \mathbf{K}_t \mathbf{v}_t \\
-        \mathbf{P}_t &=& \big(\mathbf{I}_4 - \mathbf{K}_t\mathbf{H}(\mathbf{x}_t)\big)\hat{\mathbf{P}}_t
+        {v}_t &=& {z}_t - {h}({x}_t) \\
+        {S}_t &=& {H}({x}_t) \hat{{P}}_t {H}^T({x}_t) + {R}_t \\
+        {K}_t &=& \hat{{P}}_t {H}^T({x}_t) {S}_t^{-1} \\
+        {x}_t &=& \hat{{x}}_t + {K}_t {v}_t \\
+        {P}_t &=& \big({I}_4 - {K}_t{H}(x_t)\big)\hat{{P}}_t
 \end{array}\end{split}
 \end{equation}
 
@@ -569,44 +576,27 @@ The following is the standard EKF update step formulation.
 
 \subsection{Update Step Implementation}
 The following equations represent our QEKF implementation.
-\textcolor{red}{TODO}
-% def update(self, z_TVWQxyzw):
-% PHT = dot(self.P_prior, self.H.T)
-% self.S = dot(self.H, PHT) + self.R
-% self.K = PHT.dot(linalg.inv(self.S))
-% # modified for qekf and quarternion states
-% x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
-% x_prior_TVQxyz_tmp[0:6,0] = self.x_prior_TVQwxyz[0:6,0]
-% x_prior_TVQxyz_tmp[6:9,0] = self.x_prior_TVQwxyz[7:10,0]
-% hx = np.dot(self.H, x_prior_TVQxyz_tmp)
-% ''' lin part
-% self.y_TVWQxyz = np.subtract(self.z_TVWQxyzw[0:12,0], hx.T).T # TVWQxyz
-% ''' quat part
-% x_prior_est_Qwxyz_q = Quaternion(self.x_prior_TVQwxyz[6:10,0]) # wxyz input
-% x_obs_est_Qwxyz_q = Quaternion(self.z_TVWQxyzw[12], self.z_TVWQxyzw[9],
-%                                self.z_TVWQxyzw[10], self.z_TVWQxyzw[11])
-% e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
-% e__log = Q_log(e__.elements) # get the error rotation from subtracting two orientation
-% self.y_TVWQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]] # load quat to
-% self.K = self.K * self.K_scale
-% ky = dot(self.K, self.y_TVWQxyz)
-% self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
-% temp_exp_map = exp_map(self.T_*ky[6:9]) # quaternion correction
-% # equation 6 from EKF2 paper # update quaternion
-% exp_map_ = Quaternion([temp_exp_map[3],temp_exp_map[0],temp_exp_map[1],temp_exp_map[2]]) \
-%   * Quaternion(self.x_prior_TVQwxyz[6:10,0])  ## wxyz format
-% self.x_post_TVQxyz[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
-% I_KH = self._I - dot(self.K, self.H)
-% self.P_post = dot(I_KH, self.P_prior).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-% return
+\textcolor{red}{Note: the F and H matrices are not properly implemented?}
+\begin{equation}
+% \label{eq:}
+\begin{split}\begin{array}{lll}
+  {H}_{x}  & = & {H}_{12 \times 9} {x}_{k, 9 \times 1}\\
+  {S} & = & {H}_{x}\hat{{P}}\transpose{{H}}_{x}+ {R}\\
+  {K} & = & \hat{{P}} \transpose{{H}}_{x} {S}^{-1}\\
+  {y}_{r,v,w} & = & {z}_{r,v,w} - \transpose{{H}}_{x;r,v,w} \\
+  {y}_{q} & = &  \log({z}_{q} \bigotimes   {x}_{q})\\
+  {y} & = & \transpose{\left[{y}_{r,v,w}, {y}_{q} \right]}\\
+  {x} & = & \hat{{x}} + {K} {y} \\
+  {x}_{q} & = & \text{map}_{exp}(\Delta t (Ky_{\omega} )) \\
+  P^{+} & = & (I - KH) P^{-} \transpose{(I -KH)} + KR \transpose{K}\\
+\end{array}\end{split}
+\end{equation}
 
-                % \end{equation}
-% \end{split}
-
-%\end{equation}
+\noindent
+where H is a \(12 \times 9\) matrix. x is a \(9 \times 1\) matrix.
 
 
-Finally, comp
+
 
 \subsection{Abbreviations and Acronyms}
 Defib
