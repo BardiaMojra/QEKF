@@ -40,7 +40,34 @@ matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
 
-def main(data:str):
+def main():
+  testmode  = 'single'
+  testmode = 'all'
+  test_id = 0
+
+  if testmode == 'all':
+    print(shorthead+'starting all test sequences:')
+    for i in range(len(datasets)):
+      print('> '+str(i)+': '+datasets[i])
+    print('\n')
+    for i in range(len(datasets)):
+      st()
+
+      print('> '+str(i)+': '+datasets[i])
+      run(datasets[i])
+  elif isinstance(test_id, int) is True:
+    set_id = test_id
+    if set_id not in range(len(datasets)):
+      eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)))
+      exit()
+    else:
+      print(shorthead+'user input (int): '+str(set_id)+' ---> '+datasets[set_id])
+      run(str(datasets[set_id]))
+
+  print(longhead+'---- end of main ----')
+
+
+def run(data:str):
   # globals
   global fignum
   fignum = int(0)
@@ -298,49 +325,12 @@ def main(data:str):
 
 
 
+
+
 if __name__ == "__main__":
-  # select dataset
-  usr_input = sys.argv[1]
-  # 00: 'dataset-iphone1_clean',
-  # 01: 'bigC_06-Aug2021',
-  # 02: 'kitti_imu_0926_0001',
-  # 03: 'kitti_imu_0926_0002',
-  # 04: 'kitti_imu_0926_0005',
-  # 05: 'kitti_imu_0926_0018', # hook tail [150]
-  # 06: 'kitti_imu_0926_0060', # swervy
-  # 07: 'kitti_imu_0926_0084', #todo: show this to Dr. Gans
-  # 08: 'kitti_imu_0926_0113', #todo: show this to Dr. Gans - Quat flips
-  # 09: 'kitti_imu_0928_0001',
-  # 10: 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off',
-  # 11: 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off',
-  # 12: 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
-  # 13: 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
-  # 14: 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
 
-  if isinstance(usr_input, int) is True:
-    if usr_input not in range(len(datasets)):
-      eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)))
-      st()
-      exit()
-    print(shorthead+'user input (int): '+str(usr_input)+' ---> '+datasets[usr_input])
-    dset = datasets[usr_input]
-    main(dset)
-  elif isinstance(usr_input, int) is True:
-    if usr_input == 'all':
-      for dset in datasets:
-        st()
+  main()
 
-        main(dset)
-    if usr_input not in datasets:
-      eprint('usr input (str) is not a valid dataset: '+usr_input)
-      st()
-
-      exit()
-    else: # pass in dataset name string
-      print(shorthead+'user input (str): '+usr_input)
-      dset = usr_input
-      st()
-      main(dset)
 
   print('---------   End   ---------')
   # st()
