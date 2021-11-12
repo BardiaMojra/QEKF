@@ -16,25 +16,27 @@ from scipy.spatial.transform import Rotation as R
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
-    # config
+''' config
+'''
+prt_file_save_en = False
 prj_outDir = '../out02'
 qlabels = ['idx', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
 vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
-datasets = [  'dataset-iphone1_clean',
-              'bigC_06-Aug2021',
-              'kitti_imu_0926_0001',
-              'kitti_imu_0926_0002',
-              'kitti_imu_0926_0005',
-              'kitti_imu_0926_0018',
-              'kitti_imu_0926_0060',
-              'kitti_imu_0926_0084',
-              'kitti_imu_0926_0113',
-              'kitti_imu_0928_0001',
-              # 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off', # repeat
-              'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off',
-              'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
-              'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
-              # 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off', # bad data
+datasets = ['dataset-iphone1_clean',
+            'bigC_06-Aug2021',
+            'kitti_imu_0926_0001',
+            'kitti_imu_0926_0002',
+            'kitti_imu_0926_0005',
+            'kitti_imu_0926_0018',
+            'kitti_imu_0926_0060',
+            'kitti_imu_0926_0084',
+            'kitti_imu_0926_0113',
+            'kitti_imu_0928_0001',
+            # 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off', # repeat
+            'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off',
+            'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
+            'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
+            # 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off', # bad data
 ]
 class dmm:
   ''' Data Management Module
@@ -292,7 +294,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
-      print(shorthead+'saving figure: '+file_name+'.png')
+      prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -317,7 +319,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
-      print(shorthead+'saving figure: '+file_name+'.png')
+      prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -542,7 +544,7 @@ def plot_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -609,7 +611,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -681,7 +683,7 @@ def plot_df(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    print(longhead+'saving figure: '+fig_name)
+    prt_file_save(longhead+'saving figure: '+fig_name+'.png')
   if show==True: fig.show()
   else: plt.close()
   return
@@ -723,7 +725,7 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
   if show==True:
     plt.show()
   else:
@@ -848,7 +850,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(longhead+'saving figure: '+file_name+'.png')
+    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
@@ -997,7 +999,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    print(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
@@ -1072,7 +1074,7 @@ def plot_df_grp(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    print(longhead+'saving figure: '+fig_name)
+    prt_file_save(shorthead+'saving figure: '+fig_name+'.png')
   if show==True: fig.show()
   else: plt.close()
   return
@@ -1112,9 +1114,13 @@ def plot_df_grp_K(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    print(longhead+'saving figure: '+fig_name)
+    prt_file_save(shorthead+'saving figure: '+fig_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
+
+def prt_file_save(string, *args):
+  if prt_file_save_en is True:
+    print(shorthead+(string+' ')); print(*args);
 
 # EOF

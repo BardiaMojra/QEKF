@@ -51,9 +51,7 @@ def main():
       print('> '+str(i)+': '+datasets[i])
     print('\n')
     for i in range(len(datasets)):
-      st()
-
-      print('> '+str(i)+': '+datasets[i])
+      print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
       run(datasets[i])
   elif isinstance(test_id, int) is True:
     set_id = test_id
@@ -65,6 +63,7 @@ def main():
       run(str(datasets[set_id]))
 
   print(longhead+'---- end of main ----')
+  return
 
 
 def run(data:str):
@@ -166,8 +165,7 @@ def run(data:str):
     start=dset.start,
     end=dset.end,
     labels=['meas.', 'est.'],
-    y_range=[-1.1,1.1],
-    )
+    y_range=[-1.1,1.1])
 
   residual_df = pd.DataFrame(qekf.log.v_hist,
     index=qekf.log.idx,
@@ -182,8 +180,7 @@ def run(data:str):
     rows=14,
     cols=1,
     title='v residual',
-    #show=_show,
-    show=True,
+    show=_show,
     figname=get_fignum_str(fignum),
     output_dir=dset.output_dir)
 
@@ -234,7 +231,6 @@ def run(data:str):
     title='z vs x_posterior translation zoom',
     figname=get_fignum_str(fignum),
     show=_show,
-    #show=True,
     labels=['z', 'x_post'],
     end=_zoom,
     output_dir=dset.output_dir)
@@ -261,8 +257,7 @@ def run(data:str):
     labels=['z', 'x_post'],
     title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
     figname=get_fignum_str(fignum),
-    # show=_show,
-    show=True,
+    show=_show,
     output_dir=dset.output_dir)
 
   #todo: still working on this routineshow=_showshow=_show
@@ -286,7 +281,6 @@ def run(data:str):
   plot_df_grp_K(df=K_df,
     title='Kalman Gain - K_scalar '+str(qekf.K_scale),
     figname=get_fignum_str(fignum),
-    #show=True,
     show=False,
     output_dir=dset.output_dir)
 
@@ -333,8 +327,7 @@ if __name__ == "__main__":
 
 
   print('---------   End   ---------')
-  # st()
   # time.sleep(1000)
-  exit()
+  # exit()
 
 # EOF
