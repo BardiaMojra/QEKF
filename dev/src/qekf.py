@@ -207,7 +207,7 @@ class ExtendedKalmanFilter(object):
     # eq 16-22 of QEKF2
     # est lin pos and lin vel
     self.x_prior_TVQwxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]+\
-                                  self.T_*self.x_post_TVQxyz[3:6,0]
+                                  self.T_*self.x_post_TVQxyz[3:6,0] #todo: investigate replacing with observed lin. vel.
     self.x_prior_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
     # est rot (quat)
     # get observed angular velocity

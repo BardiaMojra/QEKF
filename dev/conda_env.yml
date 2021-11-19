@@ -16,6 +16,3 @@ dependencies:
       - pyqt5
       - xlrd
       - openpyxl
-#variables:
-#  VAR1: valueA
-#  VAR2: valueB

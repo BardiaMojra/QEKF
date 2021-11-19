@@ -18,15 +18,6 @@ from util import *
 from pdb import set_trace as st
 from nbug import *
 
-
-
-def get_fignum_str(fignum):
-  ''' usage:
-    fignum+=1;get_fignum_str(fignum)
-  '''
-  return 'fig_%03i' % fignum
-
-
 ''' general config '''
 NBUG = True
 print_output = True
@@ -38,6 +29,16 @@ _zoom = 150
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
+
+
+def get_fignum_str(fignum):
+  ''' usage:
+    fignum+=1;get_fignum_str(fignum)
+  '''
+  return 'fig_%03i' % fignum
+
+
+
 
 
 def main():
