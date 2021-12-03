@@ -37,6 +37,7 @@ datasets = ['dataset-iphone1_clean',
             'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
             'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
             # 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off', # bad data
+            'dead_reckoning_01',
 ]
 class dmm:
   ''' Data Management Module
@@ -254,6 +255,12 @@ class dmm:
       self.load_kitti_set()
     elif self.name=="kitti_imu_0928_0001" and self.ext=='csv':
       self.load_kitti_set()
+    elif self.name=="dead_reckoning_01" and self.ext=='txt':
+      ''' - use same format as KITTI
+        acce.txt -- linear acce
+        rv rotation ve
+        data format doc https://developer.android.com/guide/topics/sensors/sensors_motion
+      '''
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
