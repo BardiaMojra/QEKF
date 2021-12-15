@@ -6,6 +6,9 @@ from pdb import set_trace as st
 from pprint import pprint as pp
 from numpy import dot, zeros, eye
 from scipy.linalg import norm
+from scipy.spatial.transform import Rotation as R
+
+
 from dmm import *
 from dlm import *
 from util import *

@@ -1,15 +1,17 @@
 from util import exp_map
 import sys
 import pandas as pd
-from pdb import set_trace as st
+# from pdb import set_trace as st
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-from pprint import pprint as pp
+
+
+# from pprint import pprint as pp
 from nbug import *
-from scipy.spatial.transform import Rotation as R
+# from scipy.spatial.transform import Rotation as R
 
 
 ''' matplotlib config '''
@@ -140,7 +142,7 @@ class dmm:
       src_dir = '../data/'+name+'/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
-      opt = ' ' # space separator for csv file
+      opt = ',' # space separator for csv file
     else:
       eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
 
@@ -155,7 +157,7 @@ class dmm:
     self.name = name
     self.src_dir = src_dir
     self.ext = ext
-    self.dtype = 'float64'
+    self.dtype = np.float64
     self.options = opt
     self.prt = prt
     self.save = save
@@ -236,7 +238,7 @@ class dmm:
       self.load_QuVest_set()
     elif self.name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'\
       and self.ext=='csv':
-      self.load_QuVest_set()
+      self.load_sigfig_set()
     elif self.name=="kitti_imu_0926_0001" and self.ext=='csv':
         self.load_kitti_set()
     elif self.name=="kitti_imu_0926_0002" and self.ext=='csv':
@@ -426,6 +428,22 @@ class dmm:
     self.df = pd.concat([self.quest, self.vest], axis=1)
     #self.df.columns = self.labels# load state variables
     return
+
+  def load_sigfig_set(self):
+    # load QuEst data
+    fname = 'quest_post_vest.csv'
+    self.quest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load VEst data
+    fname = 'vest.csv'
+    self.vest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load data frame
+    self.df = pd.concat([self.quest, self.vest], axis=1)
+    #self.df.columns = self.labels# load state variables
+
+    return
+
 
   ''' end of dmm class...
   '''
