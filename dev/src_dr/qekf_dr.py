@@ -6,9 +6,11 @@ from pdb import set_trace as st
 from pprint import pprint as pp
 from numpy import dot, zeros, eye
 from scipy.linalg import norm
-from dmm import *
-from dlm import *
-from util import *
+from scipy.spatial.transform import Rotation as R
+
+from dmm_dr import *
+from dlm_dr import *
+from util_dr import *
 
 ''' general config '''
 longhead  = '\n\--->> '
@@ -60,7 +62,6 @@ class ExtendedKalmanFilter(object):
       ang_vel_b:
       ang_rot: Q_wxyz (3+1)
             --->> 9 (+1 for q_w) state variables
-
 
     #TODO:
       - scale factor

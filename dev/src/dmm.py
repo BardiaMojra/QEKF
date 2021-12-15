@@ -297,7 +297,7 @@ class dmm:
       plt.title('{}'.format(title))
       title = title.replace(' ', '_')
     plt.xlabel('Time')
-    plt.ylabel('Magnitute')
+    plt.ylabel('Magnitude')
     # save and show image utility
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)

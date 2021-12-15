@@ -1,15 +1,16 @@
-from util import exp_map
 import sys
 import pandas as pd
-from pdb import set_trace as st
+# from pdb import set_trace as st
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-from pprint import pprint as pp
+
+
+# from pprint import pprint as pp
 from nbug import *
-from scipy.spatial.transform import Rotation as R
+from util_dr import exp_map
 
 
 ''' matplotlib config '''
@@ -19,10 +20,10 @@ plt.style.use('ggplot')
 ''' config
 '''
 prt_file_save_en = False
-prj_outDir = '../out02'
+prj_outDir = '../out03'
 qlabels = ['idx', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
 vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
-datasets = ['dead_reckoning_01']
+datasets = [ 'dead_reckoning_01']
 class dmm:
   ''' Data Management Module
   '''
@@ -36,17 +37,13 @@ class dmm:
                save=True):
 
     # set dataset configs
-    if name == datasets[0]:
-      src_dir = '../data/dataset-iphone1_clean/'
+    if name == 'dead_reckoning_01':
+      src_dir = '../data/dead_reckoning_data/1/'
       output_dir = prj_outDir+'/out_'+name+'/'
-      ext = 'xlsx'
-      opt = None
-   csv file
-    elif name == datasets[14]:
-      src_dir = '../data/'+name+'/'
-      output_dir = prj_outDir+'/out_'+name+'/'
-      ext = 'csv'
-      opt = ' ' # space separator for csv file
+      ext = 'txt'
+      opt = ' '
+      # data_rate_inv = 0.1
+      # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     else:
       eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
 
@@ -61,7 +58,7 @@ class dmm:
     self.name = name
     self.src_dir = src_dir
     self.ext = ext
-    self.dtype = 'float64'
+    self.dtype = np.float64
     self.options = opt
     self.prt = prt
     self.save = save
@@ -111,60 +108,13 @@ class dmm:
       Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off
       Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6
     '''
-    if self.name=="iphone_mouse_zoom_2" and self.ext=='csv':
-      fname = 'u_cord_subpix.csv'
-      self.df = pd.read_csv(self.src_dir+fname)
-    elif self.name=="dataset-iphone1_clean" and self.ext=='xlsx':
-      # load QuEst data
-      fname = 'quest.xlsx'
-      self.quest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
-        index_col=0, dtype=self.dtype, header=0)
-      # load VEst data
-      fname = 'vest.xlsx'
-      self.vest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
-        index_col=0, dtype=self.dtype, header=0)
-      # load data frame
-      self.df = pd.concat([self.quest, self.vest], axis=1)
-      self.labels = self.df.columns# load state variable labels
-    elif self.name=="bigC_06-Aug2021" and self.ext=='csv':
-      self.load_QuVest_set()
-    elif self.name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'\
-      and self.ext=='csv':
-      self.load_QuVest_set()
-    elif self.name == 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'\
-      and self.ext=='csv':
-      self.load_QuVest_set()
-    elif self.name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'\
-      and self.ext=='csv':
-      self.load_QuVest_set()
-    elif self.name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'\
-      and self.ext=='csv':
-      self.load_QuVest_set()
-    elif self.name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'\
-      and self.ext=='csv':
-      self.load_QuVest_set()
-    elif self.name=="kitti_imu_0926_0001" and self.ext=='csv':
-        self.load_kitti_set()
-    elif self.name=="kitti_imu_0926_0002" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="kitti_imu_0926_0005" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="kitti_imu_0926_0018" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="kitti_imu_0926_0060" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="kitti_imu_0926_0084" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="kitti_imu_0926_0113" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="kitti_imu_0928_0001" and self.ext=='csv':
-      self.load_kitti_set()
-    elif self.name=="dead_reckoning_01" and self.ext=='txt':
+    if self.name=="dead_reckoning_01" and self.ext=='txt':
       ''' - use same format as KITTI
         acce.txt -- linear acce
         rv rotation ve
         data format doc https://developer.android.com/guide/topics/sensors/sensors_motion
       '''
+      self.load_android_set()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
@@ -181,6 +131,21 @@ class dmm:
     # save dataset to output dir
     if self.prt == True:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
+    return
+
+
+  def load_android_set(self):
+    # load QuEst data
+    fname = 'quest_post_vest.csv'
+    self.quest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load VEst data
+    fname = 'vest.csv'
+    self.vest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load data frame
+    self.df = pd.concat([self.quest, self.vest], axis=1)
+    #self.df.columns = self.labels# load state variables
     return
 
   def get(self, quat_format=None):
@@ -200,7 +165,7 @@ class dmm:
       plt.title('{}'.format(title))
       title = title.replace(' ', '_')
     plt.xlabel('Time')
-    plt.ylabel('Magnitute')
+    plt.ylabel('Magnitude')
     # save and show image utility
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
@@ -331,6 +296,21 @@ class dmm:
     self.df = pd.concat([self.quest, self.vest], axis=1)
     #self.df.columns = self.labels# load state variables
     return
+
+  def load_sigfig_set(self):
+    # load QuEst data
+    fname = 'quest_post_vest.csv'
+    self.quest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load VEst data
+    fname = 'vest.csv'
+    self.vest = pd.read_csv(self.src_dir+fname,
+      sep=self.options, index_col=0, dtype=self.dtype)
+    # load data frame
+    self.df = pd.concat([self.quest, self.vest], axis=1)
+    #self.df.columns = self.labels# load state variables
+    return
+
 
   ''' end of dmm class...
   '''

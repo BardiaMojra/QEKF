@@ -1,17 +1,18 @@
 
-import numpy as np
+# import numpy as np
 import matplotlib
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import pandas as pd
-import time
-from scipy.spatial.transform import Rotation as R
-from pyquaternion import Quaternion
-from qekf import ExtendedKalmanFilter as QEKF
+# import time
+# from scipy.spatial.transform import Rotation as R
+# from pyquaternion import Quaternion
 
-''' private libraries
+''' custom libraries
 '''
 from dmm_dr import *
-from util import *
+from util_dr import *
+from qekf_dr import ExtendedKalmanFilter as QEKF
+
 
 ''' NBUG libraries
 '''
@@ -26,17 +27,34 @@ _save = True
 _prt = False
 _zoom = 150
 
+''' matplotlib config '''
+# matplotlib.pyplot.ion()
+# plt.style.use('ggplot')
+
 ''' datasets
-    0. dead_reckoning_01
+ 0  dead_reckoning_01
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+
 
 '''
-
-def get_fignum_str(fignum):
-  ''' usage: fignum+=1;get_fignum_str(fignum)
-  '''
-  return 'fig_%03i' % fignum
-
-
 
 def main():
   testmode  = 'single'
@@ -54,14 +72,21 @@ def main():
   elif isinstance(test_id, int) is True:
     set_id = test_id
     if set_id not in range(len(datasets)):
-      eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)))
+      eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)-1))
+      eprint('usr input: '+str(test_id))
       exit()
     else:
       print(shorthead+'user input (int): '+str(set_id)+' ---> '+datasets[set_id])
       run(str(datasets[set_id]))
-
   print(longhead+'---- end of main ----')
   return
+
+''' local routines
+'''
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum)
+  '''
+  return 'fig_%03i' % fignum
 
 
 def run(data:str):
@@ -117,10 +142,10 @@ def run(data:str):
       #quat=np.asarray([.001, .002, -.994, .003]),\
       Vscale=dset.VestScale)
 
-    qekf.log.log_z_state(z=qekf.z_TVAWQxyzw, idx=i)
+    qekf.log.log_z_state(z=qekf.z_TVWQxyzw, idx=i)
 
     qekf.predict()
-    qekf.update(qekf.z_TVAWQxyzw.T)
+    qekf.update(qekf.z_TVWQxyzw.T)
 
   # end of qekf data iterator ----->>
   nprint('end of qekf data iterator ----->>', '')

@@ -21,14 +21,14 @@ from nbug import *
 ''' general config '''
 NBUG = True
 print_output = True
-_show = False
+_show = True
 _save = True
 _prt = False
 _zoom = 150
 
 ''' matplotlib config '''
-# matplotlib.pyplot.ion()
-# plt.style.use('ggplot')
+matplotlib.pyplot.ion()
+plt.style.use('ggplot')
 
 ''' datasets
  0  'dataset-iphone1_clean'
