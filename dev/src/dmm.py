@@ -32,12 +32,10 @@ datasets = ['dataset-iphone1_clean',
             'kitti_imu_0926_0084',
             'kitti_imu_0926_0113',
             'kitti_imu_0928_0001',
-            # 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off', # repeat
             'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off',
             'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
             'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
-            # 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off', # bad data
-            'dead_reckoning_01',
+            'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
 ]
 class dmm:
   ''' Data Management Module
@@ -52,93 +50,93 @@ class dmm:
                save=True):
 
     # set dataset configs
-    if name == datasets[0]:
+    if name == 'dataset-iphone1_clean':
       src_dir = '../data/dataset-iphone1_clean/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'xlsx'
       opt = None
-    elif name == datasets[1]:
+    elif name == 'bigC_06-Aug2021':
       src_dir = '../data/bigC_06-Aug2021/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name ==  datasets[2]:
+    elif name ==  'kitti_imu_0926_0001':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[3]:
+    elif name == 'kitti_imu_0926_0002':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[4]:
+    elif name == 'kitti_imu_0926_0005':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[5]:
+    elif name == 'kitti_imu_0926_0018':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[6]:
+    elif name == 'kitti_imu_0926_0060':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[7]:
+    elif name == 'kitti_imu_0926_0084':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[8]:
+    elif name == 'kitti_imu_0926_0113':
       src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[9]:
+    elif name == 'kitti_imu_0928_0001':
       src_dir = '../data/KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
-    elif name == datasets[10]:
+    elif name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off':
       src_dir = '../data/'+name+'/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == datasets[11]:
+    elif name =='Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
       src_dir = '../data/'+name+'/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == datasets[12]:
+    elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
       src_dir = '../data/'+name+'/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == datasets[13]:
+    elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
       src_dir = '../data/'+name+'/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
-    elif name == datasets[14]:
+    elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
       src_dir = '../data/'+name+'/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'csv'
@@ -261,6 +259,7 @@ class dmm:
         rv rotation ve
         data format doc https://developer.android.com/guide/topics/sensors/sensors_motion
       '''
+      self.load_deadreckoning_set()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()

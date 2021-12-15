@@ -1,11 +1,11 @@
 
-import numpy as np
+# import numpy as np
 import matplotlib
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import pandas as pd
 import time
-from scipy.spatial.transform import Rotation as R
-from pyquaternion import Quaternion
+# from scipy.spatial.transform import Rotation as R
+# from pyquaternion import Quaternion
 from qekf import ExtendedKalmanFilter as QEKF
 
 ''' private libraries
@@ -27,24 +27,38 @@ _prt = False
 _zoom = 150
 
 ''' matplotlib config '''
-matplotlib.pyplot.ion()
-plt.style.use('ggplot')
+# matplotlib.pyplot.ion()
+# plt.style.use('ggplot')
+
+''' datasets
+ 0  'dataset-iphone1_clean'
+ 1  'bigC_06-Aug2021'
+ 2  'kitti_imu_0926_0001'
+ 3  'kitti_imu_0926_0002'
+ 4  'kitti_imu_0926_0005'
+ 5  'kitti_imu_0926_0018'
+ 6  'kitti_imu_0926_0060'
+ 7  'kitti_imu_0926_0084'
+ 8  'kitti_imu_0926_0113'
+ 9  'kitti_imu_0928_0001'
+10  'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
+11  'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
+12  'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
+13  'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'
+14
+15
+16
+17
+18
+19
 
 
-def get_fignum_str(fignum):
-  ''' usage:
-    fignum+=1;get_fignum_str(fignum)
-  '''
-  return 'fig_%03i' % fignum
-
-
-
-
+'''
 
 def main():
   testmode  = 'single'
-  testmode = 'all'
-  test_id = 0
+  # testmode = 'all'
+  test_id = 13
 
   if testmode == 'all':
     print(shorthead+'starting all test sequences:')
@@ -57,14 +71,21 @@ def main():
   elif isinstance(test_id, int) is True:
     set_id = test_id
     if set_id not in range(len(datasets)):
-      eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)))
+      eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)-1))
+      eprint('usr input: '+str(test_id))
       exit()
     else:
       print(shorthead+'user input (int): '+str(set_id)+' ---> '+datasets[set_id])
       run(str(datasets[set_id]))
-
   print(longhead+'---- end of main ----')
   return
+
+''' local routines
+'''
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum)
+  '''
+  return 'fig_%03i' % fignum
 
 
 def run(data:str):
