@@ -107,12 +107,13 @@ def run(data:str):
   fignum+=1;
   dset.plot(labels=dset.df.columns, figname=get_fignum_str(fignum), title=data, show=False)
 
-  fignum+=1;
-  dset.plot_trans_3d(title='Ground Truth Translation', figname=get_fignum_str(fignum), show=False)
+  #todo: import vicon data for ground truth comparison
+  # fignum+=1;
+  # dset.plot_trans_3d(title='Ground Truth Translation', figname=get_fignum_str(fignum), show=False)
 
   # init QEKF object
-  qekf = QEKF(dim_x=9,
-              dim_z=12,
+  qekf = QEKF(dim_x=9, #  Txyz, Vxyz, Qxyz -- linPos, linVel, angPos (quat)
+              dim_z=3, # orientation Qxyz
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
@@ -122,20 +123,20 @@ def run(data:str):
               K_scale=1.0)
 
   ''' init state'''
-  qekf.x_prior_TVQwxyz[0] = dset.df.Tx.iloc[0]
+  qekf.x_prior_TVQwxyz[0] = dset.df.Tx.iloc[0] #todo: make sure IC is zero
   qekf.x_prior_TVQwxyz[1] = dset.df.Ty.iloc[0]
   qekf.x_prior_TVQwxyz[2] = dset.df.Tz.iloc[0]
   qekf.x_prior_TVQwxyz[3] = dset.df.vx.iloc[0]
   qekf.x_prior_TVQwxyz[4] = dset.df.vy.iloc[0]
   qekf.x_prior_TVQwxyz[5] = dset.df.vz.iloc[0]
-  qekf.x_prior_TVQwxyz[6] = dset.df.qw.iloc[0]
+  qekf.x_prior_TVQwxyz[6] = dset.df.qw.iloc[0] #todo: get orientation IC from vicon data
   qekf.x_prior_TVQwxyz[7] = dset.df.qx.iloc[0]
   qekf.x_prior_TVQwxyz[8] = dset.df.qy.iloc[0]
   qekf.x_prior_TVQwxyz[9] = dset.df.qz.iloc[0]
 
   for i in range(dset.start, dset.end):
     # print('\\--->>> new state ------->>>>>:', i)
-    qekf.get_z_TVWQxyzw(lin_vel=dset.vel_xyz.to_numpy()[i,:],\
+    qekf.get_z_Qxyzw(lin_vel=dset.vel_xyz.to_numpy()[i,:],\
       translation=dset.trans_xyz.to_numpy()[i,:],\
       ang_vel=dset.vel_rpy.to_numpy()[i,:],\
       quat=dset.quat_xyzw.to_numpy()[i,:],\

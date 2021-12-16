@@ -268,7 +268,7 @@ class ExtendedKalmanFilter(object):
     self.G[12:16,3:6] = (self.T_/2)*(np.sin(norm(W)*self.T_/2)/norm(W)) * Omega
     self.G[16:19,3:6] = self.T_*np.eye(3)
 
-  def get_z_TVWQxyzw(self, lin_vel, translation, ang_vel, quat, Vscale=1):
+  def get_z_Qxyzw(self, lin_vel, translation, ang_vel, quat, Vscale=1):
     self.z_TVWQxyzw[0:3,0] = translation
     self.z_TVWQxyzw[3:6,0] = lin_vel*Vscale
     self.z_TVWQxyzw[6:9,0] = ang_vel

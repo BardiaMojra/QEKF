@@ -28,7 +28,8 @@ plt.style.use('ggplot')
 prt_file_save_en = False
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
 lAcc_labels = ['tstamp', 'Ax', 'Ay', 'Az'] # lin acce
-qVel_labels = ['tstamp', 'Wx', 'Wy', 'Wz', 'Ww'] # rot vel (Quat)
+aVel_labels = ['tstamp', 'Wx', 'Wy', 'Wz'] # rot vel
+qPos_labels = ['tstamp', 'qx', 'qy', 'qz', 'qw']
 # qlabels = ['idx', 't', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
 # vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
 datasets = [ 'dead_reckoning_01']
@@ -80,17 +81,17 @@ class dmm:
     self.df = None
     self.len = None
     self.lAcc_labels = lAcc_labels
-    self.qVel_labels = qVel_labels
-    self.labels = lAcc_labels + qVel_labels
+    self.qVel_labels = aVel_labels
+    self.labels = lAcc_labels + aVel_labels
     # self.quest = None
     # self.vest = None
-    self.trans_xyz = None
-    self.vel_xyz = None
-    self.acc_xyz = None
-    self.quat_xyzw = None # rotation in quaternion - x,y,z,w
-    self.quat_wxyz = None # rotation in quaternion - w,x,y,z
-    self.vel_rpy = None # rad/sec - roll, pitch, yaw
-    self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
+    # self.trans_xyz = None
+    # self.vel_xyz = None
+    self.Acce_xyz = None
+    self.qVel = None  # rotation in quaternion - x,y,z,w
+    # self.quat_wxyz = None # rotation in quaternion - w,x,y,z
+    # self.vel_rpy = None # rad/sec - roll, pitch, yaw
+    # self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
     # end of __init__() <<--------------------------------------
 
   def format(self):
@@ -109,11 +110,13 @@ class dmm:
       exit()
     ''' common df section '''
     # load state variables
-    self.trans_xyz = self.df[['Tx', 'Ty', 'Tz']]
-    self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]
-    self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
-    self.vel_xyz = self.df[['vx', 'vy', 'vz']]
-    self.vel_rpy = self.df[['wr', 'wp', 'wy']]
+    # self.trans_xyz = self.df[['Tx', 'Ty', 'Tz']]
+    # self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]
+    # self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
+    # self.vel_xyz = self.df[['vx', 'vy', 'vz']]
+    # self.vel_rpy = self.df[['wr', 'wp', 'wy']]
+    self.Acce_xyz = self.df[ ['Ax', 'Ay', 'Az']]
+    self.qVel = self.df[['Wx', 'Wy', 'Wz', 'Ww']]
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
@@ -132,7 +135,7 @@ class dmm:
     nprint('linAcc_df', linAcc_df)
 
     # load rot vel (quat)
-    fname = 'rv.txt'
+    fname = 'gyro.txt'
     qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
     qVel_df = pd.DataFrame(qVel_np, columns=self.qVel_labels)
