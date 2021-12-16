@@ -1,6 +1,8 @@
+''' data management module
+  @author Bardia Mojra
+'''
 import sys
 import pandas as pd
-# from pdb import set_trace as st
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -8,9 +10,13 @@ from matplotlib import cm
 import os
 
 
-# from pprint import pprint as pp
-from nbug import *
 from util_dr import exp_map
+
+
+from pprint import pprint as pp
+from nbug import *
+from pdb import set_trace as st
+
 
 
 ''' matplotlib config '''
@@ -20,9 +26,11 @@ plt.style.use('ggplot')
 ''' config
 '''
 prt_file_save_en = False
-prj_outDir = '../out03'
-qlabels = ['idx', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
-vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
+prj_outDir = '../out03' # <<-- used out03 for acce qekf output
+lAcc_labels = ['tstamp', 'Ax', 'Ay', 'Az'] # lin acce
+qVel_labels = ['tstamp', 'Wx', 'Wy', 'Wz', 'Ww'] # rot vel (Quat)
+# qlabels = ['idx', 't', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
+# vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
 datasets = [ 'dead_reckoning_01']
 class dmm:
   ''' Data Management Module
@@ -30,7 +38,7 @@ class dmm:
   def __init__(self,
                name,
                VestScale=1.0,
-               data_rate_inv=1/30,
+               data_rate_inv=1/100,
                start=0,
                end=None,
                prt=True,
@@ -38,7 +46,7 @@ class dmm:
 
     # set dataset configs
     if name == 'dead_reckoning_01':
-      src_dir = '../data/dead_reckoning_data/1/'
+      src_dir = '../data/dead_reckoning_data/1/imu/'
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'txt'
       opt = ' '
@@ -71,11 +79,11 @@ class dmm:
     # df init
     self.df = None
     self.len = None
-    self.qlabels = qlabels
-    self.vlabels = vlabels
-    self.labels = qlabels + vlabels
-    self.quest = None
-    self.vest = None
+    self.lAcc_labels = lAcc_labels
+    self.qVel_labels = qVel_labels
+    self.labels = lAcc_labels + qVel_labels
+    # self.quest = None
+    # self.vest = None
     self.trans_xyz = None
     self.vel_xyz = None
     self.acc_xyz = None
@@ -87,26 +95,7 @@ class dmm:
 
   def format(self):
     ''' data files:
-      iphone_mouse_zoom_2:
-      dataset-iphone1 (_clean):
-        quest.xlsx
-        vest.xlsx
-      bigC:
-        quest.xlsx
-        vest.xlsx
-      kitti_imu_001:
-        data/KITTI/
-        └── 2011_09_26
-            ├── 2011_09_26_drive_0001_sync
-            │   ├── image_00
-            │   ├── image_01
-            │   ├── image_02
-            │   ├── image_03
-            │   ├── oxts <<---------------------  IMU data
-            │   ├── tracklet_labels.xml
-            │   └── velodyne_points
-      Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off
-      Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6
+
     '''
     if self.name=="dead_reckoning_01" and self.ext=='txt':
       ''' - use same format as KITTI
@@ -135,16 +124,39 @@ class dmm:
 
 
   def load_android_set(self):
-    # load QuEst data
-    fname = 'quest_post_vest.csv'
-    self.quest = pd.read_csv(self.src_dir+fname,
-      sep=self.options, index_col=0, dtype=self.dtype)
-    # load VEst data
-    fname = 'vest.csv'
-    self.vest = pd.read_csv(self.src_dir+fname,
-      sep=self.options, index_col=0, dtype=self.dtype)
+    # load lin acce data
+    fname = 'linacce.txt'
+    linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=1)
+    linAcc_df = pd.DataFrame(linAcc_np, columns=self.lAcc_labels)
+    nprint('linAcc_df', linAcc_df)
+
+    # load rot vel (quat)
+    fname = 'rv.txt'
+    qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=1)
+    qVel_df = pd.DataFrame(qVel_np, columns=self.qVel_labels)
+    nprint('qVel_df', qVel_df)
+
+    # compare timestamps
+    compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
+    if np.all(compare == True):
+      print(shorthead+'all timestamps match...')
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+
+    qVel_df.drop(['tstamp'], axis=1, inplace=True)
+    nprint('qVel_df', qVel_df)
+
+
     # load data frame
-    self.df = pd.concat([self.quest, self.vest], axis=1)
+    self.df = pd.concat([ linAcc_df, qVel_df], axis=1)
+    nprint('self.df', self.df)
+    st()
+
+
     #self.df.columns = self.labels# load state variables
     return
 
