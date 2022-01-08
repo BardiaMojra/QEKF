@@ -80,8 +80,8 @@ class dmm:
     # df init
     self.df = None
     self.len = None
-    self.lAcc_labels = lAcc_labels
-    self.qVel_labels = aVel_labels
+    self.lAcc_labels = lAcc_labels[1:]
+    self.qVel_labels = aVel_labels[1:]
     self.labels = lAcc_labels + aVel_labels
     # self.quest = None
     # self.vest = None
@@ -131,32 +131,58 @@ class dmm:
     fname = 'linacce.txt'
     linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
-    linAcc_df = pd.DataFrame(linAcc_np, columns=self.lAcc_labels)
+
+    nprint('linAcc_np', linAcc_np)
+
+    # st()
+
+    linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
+
+    linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
     nprint('linAcc_df', linAcc_df)
 
     # load rot vel (quat)
     fname = 'gyro.txt'
     qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
-    qVel_df = pd.DataFrame(qVel_np, columns=self.qVel_labels)
+    qVel_df = pd.DataFrame(qVel_np[:,1:], columns=self.qVel_labels)
+    qVel_df.index = pd.DatetimeIndex(qVel_np[:,0])
     nprint('qVel_df', qVel_df)
 
+    df = pd.concat([ linAcc_df, qVel_df], axis=1)
+    nprint('df', df)
+
+    st()
+
+
+
+
+    self.df = df.resample('5N').mean()
+    nprint('self.df', self.df)
+
+
+    # down sample linAcc data - 5:1 ratio
+    # qVel_df = qVel_df.iloc[::5,:]
+    # nprint('qVel_df', qVel_df)
+
+
+
+    st()
+
     # compare timestamps
-    compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
-    if np.all(compare == True):
-      print(shorthead+'all timestamps match...')
-    else:
-      nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
-      exit()
+    # compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
+    # if np.all(compare == True):
+    #   print(shorthead+'all timestamps match...')
+    # else:
+    #   nprint('compare', compare)
+    #   eprint(shorthead+'timestamp mismatch...'+longtail)
+    #   exit()
 
     qVel_df.drop(['tstamp'], axis=1, inplace=True)
     nprint('qVel_df', qVel_df)
 
 
     # load data frame
-    self.df = pd.concat([ linAcc_df, qVel_df], axis=1)
-    nprint('self.df', self.df)
     st()
 
 
