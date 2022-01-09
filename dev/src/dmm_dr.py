@@ -131,34 +131,30 @@ class dmm:
     acc_file = open(imu_dir+r'/acce.txt')
     gyro_file = open(imu_dir+r'/gyro.txt')
     quat_file = open(imu_dir+r'/rv.txt')
-    st()
+    # st()
     acc_lines = acc_file.readlines()
     gyro_lines = gyro_file.readlines()
     quat_lines = quat_file.readlines()
-    st()
-
+    # st()
     acceleration = np.zeros((len(acc_lines)-1,4))
     _gyro = []
     _acc = []
     for i in range(len(acc_lines)-1-1):
       data = acc_lines[i+1].split()
       acceleration[i,:] = data[0:4]
-    st()
-
+    # st()
     sz = len(quat_lines)-1
     quat_ = np.zeros((sz,5))
     for i in range(sz-1):
       data = quat_lines[i+1].split()
       quat_[i,:] = data[0:5]
-    st()
-
+    # st()
     gyro = np.zeros((len(gyro_lines)-1,4))
     _gyro = []
     for i in range(len(gyro_lines)-1):
       data = gyro_lines[i+1].split()
       gyro[i,:] = data[0:4]
-    st()
-
+    # st()
     k=0
     for i in range(sz):
       t_ = quat_[i,0]
@@ -174,7 +170,7 @@ class dmm:
             _gyro.append(gyro[j+1,1:4])
             k=j
             break
-    st()
+    # st()
     k=0
     for i in range(sz):
       t_ = quat_[i,0]
@@ -190,26 +186,19 @@ class dmm:
             _acc.append(acceleration[j+1,1:4])
             k=j
             break
-
     gyro_bias_file = open(imu_dir+r'/gyro_bias.txt')
     lines = gyro_bias_file.readlines()
     data = lines[1].split()
     gyro_bias = data[0:3]
-
-
     ## Vicon
     with open(vicon_file, newline='') as csvfile:
       reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
       data_length = sum(1 for row in reader) -9
-
     with open(vicon_file, newline='') as csvfile:
       reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-
       translation = np.zeros((data_length,3))
       rotation = np.zeros((data_length,4))
-
       index =0
-
       for row in reader:
         if len(row)>0:
           ss = row[0].split(',')
@@ -218,30 +207,37 @@ class dmm:
         if len(ss)<9 or index<10:
           index=index+1
           continue
-
         translation[index-10,:] = float(ss[6]) ,float(ss[7]),float(ss[8])
         rotation[index-10,:] = float(ss[2]) ,float(ss[3]),float(ss[4]),float(ss[5])
         index = index+1
-    st()
+    # st()
     return np.asarray(_acc), np.asarray(_gyro), np.asarray(quat_[:,1:5]), np.double(gyro_bias), translation*1e-3, rotation
-
-
-
-
-
-
-
-
 
   def load_android_set(self):
 
     # Read utari data
     imu_dir = r"../data/dead_reckoning_data/1/imu"
     vicon_file = r"../data/dead_reckoning_data/1/vicon/vi.csv"
-    # r"C:\Users\iqbal\OneDrive\Documents\GitHub\EKF_Dead_Reckoning\data\4\vicon\vi.csv"
-    acceleration, gyro, quat_, gyro_bias,translation, rotation = self.read_utari_data(imu_dir, vicon_file)
+    accel, gyro, quat_, gyro_bias,trans, rot = self.read_utari_data(imu_dir, vicon_file)
+
+    nprint('accel', accel[:5])
+    nprint('gyro', gyro[:5])
+    nprint('quat_', quat_[:5])
+    nprint('gyro_bias', gyro_bias[:5])
+    nprint('trans', trans[:5])
+    nprint('rot', rot[:5])
+    print('\n\n')
+    nprint('data size and shape check')
+    nprint('accel', accel.shape)
+    nprint('gyro', gyro.shape)
+    nprint('quat_', quat_.shape)
+    nprint('gyro_bias', gyro_bias.shape)
+    nprint('trans', trans.shape)
+    nprint('rot', rot.shape)
 
     st()
+
+
     # # load lin acce data
     # fname = 'linacce.txt'
     # linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
