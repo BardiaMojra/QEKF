@@ -152,6 +152,9 @@ class dmm:
     df = pd.concat([ linAcc_df, qVel_df], axis=1)
     nprint('df', df)
 
+
+    # find closest timestamp
+    for i in
     st()
 
 
