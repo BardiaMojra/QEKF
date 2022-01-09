@@ -131,10 +131,11 @@ class dmm:
     acc_file = open(imu_dir+r'/acce.txt')
     gyro_file = open(imu_dir+r'/gyro.txt')
     quat_file = open(imu_dir+r'/rv.txt')
-
+    st()
     acc_lines = acc_file.readlines()
     gyro_lines = gyro_file.readlines()
     quat_lines = quat_file.readlines()
+    st()
 
     acceleration = np.zeros((len(acc_lines)-1,4))
     _gyro = []
@@ -142,18 +143,21 @@ class dmm:
     for i in range(len(acc_lines)-1-1):
       data = acc_lines[i+1].split()
       acceleration[i,:] = data[0:4]
+    st()
 
     sz = len(quat_lines)-1
     quat_ = np.zeros((sz,5))
     for i in range(sz-1):
       data = quat_lines[i+1].split()
       quat_[i,:] = data[0:5]
+    st()
 
     gyro = np.zeros((len(gyro_lines)-1,4))
     _gyro = []
     for i in range(len(gyro_lines)-1):
       data = gyro_lines[i+1].split()
       gyro[i,:] = data[0:4]
+    st()
 
     k=0
     for i in range(sz):
@@ -170,21 +174,22 @@ class dmm:
             _gyro.append(gyro[j+1,1:4])
             k=j
             break
-      k=0
-      for i in range(sz):
-        t_ = quat_[i,0]
-        for j in range(k,len(acc_lines)-2):
-          a = np.sign(acceleration[j,0]-t_)
-          b = np.sign(acceleration[j+1,0]-t_)
-          if a!=b:
-            if a<=0:
-              _acc.append(acceleration[j,1:4])
-              k=j
-              break
-            elif b==0:
-              _acc.append(acceleration[j+1,1:4])
-              k=j
-              break
+    st()
+    k=0
+    for i in range(sz):
+      t_ = quat_[i,0]
+      for j in range(k,len(acc_lines)-2):
+        a = np.sign(acceleration[j,0]-t_)
+        b = np.sign(acceleration[j+1,0]-t_)
+        if a!=b:
+          if a<=0:
+            _acc.append(acceleration[j,1:4])
+            k=j
+            break
+          elif b==0:
+            _acc.append(acceleration[j+1,1:4])
+            k=j
+            break
 
     gyro_bias_file = open(imu_dir+r'/gyro_bias.txt')
     lines = gyro_bias_file.readlines()
