@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-
+import csv
 
 from util_dr import exp_map
 
@@ -126,70 +126,167 @@ class dmm:
     return
 
 
+  # syned to orientation data
+  def read_utari_data(self, imu_dir, vicon_file):
+    acc_file = open(imu_dir+r'/acce.txt')
+    gyro_file = open(imu_dir+r'/gyro.txt')
+    quat_file = open(imu_dir+r'/rv.txt')
+
+    acc_lines = acc_file.readlines()
+    gyro_lines = gyro_file.readlines()
+    quat_lines = quat_file.readlines()
+
+    acceleration = np.zeros((len(acc_lines)-1,4))
+    _gyro = []
+    _acc = []
+    for i in range(len(acc_lines)-1-1):
+      data = acc_lines[i+1].split()
+      acceleration[i,:] = data[0:4]
+
+    sz = len(quat_lines)-1
+    quat_ = np.zeros((sz,5))
+    for i in range(sz-1):
+      data = quat_lines[i+1].split()
+      quat_[i,:] = data[0:5]
+
+    gyro = np.zeros((len(gyro_lines)-1,4))
+    _gyro = []
+    for i in range(len(gyro_lines)-1):
+      data = gyro_lines[i+1].split()
+      gyro[i,:] = data[0:4]
+
+    k=0
+    for i in range(sz):
+      t_ = quat_[i,0]
+      for j in range(k,len(gyro_lines)-2):
+        a = np.sign(gyro[j,0]-t_)
+        b = np.sign(gyro[j+1,0]-t_)
+        if a!=b:
+          if a<=0:
+            _gyro.append(gyro[j,1:4])
+            k=j
+            break
+          elif b==0:
+            _gyro.append(gyro[j+1,1:4])
+            k=j
+            break
+      k=0
+      for i in range(sz):
+        t_ = quat_[i,0]
+        for j in range(k,len(acc_lines)-2):
+          a = np.sign(acceleration[j,0]-t_)
+          b = np.sign(acceleration[j+1,0]-t_)
+          if a!=b:
+            if a<=0:
+              _acc.append(acceleration[j,1:4])
+              k=j
+              break
+            elif b==0:
+              _acc.append(acceleration[j+1,1:4])
+              k=j
+              break
+
+    gyro_bias_file = open(imu_dir+r'/gyro_bias.txt')
+    lines = gyro_bias_file.readlines()
+    data = lines[1].split()
+    gyro_bias = data[0:3]
+
+
+    ## Vicon
+    with open(vicon_file, newline='') as csvfile:
+      reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+      data_length = sum(1 for row in reader) -9
+
+    with open(vicon_file, newline='') as csvfile:
+      reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+
+      translation = np.zeros((data_length,3))
+      rotation = np.zeros((data_length,4))
+
+      index =0
+
+      for row in reader:
+        if len(row)>0:
+          ss = row[0].split(',')
+        else:
+          continue
+        if len(ss)<9 or index<10:
+          index=index+1
+          continue
+
+        translation[index-10,:] = float(ss[6]) ,float(ss[7]),float(ss[8])
+        rotation[index-10,:] = float(ss[2]) ,float(ss[3]),float(ss[4]),float(ss[5])
+        index = index+1
+    st()
+    return np.asarray(_acc), np.asarray(_gyro), np.asarray(quat_[:,1:5]), np.double(gyro_bias), translation*1e-3, rotation
+
+
+
+
+
+
+
+
+
   def load_android_set(self):
-    # load lin acce data
-    fname = 'linacce.txt'
-    linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-      delimiter=' ', skiprows=1)
 
-    nprint('linAcc_np', linAcc_np)
+    # Read utari data
+    imu_dir = r"../data/dead_reckoning_data/1/imu"
+    vicon_file = r"../data/dead_reckoning_data/1/vicon/vi.csv"
+    # r"C:\Users\iqbal\OneDrive\Documents\GitHub\EKF_Dead_Reckoning\data\4\vicon\vi.csv"
+    acceleration, gyro, quat_, gyro_bias,translation, rotation = self.read_utari_data(imu_dir, vicon_file)
 
-    # st()
-
-    linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
-
-    linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
-    nprint('linAcc_df', linAcc_df)
-
-    # load rot vel (quat)
-    fname = 'gyro.txt'
-    qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-      delimiter=' ', skiprows=1)
-    qVel_df = pd.DataFrame(qVel_np[:,1:], columns=self.qVel_labels)
-    qVel_df.index = pd.DatetimeIndex(qVel_np[:,0])
-    nprint('qVel_df', qVel_df)
-
-    df = pd.concat([ linAcc_df, qVel_df], axis=1)
-    nprint('df', df)
-
-
-    # find closest timestamp
-    for i in
     st()
-
-
-
-
-    self.df = df.resample('5N').mean()
-    nprint('self.df', self.df)
-
-
-    # down sample linAcc data - 5:1 ratio
-    # qVel_df = qVel_df.iloc[::5,:]
+    # # load lin acce data
+    # fname = 'linacce.txt'
+    # linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    #   delimiter=' ', skiprows=1)
+    # nprint('linAcc_np', linAcc_np)
+    # # st()
+    # linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
+    # linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
+    # nprint('linAcc_df', linAcc_df)
+    # # load rot vel (quat)
+    # fname = 'gyro.txt'
+    # qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    #   delimiter=' ', skiprows=1)
+    # qVel_df = pd.DataFrame(qVel_np[:,1:], columns=self.qVel_labels)
+    # qVel_df.index = pd.DatetimeIndex(qVel_np[:,0])
     # nprint('qVel_df', qVel_df)
-
-
-
-    st()
-
-    # compare timestamps
-    # compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
-    # if np.all(compare == True):
-    #   print(shorthead+'all timestamps match...')
-    # else:
-    #   nprint('compare', compare)
-    #   eprint(shorthead+'timestamp mismatch...'+longtail)
-    #   exit()
-
-    qVel_df.drop(['tstamp'], axis=1, inplace=True)
-    nprint('qVel_df', qVel_df)
-
-
-    # load data frame
-    st()
-
-
-    #self.df.columns = self.labels# load state variables
+    # df = pd.concat([ linAcc_df, qVel_df], axis=1)
+    # nprint('df', df)
+    # st()
+    # # find closest timestamp
+    # for idx, row in df.iterrows():
+    #   if math.isnan(row['Ax']): # is NaN
+    #     # st()
+    #     pass
+    #   else:
+    #     # pass
+    #     dt_bef = df.index[idx] - df.index[idx-1]
+    #     dt_af  = df.index[idx+1] - df.index[idx]
+    #     nprint('dt_bef', dt_bef)
+    #     nprint('dt_af', dt_af)
+    # st()
+    # self.df = df.resample('5N').mean()
+    # nprint('self.df', self.df)
+    # # down sample linAcc data - 5:1 ratio
+    # # qVel_df = qVel_df.iloc[::5,:]
+    # # nprint('qVel_df', qVel_df)
+    # st()
+    # # compare timestamps
+    # # compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
+    # # if np.all(compare == True):
+    # #   print(shorthead+'all timestamps match...')
+    # # else:
+    # #   nprint('compare', compare)
+    # #   eprint(shorthead+'timestamp mismatch...'+longtail)
+    # #   exit()
+    # qVel_df.drop(['tstamp'], axis=1, inplace=True)
+    # nprint('qVel_df', qVel_df)
+    # # load data frame
+    # st()
+    # #self.df.columns = self.labels# load state variables
     return
 
   def get(self, quat_format=None):
