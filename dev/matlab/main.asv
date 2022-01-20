@@ -12,9 +12,9 @@ z = data(:,4);
 tq_len = size(t_rv);
 tq = 0:tq_len(1);
 
-xq = resample(x,t_rv);
-yq = resample(y,t_rv);
-zq = resample(z,t_rv);
+xq = resample(t,x,tq);
+yq = resample(t,y,tq);
+zq = resample(t,z,tq);
 
 
 figure
