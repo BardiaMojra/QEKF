@@ -125,7 +125,6 @@ class dmm:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return
 
-
   # syned to orientation data
   def read_utari_data(self, imu_dir, vicon_file):
     acc_file = open(imu_dir+r'/acce.txt')
@@ -214,11 +213,12 @@ class dmm:
     return np.asarray(_acc), np.asarray(_gyro), np.asarray(quat_[:,1:5]), np.double(gyro_bias), translation*1e-3, rotation
 
   def load_android_set(self):
-
     # Read utari data
     imu_dir = r"../data/dead_reckoning_data/1/imu"
     vicon_file = r"../data/dead_reckoning_data/1/vicon/vi.csv"
-    accel, gyro, quat_, gyro_bias,trans, rot = self.read_utari_data(imu_dir, vicon_file)
+    #accel, gyro, quat_, gyro_bias,trans, rot = self.read_utari_data(imu_dir, vicon_file)
+    accel, gyro, quat_, gyro_bias,trans, rot = self.read_interp_data(imu_dir, vicon_file)
+
 
     nprint('accel', accel[:5])
     nprint('gyro', gyro[:5])
@@ -236,58 +236,80 @@ class dmm:
     nprint('rot', rot.shape)
 
     st()
+    return
 
 
-    # # load lin acce data
-    # fname = 'linacce.txt'
-    # linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-    #   delimiter=' ', skiprows=1)
-    # nprint('linAcc_np', linAcc_np)
-    # # st()
-    # linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
-    # linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
-    # nprint('linAcc_df', linAcc_df)
-    # # load rot vel (quat)
-    # fname = 'gyro.txt'
-    # qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-    #   delimiter=' ', skiprows=1)
-    # qVel_df = pd.DataFrame(qVel_np[:,1:], columns=self.qVel_labels)
-    # qVel_df.index = pd.DatetimeIndex(qVel_np[:,0])
+
+
+  def load_interp_data(self, imu_dir, vicon_file):
+    ###--------------------------   under construction
+
+
+    acc_file = open(imu_dir+r'/acce.txt')
+    gyro_file = open(imu_dir+r'/gyro.txt')
+    quat_file = open(imu_dir+r'/rv.txt')
+    # st()
+    acc_lines = acc_file.readlines()
+    gyro_lines = gyro_file.readlines()
+    quat_lines = quat_file.readlines()
+    # st()
+    acceleration = np.zeros((len(acc_lines)-1,4))
+    _gyro = []
+
+
+
+    ###--------------------------   under construction: old data loader
+
+    # load lin acce data
+    fname = 'linacce.txt'
+    linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=1)
+    nprint('linAcc_np', linAcc_np)
+    # st()
+    linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
+    linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
+    nprint('linAcc_df', linAcc_df)
+    # load rot vel (quat)
+    fname = 'gyro.txt'
+    qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=1)
+    qVel_df = pd.DataFrame(qVel_np[:,1:], columns=self.qVel_labels)
+    qVel_df.index = pd.DatetimeIndex(qVel_np[:,0])
+    nprint('qVel_df', qVel_df)
+    df = pd.concat([ linAcc_df, qVel_df], axis=1)
+    nprint('df', df)
+    st()
+    # find closest timestamp
+    for idx, row in df.iterrows():
+      if math.isnan(row['Ax']): # is NaN
+        # st()
+        pass
+      else:
+        # pass
+        dt_bef = df.index[idx] - df.index[idx-1]
+        dt_af  = df.index[idx+1] - df.index[idx]
+        nprint('dt_bef', dt_bef)
+        nprint('dt_af', dt_af)
+    st()
+    self.df = df.resample('5N').mean()
+    nprint('self.df', self.df)
+    # down sample linAcc data - 5:1 ratio
+    # qVel_df = qVel_df.iloc[::5,:]
     # nprint('qVel_df', qVel_df)
-    # df = pd.concat([ linAcc_df, qVel_df], axis=1)
-    # nprint('df', df)
-    # st()
-    # # find closest timestamp
-    # for idx, row in df.iterrows():
-    #   if math.isnan(row['Ax']): # is NaN
-    #     # st()
-    #     pass
-    #   else:
-    #     # pass
-    #     dt_bef = df.index[idx] - df.index[idx-1]
-    #     dt_af  = df.index[idx+1] - df.index[idx]
-    #     nprint('dt_bef', dt_bef)
-    #     nprint('dt_af', dt_af)
-    # st()
-    # self.df = df.resample('5N').mean()
-    # nprint('self.df', self.df)
-    # # down sample linAcc data - 5:1 ratio
-    # # qVel_df = qVel_df.iloc[::5,:]
-    # # nprint('qVel_df', qVel_df)
-    # st()
-    # # compare timestamps
-    # # compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
-    # # if np.all(compare == True):
-    # #   print(shorthead+'all timestamps match...')
-    # # else:
-    # #   nprint('compare', compare)
-    # #   eprint(shorthead+'timestamp mismatch...'+longtail)
-    # #   exit()
-    # qVel_df.drop(['tstamp'], axis=1, inplace=True)
-    # nprint('qVel_df', qVel_df)
-    # # load data frame
-    # st()
-    # #self.df.columns = self.labels# load state variables
+    st()
+    # compare timestamps
+    # compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
+    # if np.all(compare == True):
+    #   print(shorthead+'all timestamps match...')
+    # else:
+    #   nprint('compare', compare)
+    #   eprint(shorthead+'timestamp mismatch...'+longtail)
+    #   exit()
+    qVel_df.drop(['tstamp'], axis=1, inplace=True)
+    nprint('qVel_df', qVel_df)
+    # load data frame
+    st()
+    #self.df.columns = self.labels# load state variables
     return
 
   def get(self, quat_format=None):

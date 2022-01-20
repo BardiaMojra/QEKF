@@ -29,6 +29,7 @@ yq = interp1(t_h,y,tq);
 zq = interp1(t_h,z,tq);
 
 figure
+hold on 
 plot(t_h,x,'o',tq,xq,':.');
 %plot(tq,xq,':.');
 %xlim([10000 10050]);
