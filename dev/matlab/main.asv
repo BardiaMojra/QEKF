@@ -74,8 +74,8 @@ legend('zq');
 
 % save new dataset as .txt file 
 % create a table [t, x, y, z]
-new_data = table(tq,xq,yq,zq);
-writetable(new_data, gyro_o_fname);
+new_data = table('timestamp',tq,xq,yq,yq,'zq',zq);
+writetable(new_data, gyro_output_fname);
 
 
 
