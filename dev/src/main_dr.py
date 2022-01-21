@@ -22,7 +22,7 @@ from nbug import *
 ''' general config '''
 NBUG = True
 print_output = True
-_show = False
+_show = True
 _save = True
 _prt = False
 _zoom = 150
@@ -105,7 +105,10 @@ def run(data:str):
   dset.format_data()
 
   fignum+=1;
-  dset.plot(labels=dset.df.columns, figname=get_fignum_str(fignum), title=data, show=False)
+  dset.plot(labels=dset.df.columns,
+            figname=get_fignum_str(fignum),
+            title=data,
+            show=_show)
 
   #todo: import vicon data for ground truth comparison
   # fignum+=1;
@@ -121,7 +124,9 @@ def run(data:str):
               R_noise=1e-6, # measurement noise covar
               P_est_0=1e-4,
               K_scale=1.0)
-
+  # nprt_lnum_fname()
+  nprint('dev stop here mian_dr.py line 125.')
+  st()
   ''' init state'''
   qekf.x_prior_TVQwxyz[0] = dset.df.Tx.iloc[0] #todo: make sure IC is zero
   qekf.x_prior_TVQwxyz[1] = dset.df.Ty.iloc[0]
