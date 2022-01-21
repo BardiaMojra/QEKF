@@ -19,7 +19,6 @@ x = data(:,2);
 y = data(:,3);
 z = data(:,4);
 
-
 %xq = resample(x,t_rv);
 %yq = resample(y,t_rv);
 %zq = resample(z,t_rv);
@@ -29,7 +28,6 @@ yq = interp1(t_h,y,tq);
 zq = interp1(t_h,z,tq);
 
 figure
-hold on 
 plot(t_h,x,'o',tq,xq,':.');
 %plot(tq,xq,':.');
 %xlim([10000 10050]);

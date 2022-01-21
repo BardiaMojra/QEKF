@@ -102,7 +102,7 @@ def run(data:str):
              #end=16,
              prt=_prt)
 
-  dset.format()
+  dset.format_data()
 
   fignum+=1;
   dset.plot(labels=dset.df.columns, figname=get_fignum_str(fignum), title=data, show=False)

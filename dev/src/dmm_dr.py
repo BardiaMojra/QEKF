@@ -27,11 +27,12 @@ plt.style.use('ggplot')
 '''
 prt_file_save_en = False
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
-lAcc_labels = ['tstamp', 'Ax', 'Ay', 'Az'] # lin acce
-aVel_labels = ['tstamp', 'Wx', 'Wy', 'Wz'] # rot vel
-qPos_labels = ['tstamp', 'qx', 'qy', 'qz', 'qw']
+lAcc_labels = ['tstamp', 'Ax', 'Ay', 'Az'] # lin acc
+rVec_labels = ['tstamp', 'Wqx', 'Wqy', 'Wqz', 'Wqw'] # rot vec
+aAcc_labels = ['tstamp', 'Ar', 'Ap', 'Ay'] # ang acc
+# qPos_labels = ['tstamp', 'qx', 'qy', 'qz', 'qw']
 # qlabels = ['idx', 't', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
-# vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
+# vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'Wp']
 datasets = [ 'dead_reckoning_01']
 class dmm:
   ''' Data Management Module
@@ -44,7 +45,6 @@ class dmm:
                end=None,
                prt=True,
                save=True):
-
     # set dataset configs
     if name == 'dead_reckoning_01':
       src_dir = '../data/dead_reckoning_data/1/imu/'
@@ -55,13 +55,11 @@ class dmm:
       # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     else:
       eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
-
     ''' check '''
     if not os.path.exists(output_dir):
       print(longhead+'the following directory DOES NOT EXIST: '+output_dir)
       print(shorthead+"create is it with 'mkdir "+output_dir+"'\n\n")
       exit()
-
     ''' init '''
     # data
     self.name = name
@@ -81,28 +79,32 @@ class dmm:
     self.df = None
     self.len = None
     self.lAcc_labels = lAcc_labels[1:]
-    self.qVel_labels = aVel_labels[1:]
-    self.labels = lAcc_labels + aVel_labels
+    self.rVec_labels = rVec_labels[1:]
+    self.aAcc_labels = aAcc_labels[1:]
+    self.labels = lAcc_labels[1:] + rVec_labels[1:] + aAcc_labels[1:]
     # self.quest = None
     # self.vest = None
     # self.trans_xyz = None
     # self.vel_xyz = None
-    self.Acce_xyz = None
-    self.qVel = None  # rotation in quaternion - x,y,z,w
+    self.lAcc_Axyz = None
+    self.rVec_WQxyzw = None  # rotation vector - quaternion - x,y,z,w
+    self.aAcc_Arpy = None # angular acceleration Arpy
     # self.quat_wxyz = None # rotation in quaternion - w,x,y,z
     # self.vel_rpy = None # rad/sec - roll, pitch, yaw
     # self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
     # end of __init__() <<--------------------------------------
 
-  def format(self):
+  def format_data(self):
     ''' data files:
-
     '''
     if self.name=="dead_reckoning_01" and self.ext=='txt':
-      ''' - use same format as KITTI
-        acce.txt -- linear acce
-        rv rotation ve
-        data format doc https://developer.android.com/guide/topics/sensors/sensors_motion
+      ''' dead reckoning data format
+        input files:
+          - Linear acceleration (Axyz), linacce.txt
+          - Rotation vector (in quaternions - WQxyzw), rv.txt
+          - Angular acceleration (Arpy), gyro_resamp.txt
+        labels:
+          - ['Ax', 'Ay', 'Az', 'Wqx', 'Wqy', 'Wqz', 'Wqw', 'Ar', 'Ap', 'Ay']
       '''
       self.load_android_set()
     else:
@@ -114,9 +116,10 @@ class dmm:
     # self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]
     # self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
     # self.vel_xyz = self.df[['vx', 'vy', 'vz']]
-    # self.vel_rpy = self.df[['wr', 'wp', 'wy']]
-    self.Acce_xyz = self.df[ ['Ax', 'Ay', 'Az']]
-    self.qVel = self.df[['Wx', 'Wy', 'Wz', 'Ww']]
+    # self.vel_rpy = self.df[['wr', 'wp', 'Wy']]
+    self.lAcc_Axyz = self.df[ ['Ax', 'Ay', 'Az']]
+    self.rVec_WQxyzw = self.df[['Wqx', 'Wqy', 'Wqz', 'Wqw']]
+    self.aAcc_Arpy = self.df[['Ar', 'Ap', 'Ay']]
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
@@ -217,100 +220,67 @@ class dmm:
     imu_dir = r"../data/dead_reckoning_data/1/imu"
     vicon_file = r"../data/dead_reckoning_data/1/vicon/vi.csv"
     #accel, gyro, quat_, gyro_bias,trans, rot = self.read_utari_data(imu_dir, vicon_file)
-    accel, gyro, quat_, gyro_bias,trans, rot = self.read_interp_data(imu_dir, vicon_file)
+    linAcc_np, rotVec_np, angAcc_np = self.read_interp_data(imu_dir, vicon_file)
 
-
-    nprint('accel', accel[:5])
-    nprint('gyro', gyro[:5])
-    nprint('quat_', quat_[:5])
-    nprint('gyro_bias', gyro_bias[:5])
-    nprint('trans', trans[:5])
-    nprint('rot', rot[:5])
+    nprint('linAcc_np', linAcc_np[:5])
+    nprint('rotVec_np', rotVec_np[:5])
+    nprint('angAcc_np', angAcc_np[:5])
     print('\n\n')
     nprint('data size and shape check')
-    nprint('accel', accel.shape)
-    nprint('gyro', gyro.shape)
-    nprint('quat_', quat_.shape)
-    nprint('gyro_bias', gyro_bias.shape)
-    nprint('trans', trans.shape)
-    nprint('rot', rot.shape)
+    nprint('linAcc_np', linAcc_np.shape)
+    nprint('rotVec_np', rotVec_np.shape)
+    nprint('angAcc_np', angAcc_np.shape)
+    print('\n\n')
 
-    st()
+    # st()
     return
 
-
-
-
-  def load_interp_data(self, imu_dir, vicon_file):
-    ###--------------------------   under construction
-
-
-    acc_file = open(imu_dir+r'/acce.txt')
-    gyro_file = open(imu_dir+r'/gyro.txt')
-    quat_file = open(imu_dir+r'/rv.txt')
-    # st()
-    acc_lines = acc_file.readlines()
-    gyro_lines = gyro_file.readlines()
-    quat_lines = quat_file.readlines()
-    # st()
-    acceleration = np.zeros((len(acc_lines)-1,4))
-    _gyro = []
-
-
-
-    ###--------------------------   under construction: old data loader
-
+  def read_interp_data(self, imu_dir, vicon_file):
     # load lin acce data
     fname = 'linacce.txt'
     linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
-    nprint('linAcc_np', linAcc_np)
+    # nprint('linAcc_np', linAcc_np)
     # st()
     linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
     linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
-    nprint('linAcc_df', linAcc_df)
-    # load rot vel (quat)
-    fname = 'gyro.txt'
-    qVel_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    # nprint('linAcc_df', linAcc_df)
+    # load rotVec (WQxyzw) rv.txt
+    fname = 'rv.txt'
+    rotVec_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
-    qVel_df = pd.DataFrame(qVel_np[:,1:], columns=self.qVel_labels)
-    qVel_df.index = pd.DatetimeIndex(qVel_np[:,0])
-    nprint('qVel_df', qVel_df)
-    df = pd.concat([ linAcc_df, qVel_df], axis=1)
-    nprint('df', df)
-    st()
-    # find closest timestamp
-    for idx, row in df.iterrows():
-      if math.isnan(row['Ax']): # is NaN
-        # st()
-        pass
-      else:
-        # pass
-        dt_bef = df.index[idx] - df.index[idx-1]
-        dt_af  = df.index[idx+1] - df.index[idx]
-        nprint('dt_bef', dt_bef)
-        nprint('dt_af', dt_af)
-    st()
-    self.df = df.resample('5N').mean()
-    nprint('self.df', self.df)
-    # down sample linAcc data - 5:1 ratio
-    # qVel_df = qVel_df.iloc[::5,:]
-    # nprint('qVel_df', qVel_df)
-    st()
+    rotVec_df = pd.DataFrame(rotVec_np[:,1:], columns=self.rVec_labels)
+    rotVec_df.index = pd.DatetimeIndex(rotVec_np[:,0])
+    # nprint('rotVec_df', rotVec_df)
+    fname = 'gyro_resamp.txt'
+    angAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+      delimiter=',', skiprows=1)
+    angAcc_df = pd.DataFrame(angAcc_np[:,1:], columns=self.aAcc_labels)
+    angAcc_df.index = pd.DatetimeIndex(angAcc_np[:,0])
+    # nprint('angAcc_df', angAcc_df)
     # compare timestamps
-    # compare = np.where(linAcc_df['tstamp']==qVel_df['tstamp'], True, False)
-    # if np.all(compare == True):
-    #   print(shorthead+'all timestamps match...')
-    # else:
-    #   nprint('compare', compare)
-    #   eprint(shorthead+'timestamp mismatch...'+longtail)
-    #   exit()
-    qVel_df.drop(['tstamp'], axis=1, inplace=True)
-    nprint('qVel_df', qVel_df)
+    compare = np.where(linAcc_df.index==rotVec_df.index, True, False)
+    if np.all(compare == True):
+      print(shorthead+'linAcc_df & rotVec_df timestamps match...')
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    compare = np.where(linAcc_df.index==angAcc_df.index, True, False)
+    if np.all(compare == True):
+      print(shorthead+'all timestamps match...')
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    self.df = pd.concat([ linAcc_df, rotVec_df, angAcc_df], axis=1)
     # load data frame
-    st()
-    #self.df.columns = self.labels# load state variables
-    return
+    self.df.columns = self.labels# load state variables
+    nprint('self.df.columns', self.df.columns)
+    nprint('self.df.head(5)', self.df.head(5))
+    nprint('self.df.tail(5)', self.df.tail(5))
+    # st()
+    return linAcc_np, rotVec_np, angAcc_np
 
   def get(self, quat_format=None):
     if quat_format=='xyzw':
