@@ -116,7 +116,7 @@ def run(data:str):
 
   # init QEKF object
   qekf = QEKF(dim_x=9, #  Txyz, Vxyz, Qxyz -- linPos, linVel, angPos (quat)
-              dim_z=3, # orientation Qxyz
+              dim_z=13, # Txyz, Vxyz, Wrpy Qxyzw
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,

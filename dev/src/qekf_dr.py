@@ -273,6 +273,8 @@ class ExtendedKalmanFilter(object):
     self.z_TVWQxyzw[3:6,0] = lin_vel*Vscale
     self.z_TVWQxyzw[6:9,0] = ang_vel
     self.z_TVWQxyzw[9:13,0] = quat
+    self.z_linAcc_Axyz = linAcc
+    self.z_gyro_W = gyro # W
     return
 
   def set_H(self):
