@@ -128,16 +128,16 @@ def run(data:str):
   nprint('dev stop here mian_dr.py line 125.')
   st()
   ''' init state'''
-  qekf.x_prior_TVQwxyz[0] = dset.df.Tx.iloc[0] #todo: make sure IC is zero
-  qekf.x_prior_TVQwxyz[1] = dset.df.Ty.iloc[0]
-  qekf.x_prior_TVQwxyz[2] = dset.df.Tz.iloc[0]
-  qekf.x_prior_TVQwxyz[3] = dset.df.vx.iloc[0]
-  qekf.x_prior_TVQwxyz[4] = dset.df.vy.iloc[0]
-  qekf.x_prior_TVQwxyz[5] = dset.df.vz.iloc[0]
-  qekf.x_prior_TVQwxyz[6] = dset.df.qw.iloc[0] #todo: get orientation IC from vicon data
-  qekf.x_prior_TVQwxyz[7] = dset.df.qx.iloc[0]
-  qekf.x_prior_TVQwxyz[8] = dset.df.qy.iloc[0]
-  qekf.x_prior_TVQwxyz[9] = dset.df.qz.iloc[0]
+  qekf.x_prior_TVQwxyz[0] = 0.0
+  qekf.x_prior_TVQwxyz[1] = 0.0
+  qekf.x_prior_TVQwxyz[2] = 0.0
+  qekf.x_prior_TVQwxyz[3] = 0.0
+  qekf.x_prior_TVQwxyz[4] = 0.0
+  qekf.x_prior_TVQwxyz[5] = 0.0
+  qekf.x_prior_TVQwxyz[6] = 1.0 #todo: get orientation IC from vicon data
+  qekf.x_prior_TVQwxyz[7] = 0.0
+  qekf.x_prior_TVQwxyz[8] = 0.0
+  qekf.x_prior_TVQwxyz[9] = 0.0
 
   for i in range(dset.start, dset.end):
     # print('\\--->>> new state ------->>>>>:', i)

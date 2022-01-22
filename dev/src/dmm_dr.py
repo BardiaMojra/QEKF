@@ -80,7 +80,7 @@ class dmm:
     self.len = None
     self.lAcc_labels = lAcc_labels[1:]
     self.rVec_labels = rVec_labels[1:]
-    self.aAcc_labels = aAcc_labels[1:]
+    self.aVel_gyro_Wrpy_labels = aAcc_labels[1:]
     self.labels = lAcc_labels[1:] + rVec_labels[1:] + aAcc_labels[1:]
     # self.quest = None
     # self.vest = None
@@ -218,17 +218,17 @@ class dmm:
   def load_android_set(self):
     # Read utari data
     imu_dir = r"../data/dead_reckoning_data/1/imu"
-    vicon_file = r"../data/dead_reckoning_data/1/vicon/vi.csv"
+    vicon_file = r"../data/dead_reckoning_data/1/vicon/vi_clean.csv"
     #accel, gyro, quat_, gyro_bias,trans, rot = self.read_utari_data(imu_dir, vicon_file)
-    linAcc_np, rotVec_np, angAcc_np = self.read_interp_data(imu_dir, vicon_file)
+    linAcc_Txyz_np, rotVec_Qxyzw_np, angAcc_np = self.read_interp_data(imu_dir, vicon_file)
 
-    nprint('linAcc_np', linAcc_np[:5])
-    nprint('rotVec_np', rotVec_np[:5])
+    nprint('linAcc_np', linAcc_Txyz_np[:5])
+    nprint('rotVec_np', rotVec_Qxyzw_np[:5])
     nprint('angAcc_np', angAcc_np[:5])
     print('\n\n')
     nprint('data size and shape check')
-    nprint('linAcc_np', linAcc_np.shape)
-    nprint('rotVec_np', rotVec_np.shape)
+    nprint('linAcc_np', linAcc_Txyz_np.shape)
+    nprint('rotVec_np', rotVec_Qxyzw_np.shape)
     nprint('angAcc_np', angAcc_np.shape)
     print('\n\n')
 
@@ -237,7 +237,7 @@ class dmm:
 
   def read_interp_data(self, imu_dir, vicon_file):
     # load lin acce data
-    fname = 'linacce.txt'
+    fname = 'linacce.txt' # Axyz
     linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
     # nprint('linAcc_np', linAcc_np)
@@ -245,18 +245,19 @@ class dmm:
     linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
     linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
     # nprint('linAcc_df', linAcc_df)
-    # load rotVec (WQxyzw) rv.txt
-    fname = 'rv.txt'
+    # load rotVec (Qxyzw) rv.txt
+    fname = 'rv.txt' # Qxyzw
     rotVec_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
     rotVec_df = pd.DataFrame(rotVec_np[:,1:], columns=self.rVec_labels)
     rotVec_df.index = pd.DatetimeIndex(rotVec_np[:,0])
     # nprint('rotVec_df', rotVec_df)
-    fname = 'gyro_resamp.txt'
-    angAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    fname = 'gyro_resamp.txt' # W
+    angVel_Wrpy_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=',', skiprows=1)
-    angAcc_df = pd.DataFrame(angAcc_np[:,1:], columns=self.aAcc_labels)
-    angAcc_df.index = pd.DatetimeIndex(angAcc_np[:,0])
+    angVel_Wrpy_df = pd.DataFrame(angVel_Wrpy_np[:,1:],
+                                  columns=self.aVel_gyro_Wrpy_labels)
+    angVel_Wrpy_df.index = pd.DatetimeIndex(angVel_Wrpy_np[:,0])
     # nprint('angAcc_df', angAcc_df)
     # compare timestamps
     compare = np.where(linAcc_df.index==rotVec_df.index, True, False)
@@ -266,21 +267,21 @@ class dmm:
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
-    compare = np.where(linAcc_df.index==angAcc_df.index, True, False)
+    compare = np.where(linAcc_df.index==angVel_Wrpy_df.index, True, False)
     if np.all(compare == True):
       print(shorthead+'all timestamps match...')
     else:
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
-    self.df = pd.concat([ linAcc_df, rotVec_df, angAcc_df], axis=1)
+    self.df = pd.concat([ linAcc_df, rotVec_df, angVel_Wrpy_df], axis=1)
     # load data frame
     self.df.columns = self.labels# load state variables
     nprint('self.df.columns', self.df.columns)
     nprint('self.df.head(5)', self.df.head(5))
     nprint('self.df.tail(5)', self.df.tail(5))
     # st()
-    return linAcc_np, rotVec_np, angAcc_np
+    return linAcc_np, rotVec_np, angVel_Wrpy_np
 
   def get(self, quat_format=None):
     if quat_format=='xyzw':
