@@ -116,7 +116,7 @@ def run(data:str):
 
   # init QEKF object
   qekf = QEKF(dim_x=9, #  Txyz, Vxyz, Qxyz -- linPos, linVel, angPos (quat)
-              dim_z=13, # Txyz, Vxyz, Wrpy Qxyzw
+              dim_z=9, # Txyz, Vxyz, Wrpy Qxyzw
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
@@ -124,30 +124,28 @@ def run(data:str):
               R_noise=1e-6, # measurement noise covar
               P_est_0=1e-4,
               K_scale=1.0)
-  # nprt_lnum_fname()
-  nprint('dev stop here mian_dr.py line 125.')
-  st()
-  ''' init state'''
+
+  ''' state init '''
   qekf.x_prior_TVQwxyz[0] = 0.0
   qekf.x_prior_TVQwxyz[1] = 0.0
   qekf.x_prior_TVQwxyz[2] = 0.0
   qekf.x_prior_TVQwxyz[3] = 0.0
   qekf.x_prior_TVQwxyz[4] = 0.0
   qekf.x_prior_TVQwxyz[5] = 0.0
-  qekf.x_prior_TVQwxyz[6] = 1.0 #todo: get orientation IC from vicon data
+  qekf.x_prior_TVQwxyz[6] = 1.0
   qekf.x_prior_TVQwxyz[7] = 0.0
   qekf.x_prior_TVQwxyz[8] = 0.0
   qekf.x_prior_TVQwxyz[9] = 0.0
 
   for i in range(dset.start, dset.end):
     print('\\--->>> new state ------->>>>>:', i)
-    # load prior belief, new observations and ground truth (vicon) for ith state
+    # load prior belief, new observations and ground truth (vicon) for ith  state
     qekf.get_xz_TVWrpyQxyzwFxyz(
       trans_Txyz = qekf.x_post_TVQxyz[0:3,0],\
       lVel_Vxyz  = qekf.x_post_TVQxyz[3:6,0],\
-      gyro_Wrpy  = dset.gyro_Wrpy.to_numpy()[i,:],\
-      rVec_Qxyzw = dset.rVec_Qxyzw.to_numpy()[i,:],\
-      lAcc_Fxyz  = dset.lAcc_Fxyz.to_numpy()[i,:],\
+      gyro_Wrpy  = dset.gyro_Wrpy_np[i,:],\
+      rVec_Qxyzw = dset.rVec_Qxyzw_np[i,:],\
+      lAcc_Fxyz  = dset.lAcc_Fxyz_np[i,:],\
       # gt_trans_Txyz = dset.vicon_trans_Txyz.to_numpy()[i,:],\
       # gt_rVec_Qxyzw = dset.vicon_rv_Qxyzw.to_numpy()[i,:],\
       #quat=np.asarray([.001, .002, -.994, .003]),\
@@ -160,7 +158,7 @@ def run(data:str):
     qekf.update(qekf.xz_TVWrpyQxyzwFxyz.T)
 
   # end of qekf data iterator ----->>
-  nprint('end of qekf data iterator ----->>', '')
+  nprint('end of qekf data iterator ----->>')
 
 
   ''' post processing

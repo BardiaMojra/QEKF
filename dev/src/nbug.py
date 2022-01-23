@@ -34,6 +34,3 @@ def stail():
 
 def ltail():
   print(longtail)
-
-def st():
-  pdb.set_trace() # or use breakpoint() directly at any point

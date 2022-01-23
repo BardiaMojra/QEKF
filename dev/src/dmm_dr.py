@@ -27,9 +27,9 @@ plt.style.use('ggplot')
 '''
 prt_file_save_en = False
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
-lAcc_labels = ['tstamp', 'Ax', 'Ay', 'Az'] # lin acc
-rVec_labels = ['tstamp', 'Wqx', 'Wqy', 'Wqz', 'Wqw'] # rot vec
-aAcc_labels = ['tstamp', 'Ar', 'Ap', 'Ay'] # ang acc
+lAcc_labels = ['tstamp', 'Fx', 'Fy', 'Fz'] # lin acc
+rVec_labels = ['tstamp', 'Qx', 'Qy', 'Qz', 'Qw'] # rot vec (Orientation in Quaternion)
+aVel_labels = ['tstamp', 'Wr', 'Wp', 'Wy'] # aVel (angular rate Omega)
 # qPos_labels = ['tstamp', 'qx', 'qy', 'qz', 'qw']
 # qlabels = ['idx', 't', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
 # vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'Wp']
@@ -80,33 +80,36 @@ class dmm:
     self.len = None
     self.lAcc_labels = lAcc_labels[1:]
     self.rVec_labels = rVec_labels[1:]
-    self.aVel_gyro_Wrpy_labels = aAcc_labels[1:]
-    self.labels = lAcc_labels[1:] + rVec_labels[1:] + aAcc_labels[1:]
+    self.aVel_gyro_Wrpy_labels = aVel_labels[1:]
+    self.labels = lAcc_labels[1:] + rVec_labels[1:] + aVel_labels[1:]
     # self.quest = None
     # self.vest = None
     # self.trans_xyz = None
     # self.vel_xyz = None
-    self.lAcc_Fxyz = None
-    self.rVec_WQxyzw = None  # rotation vector - quaternion - x,y,z,w
-    self.gyro_Wrpy = None # angular acceleration Arpy
+    self.lAcc_Fxyz_np = None # lin accel Fxyz
+    self.rVec_Qxyzw_np = None  # rotation vector - quaternion - x,y,z,w
+    self.gyro_Wrpy_np = None # angular rate (Omega) Wrpy
     # self.quat_wxyz = None # rotation in quaternion - w,x,y,z
     # self.vel_rpy = None # rad/sec - roll, pitch, yaw
     # self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
     # end of __init__() <<--------------------------------------
 
   def format_data(self):
-    ''' data files:
-    '''
-    if self.name=="dead_reckoning_01" and self.ext=='txt':
-      ''' dead reckoning data format
-        input files (state observation variables):
-          - Linear acceleration (Fxyz), linacce.txt
-          - Rotation vector (in quaternions - Qxyzw), rv.txt
-          - Gyro or angular rate (Wrpy), gyro_resamp.txt
-        labels:
-          - ['Fx', 'Fy', 'Fz', 'Qx', 'Qy', 'Qz', 'Qw', 'Wr', 'Wp', 'Wy']
+    ''' data files: dead reckoning data format
+      input files (state observation variables):
+        - Linear acceleration (Fxyz), linacce.txt
+        - Rotation vector (in quaternions - Qxyzw), rv.txt
+        - Gyro or angular rate (Wrpy), gyro_resamp.txt
+      labels:
+        - ['Fx', 'Fy', 'Fz', 'Qx', 'Qy', 'Qz', 'Qw', 'Wr', 'Wp', 'Wy']
       '''
-      self.load_android_set()
+    if self.name=="dead_reckoning_01" and self.ext=='txt':
+      # Read utari data
+      imu_dir = r"../data/dead_reckoning_data/1/imu"
+      vicon_file = r"../data/dead_reckoning_data/1/vicon/vi_clean.csv"
+      lAcc_Fxyz_np, rVec_Qxyzw_np, aVel_Wrpy_np = self.read_interp_data(imu_dir, vicon_file)
+
+
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
@@ -117,9 +120,11 @@ class dmm:
     # self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
     # self.vel_xyz = self.df[['vx', 'vy', 'vz']]
     # self.vel_rpy = self.df[['wr', 'wp', 'Wy']]
-    self.lAcc_Fxyz = self.df[ ['Fx', 'Fy', 'Fz']]
-    self.rVec_Qxyzw = self.df[['Qx', 'Qy', 'Qz', 'Qw']]
-    self.gyro_Wrpy = self.df[ ['Wr', 'Wp', 'Wy']]
+    # lAcc_Fxyz_df = self.df[ ['Fx', 'Fy', 'Fz']]
+    # rVec_Qxyzw_df = self.df[['Qx', 'Qy', 'Qz', 'Qw']]
+    # gyro_Wrpy_df = self.df[ ['Wr', 'Wp', 'Wy']]
+
+    # st()
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
@@ -216,23 +221,7 @@ class dmm:
     return np.asarray(_acc), np.asarray(_gyro), np.asarray(quat_[:,1:5]), np.double(gyro_bias), translation*1e-3, rotation
 
   def load_android_set(self):
-    # Read utari data
-    imu_dir = r"../data/dead_reckoning_data/1/imu"
-    vicon_file = r"../data/dead_reckoning_data/1/vicon/vi_clean.csv"
-    #accel, gyro, quat_, gyro_bias,trans, rot = self.read_utari_data(imu_dir, vicon_file)
-    linAcc_Txyz_np, rotVec_Qxyzw_np, angAcc_np = self.read_interp_data(imu_dir, vicon_file)
 
-    nprint('linAcc_np', linAcc_Txyz_np[:5])
-    nprint('rotVec_np', rotVec_Qxyzw_np[:5])
-    nprint('angAcc_np', angAcc_np[:5])
-    print('\n\n')
-    nprint('data size and shape check')
-    nprint('linAcc_np', linAcc_Txyz_np.shape)
-    nprint('rotVec_np', rotVec_Qxyzw_np.shape)
-    nprint('angAcc_np', angAcc_np.shape)
-    print('\n\n')
-
-    # st()
     return
 
   def read_interp_data(self, imu_dir, vicon_file):
@@ -252,7 +241,7 @@ class dmm:
     rotVec_df = pd.DataFrame(rotVec_np[:,1:], columns=self.rVec_labels)
     rotVec_df.index = pd.DatetimeIndex(rotVec_np[:,0])
     # nprint('rotVec_df', rotVec_df)
-    fname = 'gyro_resamp.txt' # W
+    fname = 'gyro_resamp.txt' # angVel_Wrpy
     angVel_Wrpy_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=',', skiprows=1)
     angVel_Wrpy_df = pd.DataFrame(angVel_Wrpy_np[:,1:],
@@ -277,19 +266,38 @@ class dmm:
     self.df = pd.concat([ linAcc_df, rotVec_df, angVel_Wrpy_df], axis=1)
     # load data frame
     self.df.columns = self.labels# load state variables
-    nprint('self.df.columns', self.df.columns)
-    nprint('self.df.head(5)', self.df.head(5))
-    nprint('self.df.tail(5)', self.df.tail(5))
+
+    # nprint('self.df.columns', self.df.columns)
+    # nprint('self.df.head(5)', self.df.head(5))
+    # nprint('self.df.tail(5)', self.df.tail(5))
     # st()
+
+    # load np format
+    self.lAcc_Fxyz_np = linAcc_np[:,1:]
+    self.rVec_Qxyzw_np = rotVec_np[:,1:]
+    self.gyro_Wrpy_np = angVel_Wrpy_np[:,1:]
+
+    # nprint('self.lAcc_Fxyz_np', self.lAcc_Fxyz_np[:5])
+    # nprint('self.rVec_Qxyzw_np', self.rVec_Qxyzw_np[:5])
+    # nprint('self.gyro_Wrpy_np', self.gyro_Wrpy_np[:5])
+    # print('\n\n')
+    # nprint('data size and shape check')
+    # nprint('self.lAcc_Fxyz_np', self.lAcc_Fxyz_np.shape)
+    # nprint('self.rVec_Qxyzw_np', self.rVec_Qxyzw_np.shape)
+    # nprint('self.gyro_Wrpy_np', self.gyro_Wrpy_np.shape)
+    # print('\n\n')
+
+    # st()
+
     return linAcc_np, rotVec_np, angVel_Wrpy_np
 
-  def get(self, quat_format=None):
-    if quat_format=='xyzw':
-      print(longhead+'using xyzw quaternion rotation notation...')
-      return self.trans_xyz, self.vel_xyz, self.quat_xyzw, self.vel_rpy
-    else:
-      print(longhead+'using wxyz quaternion rotation notation...')
-      return self.trans_xyz, self.vel_xyz, self.quat_wxyz, self.vel_rpy
+  # def get(self, quat_format=None):
+  #   if quat_format=='xyzw':
+  #     print(longhead+'using xyzw quaternion rotation notation...')
+  #     return self.trans_xyz, self.vel_xyz, self.quat_xyzw, self.vel_rpy
+  #   else:
+  #     print(longhead+'using wxyz quaternion rotation notation...')
+  #     return self.trans_xyz, self.vel_xyz, self.quat_wxyz, self.vel_rpy
 
   def plot(self, labels, show=True, save=True, figname='fig_01', title='_'):
     df = self.df[list(labels)] # plot mentioned columns (labels)

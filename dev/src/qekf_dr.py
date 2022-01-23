@@ -98,7 +98,7 @@ class ExtendedKalmanFilter(object):
     self.F = np.eye(dim_x)     # state transition matrix
     self.R = np.eye(dim_z)        # state uncertainty
     self.Q_c = np.eye(dim_x)        # process uncertainty
-    self.y_TVWQxyz = np.zeros((dim_z, 1)) # residual
+    self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
     #self.G = None
     self.T_ = deltaT #time-period
     #self.w_= np.zeros((dim_x,1))
@@ -129,11 +129,11 @@ class ExtendedKalmanFilter(object):
 
 
     self.x_prior_TVQwxyz = zeros((dim_x+1,1)) # add 1 extra for Quat w term
-    self.H = np.zeros((dim_z, dim_x)) #12x9
+    self.H = np.zeros((dim_z, dim_x)) #9x9
 
     # quaternion measurement is 4D - so is for updating estimation model
     #self.z = np.zeros((dim_z+1,1)) # trans_xyz, vel_xyz, rot_wxyz, vel_rpy
-    self.xz_TVWrpyQxyzwFxyz = np.zeros((dim_z+1,1))
+    self.xz_TVWrpyQxyzwFxyz = np.zeros((16,1))
 
 
     ''' init the process iid noise covar matrix Q -- 9x9 diagonal (dim_x by dim_x)
@@ -148,12 +148,9 @@ class ExtendedKalmanFilter(object):
                                  Q_quat_xyz,
                                  Q_quat_xyz]))
 
-    ''' init the measurement iid noise covar matrix R -- 12x12 diagonal (dim_z by dim_z)
+    ''' init the measurement iid noise covar matrix R -- 9x9 diagonal (dim_z by dim_z)
     '''
     self.R = np.diag(np.array([R_noise,
-                               R_noise,
-                               R_noise,
-                               R_noise,
                                R_noise,
                                R_noise,
                                R_noise,
@@ -283,18 +280,16 @@ class ExtendedKalmanFilter(object):
     # nprint('trans_Txyz.shape', trans_Txyz.shape)
     # nprint('lVel_Vxyz', lVel_Vxyz)
     # nprint('lVel_Vxyz.shape', lVel_Vxyz.shape)
-    nprint('gyro_Wrpy', gyro_Wrpy)
-    nprint('gyro_Wrpy.shape', gyro_Wrpy.shape)
-    nprint('rVec_Qxyzw', rVec_Qxyzw)
-    nprint('rVec_Qxyzw.shape', rVec_Qxyzw.shape)
-    nprint('lAcc_Fxyz', lAcc_Fxyz)
-    nprint('lAcc_Fxyz.shape', lAcc_Fxyz.shape)
-    stail()
+    # nprint('gyro_Wrpy', gyro_Wrpy)
+    # nprint('gyro_Wrpy.shape', gyro_Wrpy.shape)
+    # nprint('rVec_Qxyzw', rVec_Qxyzw)
+    # nprint('rVec_Qxyzw.shape', rVec_Qxyzw.shape)
+    # nprint('lAcc_Fxyz', lAcc_Fxyz)
+    # nprint('lAcc_Fxyz.shape', lAcc_Fxyz.shape)
+    # stail()
+    # nprint('self.x_post_TVQxyz', self.x_post_TVQxyz)
+    # nprint('self.x_post_TVQxyz.shape', self.x_post_TVQxyz.shape)
 
-    nprint('self.x_post_TVQxyz', self.x_post_TVQxyz)
-    nprint('self.x_post_TVQxyz.shape', self.x_post_TVQxyz.shape)
-
-    st()
     self.xz_TVWrpyQxyzwFxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]
     self.xz_TVWrpyQxyzwFxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
     self.xz_TVWrpyQxyzwFxyz[6:9,0] = gyro_Wrpy
@@ -303,7 +298,6 @@ class ExtendedKalmanFilter(object):
 
     nprint('self.xz_TVWrpyQxyzwFxyz', self.xz_TVWrpyQxyzwFxyz)
     stail()
-
     st()
     return
 
