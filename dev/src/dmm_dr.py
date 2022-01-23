@@ -86,9 +86,9 @@ class dmm:
     # self.vest = None
     # self.trans_xyz = None
     # self.vel_xyz = None
-    self.lAcc_Axyz = None
+    self.lAcc_Fxyz = None
     self.rVec_WQxyzw = None  # rotation vector - quaternion - x,y,z,w
-    self.aAcc_Arpy = None # angular acceleration Arpy
+    self.gyro_Wrpy = None # angular acceleration Arpy
     # self.quat_wxyz = None # rotation in quaternion - w,x,y,z
     # self.vel_rpy = None # rad/sec - roll, pitch, yaw
     # self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
@@ -99,12 +99,12 @@ class dmm:
     '''
     if self.name=="dead_reckoning_01" and self.ext=='txt':
       ''' dead reckoning data format
-        input files:
-          - Linear acceleration (Axyz), linacce.txt
-          - Rotation vector (in quaternions - WQxyzw), rv.txt
-          - Angular acceleration (Arpy), gyro_resamp.txt
+        input files (state observation variables):
+          - Linear acceleration (Fxyz), linacce.txt
+          - Rotation vector (in quaternions - Qxyzw), rv.txt
+          - Gyro or angular rate (Wrpy), gyro_resamp.txt
         labels:
-          - ['Ax', 'Ay', 'Az', 'Wqx', 'Wqy', 'Wqz', 'Wqw', 'Ar', 'Ap', 'Ay']
+          - ['Fx', 'Fy', 'Fz', 'Qx', 'Qy', 'Qz', 'Qw', 'Wr', 'Wp', 'Wy']
       '''
       self.load_android_set()
     else:
@@ -117,9 +117,9 @@ class dmm:
     # self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
     # self.vel_xyz = self.df[['vx', 'vy', 'vz']]
     # self.vel_rpy = self.df[['wr', 'wp', 'Wy']]
-    self.lAcc_Axyz = self.df[ ['Ax', 'Ay', 'Az']]
-    self.rVec_WQxyzw = self.df[['Wqx', 'Wqy', 'Wqz', 'Wqw']]
-    self.aAcc_Arpy = self.df[['Ar', 'Ap', 'Ay']]
+    self.lAcc_Fxyz = self.df[ ['Fx', 'Fy', 'Fz']]
+    self.rVec_Qxyzw = self.df[['Qx', 'Qy', 'Qz', 'Qw']]
+    self.gyro_Wrpy = self.df[ ['Wr', 'Wp', 'Wy']]
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len

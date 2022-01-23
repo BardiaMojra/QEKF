@@ -12,11 +12,14 @@ from dmm_dr import *
 from dlm_dr import *
 from util_dr import *
 
+from nbug import *
+
 ''' general config '''
 longhead  = '\n\--->> '
 shorthead = '\--->> '
 longtail  = '\n\n'
 attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
+
 
 class ExtendedKalmanFilter(object):
   ''' Simple Kalman Filter:
@@ -100,7 +103,9 @@ class ExtendedKalmanFilter(object):
     self.T_ = deltaT #time-period
     #self.w_= np.zeros((dim_x,1))
     # z = np.array([None]*self.dim_z)
-    self.z_TVWQxyzw = np.zeros((dim_z,1))
+    # self.z_TVWQxyzw = np.zeros((dim_z,1))
+    # self.z_linAcc_Axyz = None
+    # self.z_gyro_W = None# W
     self.v = np.zeros((dim_z, adaWind))
     # gain and residual are computed during the innovation step. We
     # save them so that in case you want to inspect them for various
@@ -128,7 +133,7 @@ class ExtendedKalmanFilter(object):
 
     # quaternion measurement is 4D - so is for updating estimation model
     #self.z = np.zeros((dim_z+1,1)) # trans_xyz, vel_xyz, rot_wxyz, vel_rpy
-    self.z_TVWQxyzw = np.zeros((dim_z+1,1))
+    self.xz_TVWrpyQxyzwFxyz = np.zeros((dim_z+1,1))
 
 
     ''' init the process iid noise covar matrix Q -- 9x9 diagonal (dim_x by dim_x)
@@ -161,11 +166,14 @@ class ExtendedKalmanFilter(object):
     # data logger
     self.log = dlm(enabled=log)
     self.plotter = dmm
+
+
+
     ## end of init
 
   def update(self, z_TVWQxyzw):
     if z_TVWQxyzw is None:
-      self.z_TVWQxyzw = np.array([[None]*self.dim_z]).T
+      self.xz_TVWrpyQxyzwFxyz = np.array([[None]*self.dim_z]).T
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
     if np.isscalar(z_TVWQxyzw) and self.dim_z == 1:
       z_TVWQxyzw = np.asarray([z_TVWQxyzw], float)
@@ -181,12 +189,12 @@ class ExtendedKalmanFilter(object):
     hx = np.dot(self.H, x_prior_TVQxyz_tmp)
     ''' lin part
     '''
-    self.y_TVWQxyz = np.subtract(self.z_TVWQxyzw[0:12,0], hx.T).T # TVWQxyz
+    self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12,0], hx.T).T # TVWQxyz
     ''' quat part
     '''
     x_prior_est_Qwxyz_q = Quaternion(self.x_prior_TVQwxyz[6:10,0]) # wxyz input
-    x_obs_est_Qwxyz_q = Quaternion(self.z_TVWQxyzw[12], self.z_TVWQxyzw[9],
-                                   self.z_TVWQxyzw[10], self.z_TVWQxyzw[11])
+    x_obs_est_Qwxyz_q = Quaternion(self.xz_TVWrpyQxyzwFxyz[12], self.xz_TVWrpyQxyzwFxyz[9],
+                                   self.xz_TVWrpyQxyzwFxyz[10], self.xz_TVWrpyQxyzwFxyz[11])
     e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
     e__log = Q_log(e__.elements) # get the error rotation from subtracting two orientation
     self.y_TVWQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]] # load quat to
@@ -212,7 +220,7 @@ class ExtendedKalmanFilter(object):
     self.x_prior_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
     # est rot (quat)
     # get observed angular velocity
-    z_Wrpy = self.z_TVWQxyzw[6:9,0]
+    z_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
     z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
     # calc observed rotation based on angular rate and delta t
     x_obs_est_Qxyzw = exp_map(self.T_* self.C.T @ z_Wrpy)
@@ -255,7 +263,7 @@ class ExtendedKalmanFilter(object):
     '''note: we no longer have f_k^x (skew symmetry) since we dont have lin force'''
     self.F[3:6,6:9] = np.zeros(3)# -self.T_* self.C.T @ get_skew_symm_X(self.z[0:3,0])
     #self.F[3:6,9:12] = -self.T_* self.C.T
-    self.F[6:9,6:9] = np.eye(3) - self.T_*get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
+    self.F[6:9,6:9] = np.eye(3) - self.T_*get_skew_symm_X(self.xz_TVWrpyQxyzwFxyz[6:9,0])
     #self.F[6:9,12:15] = - self.T_*np.eye(3)
 
   def set_G(self,W,Omega,V):
@@ -268,13 +276,35 @@ class ExtendedKalmanFilter(object):
     self.G[12:16,3:6] = (self.T_/2)*(np.sin(norm(W)*self.T_/2)/norm(W)) * Omega
     self.G[16:19,3:6] = self.T_*np.eye(3)
 
-  def get_z_Qxyzw(self, lin_vel, translation, ang_vel, quat, Vscale=1):
-    self.z_TVWQxyzw[0:3,0] = translation
-    self.z_TVWQxyzw[3:6,0] = lin_vel*Vscale
-    self.z_TVWQxyzw[6:9,0] = ang_vel
-    self.z_TVWQxyzw[9:13,0] = quat
-    self.z_linAcc_Axyz = linAcc
-    self.z_gyro_W = gyro # W
+  def get_xz_TVWrpyQxyzwFxyz(self, trans_Txyz, lVel_Vxyz, gyro_Wrpy,
+                             rVec_Qxyzw, lAcc_Fxyz, Vscale=1):
+    nprint('get_xz_TVWrpyQxyzwFxyz sanity check')
+    # nprint('trans_Txyz', trans_Txyz)
+    # nprint('trans_Txyz.shape', trans_Txyz.shape)
+    # nprint('lVel_Vxyz', lVel_Vxyz)
+    # nprint('lVel_Vxyz.shape', lVel_Vxyz.shape)
+    nprint('gyro_Wrpy', gyro_Wrpy)
+    nprint('gyro_Wrpy.shape', gyro_Wrpy.shape)
+    nprint('rVec_Qxyzw', rVec_Qxyzw)
+    nprint('rVec_Qxyzw.shape', rVec_Qxyzw.shape)
+    nprint('lAcc_Fxyz', lAcc_Fxyz)
+    nprint('lAcc_Fxyz.shape', lAcc_Fxyz.shape)
+    stail()
+
+    nprint('self.x_post_TVQxyz', self.x_post_TVQxyz)
+    nprint('self.x_post_TVQxyz.shape', self.x_post_TVQxyz.shape)
+
+    st()
+    self.xz_TVWrpyQxyzwFxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]
+    self.xz_TVWrpyQxyzwFxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
+    self.xz_TVWrpyQxyzwFxyz[6:9,0] = gyro_Wrpy
+    self.xz_TVWrpyQxyzwFxyz[9:13,0] = rVec_Qxyzw
+    self.xz_TVWrpyQxyzwFxyz[13:16,0] = lAcc_Fxyz
+
+    nprint('self.xz_TVWrpyQxyzwFxyz', self.xz_TVWrpyQxyzwFxyz)
+    stail()
+
+    st()
     return
 
   def set_H(self):

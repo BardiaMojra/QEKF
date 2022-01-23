@@ -140,18 +140,24 @@ def run(data:str):
   qekf.x_prior_TVQwxyz[9] = 0.0
 
   for i in range(dset.start, dset.end):
-    # print('\\--->>> new state ------->>>>>:', i)
-    qekf.get_z_Qxyzw(lin_vel=dset.vel_xyz.to_numpy()[i,:],\
-      translation=dset.trans_xyz.to_numpy()[i,:],\
-      ang_vel=dset.vel_rpy.to_numpy()[i,:],\
-      quat=dset.quat_xyzw.to_numpy()[i,:],\
+    print('\\--->>> new state ------->>>>>:', i)
+    # load prior belief, new observations and ground truth (vicon) for ith state
+    qekf.get_xz_TVWrpyQxyzwFxyz(
+      trans_Txyz = qekf.x_post_TVQxyz[0:3,0],\
+      lVel_Vxyz  = qekf.x_post_TVQxyz[3:6,0],\
+      gyro_Wrpy  = dset.gyro_Wrpy.to_numpy()[i,:],\
+      rVec_Qxyzw = dset.rVec_Qxyzw.to_numpy()[i,:],\
+      lAcc_Fxyz  = dset.lAcc_Fxyz.to_numpy()[i,:],\
+      # gt_trans_Txyz = dset.vicon_trans_Txyz.to_numpy()[i,:],\
+      # gt_rVec_Qxyzw = dset.vicon_rv_Qxyzw.to_numpy()[i,:],\
       #quat=np.asarray([.001, .002, -.994, .003]),\
-      Vscale=dset.VestScale)
+      # Vscale=dset.VestScale
+      )
 
-    qekf.log.log_z_state(z=qekf.z_TVWQxyzw, idx=i)
+    qekf.log.log_z_state(z=qekf.xz_TVWrpyQxyzwFxyz, idx=i)
 
     qekf.predict()
-    qekf.update(qekf.z_TVWQxyzw.T)
+    qekf.update(qekf.xz_TVWrpyQxyzwFxyz.T)
 
   # end of qekf data iterator ----->>
   nprint('end of qekf data iterator ----->>', '')

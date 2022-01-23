@@ -1,5 +1,6 @@
 
 import sys
+import pdb
 
 # enable nbug print
 nprt_en = True #False
@@ -27,3 +28,12 @@ def nprint_2(string, *args):
 
 def lh():
   print(longhead);
+
+def stail():
+  print(shorttail)
+
+def ltail():
+  print(longtail)
+
+def st():
+  pdb.set_trace() # or use breakpoint() directly at any point
