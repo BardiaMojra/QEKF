@@ -141,7 +141,7 @@ def run(data:str):
     qekf.log.log_state(x_prior=x_TVQxyz, FWQxyzwz=qekf.xz_TVWrpyQxyzwFxyz, idx=i)
 
     qekf.x_TVQxyz = qekf.predict()
-    qekf.update(x_TVQxyz, qekf.xz_TVWrpyQxyzwFxyz.T)
+    qekf.x_TVQxyz = qekf.update(x_TVQxyz, qekf.xz_TVWrpyQxyzwFxyz.T)
 
   # end of qekf data iterator ----->>
   nprint('end of qekf data iterator ----->>')
