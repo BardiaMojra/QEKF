@@ -126,36 +126,31 @@ def run(data:str):
               K_scale=1.0)
 
   ''' state init '''
-  qekf.x_prior_TVQwxyz[0] = 0.0
-  qekf.x_prior_TVQwxyz[1] = 0.0
-  qekf.x_prior_TVQwxyz[2] = 0.0
-  qekf.x_prior_TVQwxyz[3] = 0.0
-  qekf.x_prior_TVQwxyz[4] = 0.0
-  qekf.x_prior_TVQwxyz[5] = 0.0
-  qekf.x_prior_TVQwxyz[6] = 1.0
-  qekf.x_prior_TVQwxyz[7] = 0.0
-  qekf.x_prior_TVQwxyz[8] = 0.0
-  qekf.x_prior_TVQwxyz[9] = 0.0
+  qekf.x_TVQxyz[0] = 0.0
+  qekf.x_TVQxyz[1] = 0.0
+  qekf.x_TVQxyz[2] = 0.0
+  qekf.x_TVQxyz[3] = 0.0
+  qekf.x_TVQxyz[4] = 0.0
+  qekf.x_TVQxyz[5] = 0.0
+  qekf.x_TVQxyz[6] = 0.0
+  qekf.x_TVQxyz[7] = 0.0
+  qekf.x_TVQxyz[8] = 0.0
 
   for i in range(dset.start, dset.end):
     print('\\--->>> new state ------->>>>>:', i)
     # load prior belief, new observations and ground truth (vicon) for ith  state
-    qekf.get_xz_TVWrpyQxyzwFxyz(
-      trans_Txyz = qekf.x_post_TVQxyz[0:3,0],\
-      lVel_Vxyz  = qekf.x_post_TVQxyz[3:6,0],\
-      gyro_Wrpy  = dset.gyro_Wrpy_np[i,:],\
-      rVec_Qxyzw = dset.rVec_Qxyzw_np[i,:],\
-      lAcc_Fxyz  = dset.lAcc_Fxyz_np[i,:],\
-      # gt_trans_Txyz = dset.vicon_trans_Txyz.to_numpy()[i,:],\
-      # gt_rVec_Qxyzw = dset.vicon_rv_Qxyzw.to_numpy()[i,:],\
-      #quat=np.asarray([.001, .002, -.994, .003]),\
-      # Vscale=dset.VestScale
-      )
+    qekf.x_Txyz = qekf.x_TVQxyz[0:3,0]
+    qekf.x_Vxyz  = qekf.x_TVQxyz[3:6,0]
+    qekf.x_Qxyz = qekf.x_TVQxyz[6:9,0]
+    qekf.z_Fxyz  = dset.lAcc_Fxyz_np[i,:]
+    qekf.z_Wrpy  = dset.gyro_Wrpy_np[i,:]
+    qekf.z_Qxyzw = dset.rVec_Qxyzw_np[i,:]
+    qekf.x_
 
     qekf.log.log_z_state(z=qekf.xz_TVWrpyQxyzwFxyz, idx=i)
 
-    qekf.predict()
-    qekf.update(qekf.xz_TVWrpyQxyzwFxyz.T)
+    qekf.x_TVQxyz = qekf.predict()
+    qekf.update(x_TVQxyz, qekf.xz_TVWrpyQxyzwFxyz.T)
 
   # end of qekf data iterator ----->>
   nprint('end of qekf data iterator ----->>')

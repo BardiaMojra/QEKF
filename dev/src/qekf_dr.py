@@ -128,7 +128,7 @@ class ExtendedKalmanFilter(object):
     #self.x_post_Qwxyz= Quaternion([1,0,0,0])
 
 
-    self.x_prior_TVQwxyz = zeros((dim_x+1,1)) # add 1 extra for Quat w term
+    self.x_TVQwxyz = zeros((dim_x+1,1)) # add 1 extra for Quat w term
     self.H = np.zeros((dim_z, dim_x)) #9x9
 
     # quaternion measurement is 4D - so is for updating estimation model
@@ -170,7 +170,6 @@ class ExtendedKalmanFilter(object):
 
   def update(self, z_TVWQxyzw):
     if z_TVWQxyzw is None:
-      self.xz_TVWrpyQxyzwFxyz = np.array([[None]*self.dim_z]).T
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
     if np.isscalar(z_TVWQxyzw) and self.dim_z == 1:
       z_TVWQxyzw = np.asarray([z_TVWQxyzw], float)
@@ -181,15 +180,18 @@ class ExtendedKalmanFilter(object):
     self.K = PHT.dot(linalg.inv(self.S))
     # modified for qekf and quarternion states
     x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
-    x_prior_TVQxyz_tmp[0:6,0] = self.x_prior_TVQwxyz[0:6,0]
-    x_prior_TVQxyz_tmp[6:9,0] = self.x_prior_TVQwxyz[7:10,0]
+    x_prior_TVQxyz_tmp[0:6,0] = self.x_TVQwxyz[0:6,0]
+    x_prior_TVQxyz_tmp[6:9,0] = self.x_TVQwxyz[7:10,0]
+
+
+
     hx = np.dot(self.H, x_prior_TVQxyz_tmp)
     ''' lin part
     '''
     self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12,0], hx.T).T # TVWQxyz
     ''' quat part
     '''
-    x_prior_est_Qwxyz_q = Quaternion(self.x_prior_TVQwxyz[6:10,0]) # wxyz input
+    x_prior_est_Qwxyz_q = Quaternion(self.x_TVQwxyz[6:10,0]) # wxyz input
     x_obs_est_Qwxyz_q = Quaternion(self.xz_TVWrpyQxyzwFxyz[12], self.xz_TVWrpyQxyzwFxyz[9],
                                    self.xz_TVWrpyQxyzwFxyz[10], self.xz_TVWrpyQxyzwFxyz[11])
     e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
@@ -201,21 +203,24 @@ class ExtendedKalmanFilter(object):
     temp_exp_map = exp_map(self.T_*ky[6:9]) # quaternion correction
     # equation 6 from EKF2 paper # update quaternion
     exp_map_ = Quaternion([temp_exp_map[3],temp_exp_map[0],temp_exp_map[1],temp_exp_map[2]]) \
-      * Quaternion(self.x_prior_TVQwxyz[6:10,0])  ## wxyz format
+      * Quaternion(self.x_TVQwxyz[6:10,0])  ## wxyz format
     self.x_post_TVQxyz[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
     I_KH = self._I - dot(self.K, self.H)
     self.P_post = dot(I_KH, self.P_prior).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
     self.log.log_update(self.y_TVWQxyz, self.x_post_TVQxyz, self.P_post, self.K)
     return
 
-  def predict_x(self, u=0):
+  def predict_x(self, x_TVQwxyz, z_FWQxyzw):
     # estimation model
     # eq 16-22 of QEKF2
     # est lin pos and lin vel
-    self.x_prior_TVQwxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]+\
-                                  self.T_*self.x_post_TVQxyz[3:6,0] #todo: investigate replacing with observed lin. vel.
-    self.x_prior_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
+    x_TVQwxyz[0:3,0] = x_TVQwxyz[0:3,0]+self.T_*x_TVQwxyz[3:6,0]
+    #todo add calc for linear velocity
+
+    # self.x_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
     # est rot (quat)
+
+    # get z_FWQ some measurements are considered as system input such as force
     # get observed angular velocity
     z_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
     z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
@@ -228,29 +233,28 @@ class ExtendedKalmanFilter(object):
     x_prior_blf_Qwxyz = Quaternion(self.get_Qwxyz_from_Qxyz(self.x_post_TVQxyz[6:9]))
     # QEKF02: equation 18 - quaternion estimation
     x_post_Qwxyz = (x_obs_est_Qwxyz * x_prior_blf_Qwxyz)
-    self.x_prior_TVQwxyz[6:10,0] = x_post_Qwxyz.elements ##wxyz
-    return
+    self.x_TVQwxyz[6:10,0] = x_post_Qwxyz.elements ##wxyz
+    return x_TVQwxyz
 
-  def predict(self, u=0):
-
+  def predict(self, x_TVQwxyz, z_FWQxyzw, u=0):
     #todo: change this from C = z_{q, k+1} to C = x_{q, k}^{+}
-    r = R.from_quat([ self.x_prior_TVQwxyz[7,0], self.x_prior_TVQwxyz[8,0], \
-                      self.x_prior_TVQwxyz[9,0], self.x_prior_TVQwxyz[6,0]])
+    r = R.from_quat([ x_TVQwxyz[7,0], x_TVQwxyz[8,0], \
+                      x_TVQwxyz[9,0], x_TVQwxyz[6,0]])
     self.C = r.as_matrix()
     # nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
     # nprint("r.as_quat() -  xyzw", r.as_quat())
     self.set_H()
     self.set_L()
     self.set_F() #
-    self.predict_x()
+    x_TVQwxyz = self.predict_x(x_TVQwxyz, z_FWQxyzw)
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
     self.P_prior = dot(self.F, self.P_post).dot(self.F.T) + Q_k
-    self.log.log_prediction(self.x_prior_TVQwxyz, self.P_prior)
+    self.log.log_prediction(x_TVQwxyz, self.P_prior)
     return
 
   def partial_update(self,gamma,beta):
     for i in range(self.dim_x):
-      self.x[i] = gamma[i]*self.x_post_TVQxyz[i] + (1-gamma[i])*self.x_prior_TVQwxyz[i]
+      self.x[i] = gamma[i]*self.x_post_TVQxyz[i] + (1-gamma[i])*self.x_TVQwxyz[i]
       for j in range(self.dim_x):
         self.P_post[i,j] = gamma[i]*gamma[j]*self.P_post[i,j]+(1-gamma[i]*gamma[j])*self.P_prior[i,j]
 
