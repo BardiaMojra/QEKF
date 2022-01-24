@@ -81,7 +81,7 @@ class dmm:
     self.lAcc_labels = lAcc_labels[1:]
     self.rVec_labels = rVec_labels[1:]
     self.aVel_gyro_Wrpy_labels = aVel_labels[1:]
-    self.labels = lAcc_labels[1:] + rVec_labels[1:] + aVel_labels[1:]
+    self.labels = lAcc_labels[1:]  + aVel_labels[1:]+ rVec_labels[1:]
     # self.quest = None
     # self.vest = None
     # self.trans_xyz = None
@@ -101,13 +101,13 @@ class dmm:
         - Rotation vector (in quaternions - Qxyzw), rv.txt
         - Gyro or angular rate (Wrpy), gyro_resamp.txt
       labels:
-        - ['Fx', 'Fy', 'Fz', 'Qx', 'Qy', 'Qz', 'Qw', 'Wr', 'Wp', 'Wy']
+        - ['Fx', 'Fy', 'Fz', 'Wr', 'Wp', 'Wy', 'Qx', 'Qy', 'Qz', 'Qw']
       '''
     if self.name=="dead_reckoning_01" and self.ext=='txt':
       # Read utari data
       imu_dir = r"../data/dead_reckoning_data/1/imu"
       vicon_file = r"../data/dead_reckoning_data/1/vicon/vi_clean.csv"
-      lAcc_Fxyz_np, rVec_Qxyzw_np, aVel_Wrpy_np = self.read_interp_data(imu_dir, vicon_file)
+      self.z_FWQxyzw_np = self.read_interp_data(imu_dir, vicon_file)
 
 
     else:
@@ -129,8 +129,7 @@ class dmm:
     if self.end == None:
       self.end = self.len
     # save dataset to output dir
-    if self.prt == True:
-      self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
+    self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return
 
   # syned to orientation data
@@ -220,9 +219,6 @@ class dmm:
     # st()
     return np.asarray(_acc), np.asarray(_gyro), np.asarray(quat_[:,1:5]), np.double(gyro_bias), translation*1e-3, rotation
 
-  def load_android_set(self):
-
-    return
 
   def read_interp_data(self, imu_dir, vicon_file):
     # load lin acce data
@@ -258,7 +254,7 @@ class dmm:
       exit()
     compare = np.where(linAcc_df.index==angVel_Wrpy_df.index, True, False)
     if np.all(compare == True):
-      print(shorthead+'all timestamps match...')
+      print(shorthead+'all timestamps match...'+longtail)
     else:
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
@@ -276,20 +272,22 @@ class dmm:
     self.lAcc_Fxyz_np = linAcc_np[:,1:]
     self.rVec_Qxyzw_np = rotVec_np[:,1:]
     self.gyro_Wrpy_np = angVel_Wrpy_np[:,1:]
+    self.z_FWQxyzw_np = self.df.to_numpy()
 
     # nprint('self.lAcc_Fxyz_np', self.lAcc_Fxyz_np[:5])
     # nprint('self.rVec_Qxyzw_np', self.rVec_Qxyzw_np[:5])
     # nprint('self.gyro_Wrpy_np', self.gyro_Wrpy_np[:5])
+    # nprint('self.z_FWQxyzw_np', self.z_FWQxyzw_np[:5])
     # print('\n\n')
     # nprint('data size and shape check')
     # nprint('self.lAcc_Fxyz_np', self.lAcc_Fxyz_np.shape)
     # nprint('self.rVec_Qxyzw_np', self.rVec_Qxyzw_np.shape)
     # nprint('self.gyro_Wrpy_np', self.gyro_Wrpy_np.shape)
+    # nprint('self.z_FWQxyzw_np', self.z_FWQxyzw_np.shape)
     # print('\n\n')
-
     # st()
 
-    return linAcc_np, rotVec_np, angVel_Wrpy_np
+    return self.z_FWQxyzw_np
 
   # def get(self, quat_format=None):
   #   if quat_format=='xyzw':

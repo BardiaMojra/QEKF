@@ -126,28 +126,19 @@ def run(data:str):
               K_scale=1.0)
 
   ''' state init '''
-  qekf.x_TVQxyz[0] = 0.0
-  qekf.x_TVQxyz[1] = 0.0
-  qekf.x_TVQxyz[2] = 0.0
-  qekf.x_TVQxyz[3] = 0.0
-  qekf.x_TVQxyz[4] = 0.0
-  qekf.x_TVQxyz[5] = 0.0
-  qekf.x_TVQxyz[6] = 0.0
-  qekf.x_TVQxyz[7] = 0.0
-  qekf.x_TVQxyz[8] = 0.0
+  qekf.x_TVQxyz = np.zeros((qekf.dim_x, 1))
+  # qekf.z_FWQxyzw = np.zeros((qekf.dim_z, 1))
 
   for i in range(dset.start, dset.end):
     print('\\--->>> new state ------->>>>>:', i)
     # load prior belief, new observations and ground truth (vicon) for ith  state
-    qekf.x_Txyz = qekf.x_TVQxyz[0:3,0]
-    qekf.x_Vxyz  = qekf.x_TVQxyz[3:6,0]
-    qekf.x_Qxyz = qekf.x_TVQxyz[6:9,0]
-    qekf.z_Fxyz  = dset.lAcc_Fxyz_np[i,:]
-    qekf.z_Wrpy  = dset.gyro_Wrpy_np[i,:]
-    qekf.z_Qxyzw = dset.rVec_Qxyzw_np[i,:]
-    qekf.x_
-
-    qekf.log.log_z_state(z=qekf.xz_TVWrpyQxyzwFxyz, idx=i)
+    x_TVQxyz   = qekf.x_TVQxyz
+    z_FWQxyzw  = dset.z_FWQxyzw_np[i,:]
+    nprint('x_TVQxyz', x_TVQxyz)
+    nprint('z_FWQxyzw', z_FWQxyzw)
+    nprint('x_TVQxyz.shape', x_TVQxyz.shape)
+    nprint('z_FWQxyzw.shape', z_FWQxyzw.shape)
+    qekf.log.log_state(x_prior=x_TVQxyz, FWQxyzwz=qekf.xz_TVWrpyQxyzwFxyz, idx=i)
 
     qekf.x_TVQxyz = qekf.predict()
     qekf.update(x_TVQxyz, qekf.xz_TVWrpyQxyzwFxyz.T)

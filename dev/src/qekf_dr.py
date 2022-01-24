@@ -168,24 +168,28 @@ class ExtendedKalmanFilter(object):
 
     ## end of init
 
-  def update(self, z_TVWQxyzw):
+  def update(self, x_TVQwxyz, z_TVWQxyzw):
     if z_TVWQxyzw is None:
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
-    if np.isscalar(z_TVWQxyzw) and self.dim_z == 1:
-      z_TVWQxyzw = np.asarray([z_TVWQxyzw], float)
-      eprint(longhead+'Err: in update(), z is a scalar and z vect is created...'+longtail)
+
     # compute Kalman gain
     PHT = dot(self.P_prior, self.H.T)
     self.S = dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
     # modified for qekf and quarternion states
-    x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
-    x_prior_TVQxyz_tmp[0:6,0] = self.x_TVQwxyz[0:6,0]
-    x_prior_TVQxyz_tmp[6:9,0] = self.x_TVQwxyz[7:10,0]
 
+    # x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
+    # x_prior_TVQxyz_tmp[0:6,0] = self.x_TVQwxyz[0:6,0]
+    # x_prior_TVQxyz_tmp[6:9,0] = self.x_TVQwxyz[7:10,0]
 
+    st()
+    nprint('self.H',self.H)
+    nprint('self.H.shape',self.H.shape)
+    nprint('x_TVQwxyz', x_TVQwxyz)
+    nprint('x_TVQwxyz.shape', x_TVQwxyz.shape)
+    st()
 
-    hx = np.dot(self.H, x_prior_TVQxyz_tmp)
+    hx = np.dot(self.H, x_TVQwxyz)
     ''' lin part
     '''
     self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12,0], hx.T).T # TVWQxyz
