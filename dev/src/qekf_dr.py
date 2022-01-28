@@ -94,12 +94,12 @@ class ExtendedKalmanFilter(object):
     self.dim_u = dim_u
 
     ''' state vectors '''
-    self.x_TVQxyzw = np.zeros((dim_x,1)) #+ .0001
-    self.x_TVQxyzw[-1,0] = 1.0 #0.9998
+    self.x_TVQxyzw = np.zeros((dim_x,1)) + .0001
+    self.x_TVQxyzw[-1,0] = 0.9998
     self.z_Qxyzw = np.zeros((dim_z,1))
     self.u_AWrpy = np.zeros((dim_u,1))
 
-    self.P_post = np.eye(dim_x) * P_est_0  # uncertainty covariance
+    self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x)     # state transition matrix
     self.Q_c = np.eye(dim_x)        # process uncertainty
     self.y_Qxyzw = np.zeros((dim_z, 1)) # residual
@@ -140,7 +140,7 @@ class ExtendedKalmanFilter(object):
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
 
     # compute Kalman gain
-    PHT = dot(self.P_prior, self.H.T)
+    PHT = dot(self.P, self.H.T)
     self.S = dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
     # modified for qekf and quarternion states
@@ -179,29 +179,35 @@ class ExtendedKalmanFilter(object):
       * Quaternion(self.x_TVQwxyz[6:10,0])  ## wxyz format
     self.x_post_TVQxyz[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
     I_KH = self._I - dot(self.K, self.H)
-    self.P_post = dot(I_KH, self.P_prior).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-    self.log.log_update(self.y_TVWQxyz, self.x_post_TVQxyz, self.P_post, self.K)
+    self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
+    self.log.log_update(self.y_TVWQxyz, self.x_post_TVQxyz, self.P, self.K)
     return
 
-  def predict_x(self, x_TVQwxyz, u_FW, C):
+  def predict_x(self, x_TVQxyzw, u_FWrpy):
     ''' estimation model
       - eq 16-22 of QEKF2
     '''
+
+    nprint(longtail+'dev paused here....'+longtail)
     st()
-    u_Fxyz = u_FW[0:3,0]
-    u_Wrpy = u_FW[3:6,0]
+
+
+
+
+    u_Fxyz = u_FWrpy[0:3,0]
+    u_Wrpy = u_FWrpy[3:6,0]
     # est lin pos and lin vel
-    x_TVQwxyz[0:3,0] = x_TVQwxyz[0:3,0]+self.T_*x_TVQwxyz[3:6,0]+\
+    x_TVQxyzw[0:3,0] = x_TVQxyzw[0:3,0]+self.T_*x_TVQxyzw[3:6,0]+\
       ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
     #todo add calc for linear velocity
-    x_TVQwxyz[3:6,0] = x_TVQwxyz[3:6,0] + self.T_*np.dot(self.C.T , u_Fxyz)
+    x_TVQxyzw[3:6,0] = x_TVQxyzw[3:6,0] + self.T_*np.dot(self.C.T , u_Fxyz)
     # self.x_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
     # est rot (quat)
 
     # get z_FWQ some measurements are considered as system input such as force
     # get observed angular velocity
-    z_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
-    z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
+    # z_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
+    # z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
 
 
 
@@ -215,90 +221,41 @@ class ExtendedKalmanFilter(object):
     # QEKF02: equation 18 - quaternion estimation
     x_post_Qwxyz = (x_obs_est_Qwxyz * x_prior_blf_Qwxyz)
     self.x_TVQwxyz[6:10,0] = x_post_Qwxyz.elements ##wxyz
-    return x_TVQwxyz
+    return x_TVQxyzw
 
   def predict(self, x_TVQxyzw:np.ndarray, u_FWrpy:np.ndarray):
-    nsprint('x_TVQxyzw', x_TVQxyzw)
-
-    st()
     self.set_C(x_TVQxyzw[6:10,0])
-    #todo: change this from C = z_{q, k+1} to C = x_{q, k}^{+}
-    r = R.from_quat(x_TVQxyzw[6:10,0])
-    self.C = r.as_matrix()
-    # nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
-    # nprint("r.as_quat() -  xyzw", r.as_quat())
     self.set_H()
     self.set_L()
-    self.set_F() #
-    x_TVQwxyz = self.predict_x(x_TVQwxyz, z_FWQxyzw)
+    self.set_F(u_FWrpy) #
+    x_TVQxyzw = self.predict_x(x_TVQxyzw, u_FWrpy)
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
-    self.P_prior = dot(self.F, self.P_post).dot(self.F.T) + Q_k
-    self.log.log_prediction(x_TVQwxyz, self.P_prior)
+    self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
+
+    self.log.log_prediction(x_TVQxyzw, self.P)
     return
 
-  def partial_update(self,gamma,beta):
-    for i in range(self.dim_x):
-      self.x[i] = gamma[i]*self.x_post_TVQxyz[i] + (1-gamma[i])*self.x_TVQwxyz[i]
-      for j in range(self.dim_x):
-        self.P_post[i,j] = gamma[i]*gamma[j]*self.P_post[i,j]+(1-gamma[i]*gamma[j])*self.P_prior[i,j]
+  # def partial_update(self,gamma,beta):
+  #   for i in range(self.dim_x):
+  #     self.x[i] = gamma[i]*self.x_post_TVQxyz[i] + (1-gamma[i])*self.x_TVQwxyz[i]
+  #     for j in range(self.dim_x):
+  #       self.P_post[i,j] = gamma[i]*gamma[j]*self.P_post[i,j]+(1-gamma[i]*gamma[j])*self.P_prior[i,j]
 
-  def set_F(self):
+  def set_F(self, u_FWrpy:np.ndarray):
     self.F = np.eye(self.dim_x)
     self.F[0:3,3:6] = self.T_*np.eye(3)
-    '''note: we no longer have f_k^x (skew symmetry) since we dont have lin force'''
-    self.F[3:6,6:9] = np.zeros(3)# -self.T_* self.C.T @ get_skew_symm_X(self.z[0:3,0])
-    #self.F[3:6,9:12] = -self.T_* self.C.T
-    self.F[6:9,6:9] = np.eye(3) - self.T_*get_skew_symm_X(self.xz_TVWrpyQxyzwFxyz[6:9,0])
-    #self.F[6:9,12:15] = - self.T_*np.eye(3)
-
-  def set_G(self,W,Omega,V):
-    self.G = np.zeros((self.dim_x,9))
-    self.G[0:3,0:3] = ((self.T_**3)/6)*np.eye(3)
-    self.G[3:6,0:3] = ((self.T_**2)/2)*np.eye(3)
-    self.G[6:9,0:3] = self.T_*np.eye(3)
-    self.G[6:9,3:6] = self.T_*V
-    self.G[9:12,6:9] = self.T_*np.eye(3)
-    self.G[12:16,3:6] = (self.T_/2)*(np.sin(norm(W)*self.T_/2)/norm(W)) * Omega
-    self.G[16:19,3:6] = self.T_*np.eye(3)
-
-  def get_xz_TVWrpyQxyzwFxyz(self, trans_Txyz, lVel_Vxyz, gyro_Wrpy,
-                             rVec_Qxyzw, lAcc_Fxyz, Vscale=1):
-    nprint('get_xz_TVWrpyQxyzwFxyz sanity check')
-    # nprint('trans_Txyz', trans_Txyz)
-    # nprint('trans_Txyz.shape', trans_Txyz.shape)
-    # nprint('lVel_Vxyz', lVel_Vxyz)
-    # nprint('lVel_Vxyz.shape', lVel_Vxyz.shape)
-    # nprint('gyro_Wrpy', gyro_Wrpy)
-    # nprint('gyro_Wrpy.shape', gyro_Wrpy.shape)
-    # nprint('rVec_Qxyzw', rVec_Qxyzw)
-    # nprint('rVec_Qxyzw.shape', rVec_Qxyzw.shape)
-    # nprint('lAcc_Fxyz', lAcc_Fxyz)
-    # nprint('lAcc_Fxyz.shape', lAcc_Fxyz.shape)
-    # stail()
-    # nprint('self.x_post_TVQxyz', self.x_post_TVQxyz)
-    # nprint('self.x_post_TVQxyz.shape', self.x_post_TVQxyz.shape)
-
-    self.xz_TVWrpyQxyzwFxyz[0:3,0] = self.x_post_TVQxyz[0:3,0]
-    self.xz_TVWrpyQxyzwFxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
-    self.xz_TVWrpyQxyzwFxyz[6:9,0] = gyro_Wrpy
-    self.xz_TVWrpyQxyzwFxyz[9:13,0] = rVec_Qxyzw
-    self.xz_TVWrpyQxyzwFxyz[13:16,0] = lAcc_Fxyz
-
-    nprint('self.xz_TVWrpyQxyzwFxyz', self.xz_TVWrpyQxyzwFxyz)
-    stail()
+    self.F[3:6,6:9] = -self.T_* self.C.T @ get_skew_symm_X(u_FWrpy[0:3,0])
+    self.F[6:9,6:9] = np.eye(3)-self.T_*get_skew_symm_X(u_FWrpy[3:6,0])
+    nsprint('self.F', self.F)
     st()
     return
 
   def set_H(self):
     # set measurement transition function (H matrix)
-    #self.H[0:3,0:3] = np.zeros((3,3))
-    #self.H[0:3,3:6] = -self.C.T ## go away?
-    #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
-    #self.H[3:6,3:6] = -self.C.T
-    #self.H[6:9,6:9] = np.eye(3)
-    self.H[0:6,0:6] = np.zeros(6)
-    self.H[9:12,6:9] = np.eye(3)
-    #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
+    self.H = np.zeros((self.dim_z, self.dim_x))
+    self.H[:,6:10] = np.eye(4)
+    # nsprint('self.H', self.H)
+    # st()
     return
 
   def set_L(self):
@@ -307,6 +264,7 @@ class ExtendedKalmanFilter(object):
     self.L[3:6,3:6] = -self.C.T
     #self.L[0:3,0:3] = 0
     #self.L[6:9,6:9] = -np.eye(3)
+    nsprint('self.L', self.L)
     return self
 
   def set_C(self, x_Qxyzw:np.ndarray):
@@ -315,9 +273,9 @@ class ExtendedKalmanFilter(object):
     '''
     r = R.from_quat([x_Qxyzw[3], x_Qxyzw[0],x_Qxyzw[1], x_Qxyzw[2]])
     self.C = r.as_matrix()
-    nprint('r (rotation vector in radians)', r)
-    nsprint('self.C', self.C)
-    st()
+    # nprint('r (rotation vector in radians)', r)
+    # nsprint('self.C', self.C)
+    # st()
     return
 
   def get_Qwxyz_from_Qxyz(self, xyz: np.array):
