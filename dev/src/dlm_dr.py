@@ -34,15 +34,15 @@ class dlm:
       eprint(linehead+'Warning: data logger is DISABLED...\n\n')
     return
 
-  def log_z_state(self, z, idx):
-    if self.enabled == True:
-      if (self.z_hist is None) or (self.idx is None):
-        self.z_hist = np.copy(z.T)
-        self.idx = np.zeros((1), dtype=int)
-      else:
-        self.z_hist = np.concatenate((self.z_hist, z.T), axis=0)
-        self.idx = np.concatenate((self.idx, np.asarray([idx])), axis=0)
-    return
+  # def log_z_state(self, z, idx):
+  #   if self.enabled == True:
+  #     if (self.z_hist is None) or (self.idx is None):
+  #       self.z_hist = np.copy(z.T)
+  #       self.idx = np.zeros((1), dtype=int)
+  #     else:
+  #       self.z_hist = np.concatenate((self.z_hist, z.T), axis=0)
+  #       self.idx = np.concatenate((self.idx, np.asarray([idx])), axis=0)
+  #   return
 
   def log_predicted_quat(self, x_q, x_pr_q):
     ''' Not used

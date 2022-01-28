@@ -22,9 +22,9 @@ from nbug import *
 ''' general config '''
 NBUG = True
 print_output = True
-_show = True
+_show = False #True
 _save = True
-_prt = False
+_prt = True
 _zoom = 150
 
 ''' matplotlib config '''
@@ -115,8 +115,9 @@ def run(data:str):
   # dset.plot_trans_3d(title='Ground Truth Translation', figname=get_fignum_str(fignum), show=False)
 
   # init QEKF object
-  qekf = QEKF(dim_x=9, #  Txyz, Vxyz, Qxyz -- linPos, linVel, angPos (quat)
-              dim_z=9, # Txyz, Vxyz, Wrpy Qxyzw
+  qekf = QEKF(dim_x=10, # Txyz, Vxyz, Qxyzw -- linPos, linVel, angPos (quat)
+              dim_z=4, # Qxyzw
+              dim_u=6, # Axyz, Wrpy
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
@@ -124,24 +125,25 @@ def run(data:str):
               R_noise=1e-6, # measurement noise covar
               P_est_0=1e-4,
               K_scale=1.0)
-
-  ''' state init '''
-  qekf.x_TVQxyz = np.zeros((qekf.dim_x, 1))
-  # qekf.z_FWQxyzw = np.zeros((qekf.dim_z, 1))
+  # init state vectors
+  x_TVQxyzw = qekf.x_TVQxyzw
+  u_AWrpy = qekf.u_AWrpy
+  z_Qxyzw = qekf.z_Qxyzw
 
   for i in range(dset.start, dset.end):
     print('\\--->>> new state ------->>>>>:', i)
+    ''' EKF state machine
+    '''
     # load prior belief, new observations and ground truth (vicon) for ith  state
-    x_TVQxyz   = qekf.x_TVQxyz
-    z_FWQxyzw  = dset.z_FWQxyzw_np[i,:]
-    nprint('x_TVQxyz', x_TVQxyz)
-    nprint('z_FWQxyzw', z_FWQxyzw)
-    nprint('x_TVQxyz.shape', x_TVQxyz.shape)
-    nprint('z_FWQxyzw.shape', z_FWQxyzw.shape)
-    qekf.log.log_state(x_prior=x_TVQxyz, FWQxyzwz=qekf.xz_TVWrpyQxyzwFxyz, idx=i)
-
-    qekf.x_TVQxyz = qekf.predict()
-    qekf.x_TVQxyz = qekf.update(x_TVQxyz, qekf.xz_TVWrpyQxyzwFxyz.T)
+    x_TVQxyzw = x_TVQxyzw # state estimate
+    u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
+    z_Qxyzw  = dset.z_Qxyzw_np[i].reshape(-1,1)
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+    nsprint('u_AWrpy', u_AWrpy)
+    nsprint('z_Qxyzw', z_Qxyzw)
+    # qekf.log.log_state(x_prior=x_TVQxyz, idx=i)
+    x_TVQxyzw = qekf.predict(x_TVQxyzw, u_AWrpy)
+    x_TVQxyzw = qekf.update(x_TVQxyzw, u_AWrpy, z_Qxyzw)
 
   # end of qekf data iterator ----->>
   nprint('end of qekf data iterator ----->>')

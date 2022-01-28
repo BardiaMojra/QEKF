@@ -2,8 +2,6 @@
 from pyquaternion import Quaternion
 import numpy as np
 import scipy.linalg as linalg
-from pdb import set_trace as st
-from pprint import pprint as pp
 from numpy import dot, zeros, eye
 from scipy.linalg import norm
 from scipy.spatial.transform import Rotation as R
@@ -13,6 +11,8 @@ from dlm_dr import *
 from util_dr import *
 
 from nbug import *
+from pdb import set_trace as st
+from pprint import pprint as pp
 
 ''' general config '''
 longhead  = '\n\--->> '
@@ -92,50 +92,26 @@ class ExtendedKalmanFilter(object):
     self.dim_x = dim_x
     self.dim_z = dim_z
     self.dim_u = dim_u
-    self.x_post_TVQxyz = np.zeros((dim_x,1)) + .0001
+
+    ''' state vectors '''
+    self.x_TVQxyzw = np.zeros((dim_x,1)) #+ .0001
+    self.x_TVQxyzw[-1,0] = 1.0 #0.9998
+    self.z_Qxyzw = np.zeros((dim_z,1))
+    self.u_AWrpy = np.zeros((dim_u,1))
+
     self.P_post = np.eye(dim_x) * P_est_0  # uncertainty covariance
-    self.B = 0                 # control transition matrix
     self.F = np.eye(dim_x)     # state transition matrix
-    self.R = np.eye(dim_z)        # state uncertainty
     self.Q_c = np.eye(dim_x)        # process uncertainty
-    self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
-    #self.G = None
+    self.y_Qxyzw = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
-    #self.w_= np.zeros((dim_x,1))
-    # z = np.array([None]*self.dim_z)
-    # self.z_TVWQxyzw = np.zeros((dim_z,1))
-    # self.z_linAcc_Axyz = None
-    # self.z_gyro_W = None# W
-    self.v = np.zeros((dim_z, adaWind))
-    # gain and residual are computed during the innovation step. We
-    # save them so that in case you want to inspect them for various
-    # purposes
     self.K = np.zeros((dim_x,1)) # kalman gain -- 9
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
     self.SI = np.zeros((dim_z, dim_z))  # inverse system uncertainty
     self.L = None
     # identity matrix. Do not alter this.
     self._I = np.eye(dim_x)
-
-    # these will always be a copy of x,P after predict() is called
-    #self.x_prior_TVQwxyz = self.x.copy()
-    #self.P_prior = self.P_post.copy()
-
-    # these will always be a copy of x,P after update() is called
-    #self.x_post = self.x.copy()
-    #self.P_post = self.P_post.copy()
-    self.C = None
-    #self.x_post_Qwxyz= Quaternion([1,0,0,0])
-
-
-    self.x_TVQwxyz = zeros((dim_x+1,1)) # add 1 extra for Quat w term
-    self.H = np.zeros((dim_z, dim_x)) #9x9
-
-    # quaternion measurement is 4D - so is for updating estimation model
-    #self.z = np.zeros((dim_z+1,1)) # trans_xyz, vel_xyz, rot_wxyz, vel_rpy
-    self.xz_TVWrpyQxyzwFxyz = np.zeros((16,1))
-
-
+    self.C = np.zeros((3,3)) # rotation matrix
+    self.H = np.zeros((dim_z, dim_x)) #4x10
     ''' init the process iid noise covar matrix Q -- 9x9 diagonal (dim_x by dim_x)
     '''
     self.Q_c = np.diag(np.array([Q_T_xyz,
@@ -152,24 +128,15 @@ class ExtendedKalmanFilter(object):
     '''
     self.R = np.diag(np.array([R_noise,
                                R_noise,
-                               R_noise,
-                               R_noise,
-                               R_noise,
-                               R_noise,
-                               R_noise,
-                               R_noise,
                                R_noise]))
 
     # data logger
     self.log = dlm(enabled=log)
     self.plotter = dmm
-
-
-
     ## end of init
 
-  def update(self, x_TVQwxyz, z_TVWQxyzw):
-    if z_TVWQxyzw is None:
+  def update(self, x_TVQxyzw, z_Qxyzw):
+    if z_Qxyzw is None:
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
 
     # compute Kalman gain
@@ -185,11 +152,13 @@ class ExtendedKalmanFilter(object):
     st()
     nprint('self.H',self.H)
     nprint('self.H.shape',self.H.shape)
-    nprint('x_TVQwxyz', x_TVQwxyz)
-    nprint('x_TVQwxyz.shape', x_TVQwxyz.shape)
+    nprint('x_TVQwxyz', x_TVQxyzw)
+    nprint('x_TVQwxyz.shape', x_TVQxyzw.shape)
     st()
 
-    hx = np.dot(self.H, x_TVQwxyz)
+    hx = np.dot(self.H, x_TVQxyzw)
+    nsprint('hx', hx)
+    st()
     ''' lin part
     '''
     self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12,0], hx.T).T # TVWQxyz
@@ -214,13 +183,18 @@ class ExtendedKalmanFilter(object):
     self.log.log_update(self.y_TVWQxyz, self.x_post_TVQxyz, self.P_post, self.K)
     return
 
-  def predict_x(self, x_TVQwxyz, z_FWQxyzw):
-    # estimation model
-    # eq 16-22 of QEKF2
+  def predict_x(self, x_TVQwxyz, u_FW, C):
+    ''' estimation model
+      - eq 16-22 of QEKF2
+    '''
+    st()
+    u_Fxyz = u_FW[0:3,0]
+    u_Wrpy = u_FW[3:6,0]
     # est lin pos and lin vel
-    x_TVQwxyz[0:3,0] = x_TVQwxyz[0:3,0]+self.T_*x_TVQwxyz[3:6,0]
+    x_TVQwxyz[0:3,0] = x_TVQwxyz[0:3,0]+self.T_*x_TVQwxyz[3:6,0]+\
+      ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
     #todo add calc for linear velocity
-
+    x_TVQwxyz[3:6,0] = x_TVQwxyz[3:6,0] + self.T_*np.dot(self.C.T , u_Fxyz)
     # self.x_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
     # est rot (quat)
 
@@ -228,9 +202,12 @@ class ExtendedKalmanFilter(object):
     # get observed angular velocity
     z_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
     z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
+
+
+
     # calc observed rotation based on angular rate and delta t
-    x_obs_est_Qxyzw = exp_map(self.T_* self.C.T @ z_Wrpy)
-    #x_obs_est_Qxyzw = exp_map(self.T_ * z_Wrpy)
+    x_obs_est_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+    #x_obs_est_Qxyzw = exp_map(self.T_ * u_Wrpy)
     # convert rotation matrix to unit quaternion
     # CHECK: this quaternion obj must be a unit quaternion meaning W is probably non-zero.
     x_obs_est_Qwxyz = Quaternion(x_obs_est_Qxyzw[3],x_obs_est_Qxyzw[0],x_obs_est_Qxyzw[1],x_obs_est_Qxyzw[2]) ##w,x,y,z
@@ -240,10 +217,13 @@ class ExtendedKalmanFilter(object):
     self.x_TVQwxyz[6:10,0] = x_post_Qwxyz.elements ##wxyz
     return x_TVQwxyz
 
-  def predict(self, x_TVQwxyz, z_FWQxyzw, u=0):
+  def predict(self, x_TVQxyzw:np.ndarray, u_FWrpy:np.ndarray):
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+
+    st()
+    self.set_C(x_TVQxyzw[6:10,0])
     #todo: change this from C = z_{q, k+1} to C = x_{q, k}^{+}
-    r = R.from_quat([ x_TVQwxyz[7,0], x_TVQwxyz[8,0], \
-                      x_TVQwxyz[9,0], x_TVQwxyz[6,0]])
+    r = R.from_quat(x_TVQxyzw[6:10,0])
     self.C = r.as_matrix()
     # nprint("r.as_rotvec() -  xyz-rpy", r.as_rotvec())
     # nprint("r.as_quat() -  xyzw", r.as_quat())
@@ -316,7 +296,7 @@ class ExtendedKalmanFilter(object):
     #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
     #self.H[3:6,3:6] = -self.C.T
     #self.H[6:9,6:9] = np.eye(3)
-    self.H[0:6,0:6] = np.eye(6)
+    self.H[0:6,0:6] = np.zeros(6)
     self.H[9:12,6:9] = np.eye(3)
     #self.H[0:3,6:9] = -self.C.T @ get_skew_symm_X(self.z_TVWQxyzw[6:9,0])
     return
@@ -328,6 +308,17 @@ class ExtendedKalmanFilter(object):
     #self.L[0:3,0:3] = 0
     #self.L[6:9,6:9] = -np.eye(3)
     return self
+
+  def set_C(self, x_Qxyzw:np.ndarray):
+    ''' calculates state estimate (belief) rotation matrix (C) given
+      the corresponding orientation in quaternion form.
+    '''
+    r = R.from_quat([x_Qxyzw[3], x_Qxyzw[0],x_Qxyzw[1], x_Qxyzw[2]])
+    self.C = r.as_matrix()
+    nprint('r (rotation vector in radians)', r)
+    nsprint('self.C', self.C)
+    st()
+    return
 
   def get_Qwxyz_from_Qxyz(self, xyz: np.array):
     ''' Calculate the real term (w), given the imaginary terms (xyz)

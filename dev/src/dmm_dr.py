@@ -13,27 +13,31 @@ import csv
 from util_dr import exp_map
 
 
-from pprint import pprint as pp
+# from pprint import pprint as pp
 from nbug import *
 from pdb import set_trace as st
 
 
 
-''' matplotlib config '''
+''' matplotlib config
+'''
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
-''' config
+''' module config
 '''
 prt_file_save_en = False
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
-lAcc_labels = ['tstamp', 'Fx', 'Fy', 'Fz'] # lin acc
-rVec_labels = ['tstamp', 'Qx', 'Qy', 'Qz', 'Qw'] # rot vec (Orientation in Quaternion)
-aVel_labels = ['tstamp', 'Wr', 'Wp', 'Wy'] # aVel (angular rate Omega)
-# qPos_labels = ['tstamp', 'qx', 'qy', 'qz', 'qw']
-# qlabels = ['idx', 't', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
-# vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'Wp']
+
+''' dataset config
+'''
 datasets = [ 'dead_reckoning_01']
+Axyz_labels = ['Ax', 'Ay', 'Az'] # lin acc
+# Vxyz_labels = ['Vx', 'Vy', 'Vz'] # lin vel
+# Txyz_labels = ['Tx', 'Ty', 'Tz'] # lin trans
+Wrpy_labels = ['Wr', 'Wp', 'Wy'] # aVel (ang vel Omega)
+Qxyzw_labels =['Qx', 'Qy', 'Qz', 'Qw'] # rot vec (in quat)
+all_labels = Axyz_labels+Wrpy_labels+Qxyzw_labels
 class dmm:
   ''' Data Management Module
   '''
@@ -78,20 +82,19 @@ class dmm:
     # df init
     self.df = None
     self.len = None
-    self.lAcc_labels = lAcc_labels[1:]
-    self.rVec_labels = rVec_labels[1:]
-    self.aVel_gyro_Wrpy_labels = aVel_labels[1:]
-    self.labels = lAcc_labels[1:]  + aVel_labels[1:]+ rVec_labels[1:]
+
+    self.Axyz_labels = Axyz_labels
+    self.Wrpy_labels = Wrpy_labels
+    self.Qxyzw_labels = Qxyzw_labels
+    self.labels = all_labels
+
     # self.quest = None
     # self.vest = None
-    # self.trans_xyz = None
-    # self.vel_xyz = None
-    self.lAcc_Fxyz_np = None # lin accel Fxyz
-    self.rVec_Qxyzw_np = None  # rotation vector - quaternion - x,y,z,w
-    self.gyro_Wrpy_np = None # angular rate (Omega) Wrpy
-    # self.quat_wxyz = None # rotation in quaternion - w,x,y,z
-    # self.vel_rpy = None # rad/sec - roll, pitch, yaw
-    # self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
+
+    self.Axyz_np = None
+    self.Wrpy_np = None
+    self.Qxyzw_np = None
+
     # end of __init__() <<--------------------------------------
 
   def format_data(self):
@@ -100,31 +103,17 @@ class dmm:
         - Linear acceleration (Fxyz), linacce.txt
         - Rotation vector (in quaternions - Qxyzw), rv.txt
         - Gyro or angular rate (Wrpy), gyro_resamp.txt
-      labels:
-        - ['Fx', 'Fy', 'Fz', 'Wr', 'Wp', 'Wy', 'Qx', 'Qy', 'Qz', 'Qw']
+        - vicon for Txyz and Qxyzw for z (ground truth)
       '''
     if self.name=="dead_reckoning_01" and self.ext=='txt':
       # Read utari data
       imu_dir = r"../data/dead_reckoning_data/1/imu"
       vicon_file = r"../data/dead_reckoning_data/1/vicon/vi_clean.csv"
-      self.z_FWQxyzw_np = self.read_interp_data(imu_dir, vicon_file)
-
-
+      self.read_interp_data(imu_dir, vicon_file)
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
     ''' common df section '''
-    # load state variables
-    # self.trans_xyz = self.df[['Tx', 'Ty', 'Tz']]
-    # self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]
-    # self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
-    # self.vel_xyz = self.df[['vx', 'vy', 'vz']]
-    # self.vel_rpy = self.df[['wr', 'wp', 'Wy']]
-    # lAcc_Fxyz_df = self.df[ ['Fx', 'Fy', 'Fz']]
-    # rVec_Qxyzw_df = self.df[['Qx', 'Qy', 'Qz', 'Qw']]
-    # gyro_Wrpy_df = self.df[ ['Wr', 'Wp', 'Wy']]
-
-    # st()
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
@@ -223,71 +212,60 @@ class dmm:
   def read_interp_data(self, imu_dir, vicon_file):
     # load lin acce data
     fname = 'linacce.txt' # Axyz
-    linAcc_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    Axyz_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
     # nprint('linAcc_np', linAcc_np)
     # st()
-    linAcc_df = pd.DataFrame(linAcc_np[:,1:], columns=self.lAcc_labels)
-    linAcc_df.index = pd.DatetimeIndex(linAcc_np[:,0])
+    Axyz_df = pd.DataFrame(Axyz_np[:,1:], columns=self.Axyz_labels)
+    Axyz_df.index = pd.DatetimeIndex(Axyz_np[:,0])
     # nprint('linAcc_df', linAcc_df)
     # load rotVec (Qxyzw) rv.txt
     fname = 'rv.txt' # Qxyzw
-    rotVec_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    Qxyzw_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=1)
-    rotVec_df = pd.DataFrame(rotVec_np[:,1:], columns=self.rVec_labels)
-    rotVec_df.index = pd.DatetimeIndex(rotVec_np[:,0])
+    Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
+    Qxyzw_df.index = pd.DatetimeIndex(Qxyzw_np[:,0])
     # nprint('rotVec_df', rotVec_df)
     fname = 'gyro_resamp.txt' # angVel_Wrpy
-    angVel_Wrpy_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    Wrpy_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
       delimiter=',', skiprows=1)
-    angVel_Wrpy_df = pd.DataFrame(angVel_Wrpy_np[:,1:],
-                                  columns=self.aVel_gyro_Wrpy_labels)
-    angVel_Wrpy_df.index = pd.DatetimeIndex(angVel_Wrpy_np[:,0])
+    Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
+                                  columns=self.Wrpy_labels)
+    Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
     # nprint('angAcc_df', angAcc_df)
+
+    ''' get vicon position and orientation (rv-quat)
+      - as ground truth only
+    '''
+    #todo get vicon ground truth data
+    #todo get position data
+    # get rv data
+
     # compare timestamps
-    compare = np.where(linAcc_df.index==rotVec_df.index, True, False)
+    compare = np.where(Axyz_df.index==Qxyzw_df.index, True, False)
     if np.all(compare == True):
       print(shorthead+'linAcc_df & rotVec_df timestamps match...')
     else:
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
-    compare = np.where(linAcc_df.index==angVel_Wrpy_df.index, True, False)
+    compare = np.where(Axyz_df.index==Wrpy_df.index, True, False)
     if np.all(compare == True):
       print(shorthead+'all timestamps match...'+longtail)
     else:
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
-    self.df = pd.concat([ linAcc_df, rotVec_df, angVel_Wrpy_df], axis=1)
+    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
     # load data frame
     self.df.columns = self.labels# load state variables
-
-    # nprint('self.df.columns', self.df.columns)
-    # nprint('self.df.head(5)', self.df.head(5))
-    # nprint('self.df.tail(5)', self.df.tail(5))
-    # st()
-
     # load np format
-    self.lAcc_Fxyz_np = linAcc_np[:,1:]
-    self.rVec_Qxyzw_np = rotVec_np[:,1:]
-    self.gyro_Wrpy_np = angVel_Wrpy_np[:,1:]
-    self.z_FWQxyzw_np = self.df.to_numpy()
-
-    # nprint('self.lAcc_Fxyz_np', self.lAcc_Fxyz_np[:5])
-    # nprint('self.rVec_Qxyzw_np', self.rVec_Qxyzw_np[:5])
-    # nprint('self.gyro_Wrpy_np', self.gyro_Wrpy_np[:5])
-    # nprint('self.z_FWQxyzw_np', self.z_FWQxyzw_np[:5])
-    # print('\n\n')
-    # nprint('data size and shape check')
-    # nprint('self.lAcc_Fxyz_np', self.lAcc_Fxyz_np.shape)
-    # nprint('self.rVec_Qxyzw_np', self.rVec_Qxyzw_np.shape)
-    # nprint('self.gyro_Wrpy_np', self.gyro_Wrpy_np.shape)
-    # nprint('self.z_FWQxyzw_np', self.z_FWQxyzw_np.shape)
-    # print('\n\n')
-    # st()
-
-    return self.z_FWQxyzw_np
+    self.Axyz_np = Axyz_np[:,1:]
+    self.Wrpy_np = Wrpy_np[:,1:]
+    self.Qxyzw_np = Qxyzw_np[:,1:]
+    self.z_Qxyzw_np = self.Qxyzw_np
+    self.u_AWrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
+    return
 
   # def get(self, quat_format=None):
   #   if quat_format=='xyzw':

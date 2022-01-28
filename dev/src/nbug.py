@@ -1,6 +1,8 @@
 
 import sys
-import pdb
+# import pdb
+from pprint import pprint as pp
+import numpy as np
 
 # enable nbug print
 nprt_en = True #False
@@ -20,6 +22,12 @@ def eprint(*args, **kwargs):
 def nprint(string, *args):
   if nprt_en is True:
     print(shorthead+(string+': ')); print(*args);
+
+def nsprint(string, ndarr:np.ndarray):
+  if nprt_en is True:
+    shape = str(ndarr.shape)
+    print(shorthead+(string+': '+shape));
+    pp(ndarr); print(shorttail)
 
 
 def nprint_2(string, *args):
