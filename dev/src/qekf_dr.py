@@ -186,33 +186,43 @@ class ExtendedKalmanFilter(object):
   def predict_x(self, x_TVQxyzw, u_FWrpy):
     ''' estimation model
       - eq 16-22 of QEKF2
+      - this routine is essentially \hat{x}_{k|k-1} = F.[\hat{x}_{k-1|k-1} u_{k}]^{T}
     '''
 
-    nprint(longtail+'dev paused here....'+longtail)
-    st()
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+    nsprint('u_FWrpy', u_FWrpy)
 
-
-
-
+    # nprint(longtail+'dev paused here....'+longtail)
     u_Fxyz = u_FWrpy[0:3,0]
     u_Wrpy = u_FWrpy[3:6,0]
-    # est lin pos and lin vel
+
+    # est linPos
     x_TVQxyzw[0:3,0] = x_TVQxyzw[0:3,0]+self.T_*x_TVQxyzw[3:6,0]+\
       ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
-    #todo add calc for linear velocity
-    x_TVQxyzw[3:6,0] = x_TVQxyzw[3:6,0] + self.T_*np.dot(self.C.T , u_Fxyz)
-    # self.x_TVQwxyz[3:6,0] = self.x_post_TVQxyz[3:6,0]
-    # est rot (quat)
+
+    nsprint('x_TVQxyzw[0:3,0]', x_TVQxyzw[0:3,0])
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+
+    # est linVel
+    x_TVQxyzw[3:6,0] = x_TVQxyzw[3:6,0] + self.T_*(self.C.T @ u_Fxyz)
+
+    nsprint('x_TVQxyzw[3:6,0]', x_TVQxyzw[3:6,0])
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+
+    # est rotVec (quat)
+
 
     # get z_FWQ some measurements are considered as system input such as force
     # get observed angular velocity
-    # z_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
+    # u_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
     # z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
 
 
 
-    # calc observed rotation based on angular rate and delta t
-    x_obs_est_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+    # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
+    u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+
+
     #x_obs_est_Qxyzw = exp_map(self.T_ * u_Wrpy)
     # convert rotation matrix to unit quaternion
     # CHECK: this quaternion obj must be a unit quaternion meaning W is probably non-zero.
@@ -246,8 +256,8 @@ class ExtendedKalmanFilter(object):
     self.F[0:3,3:6] = self.T_*np.eye(3)
     self.F[3:6,6:9] = -self.T_* self.C.T @ get_skew_symm_X(u_FWrpy[0:3,0])
     self.F[6:9,6:9] = np.eye(3)-self.T_*get_skew_symm_X(u_FWrpy[3:6,0])
-    nsprint('self.F', self.F)
-    st()
+    # nsprint('self.F', self.F)
+    # st()
     return
 
   def set_H(self):
@@ -264,7 +274,7 @@ class ExtendedKalmanFilter(object):
     self.L[3:6,3:6] = -self.C.T
     #self.L[0:3,0:3] = 0
     #self.L[6:9,6:9] = -np.eye(3)
-    nsprint('self.L', self.L)
+    # nsprint('self.L', self.L)
     return self
 
   def set_C(self, x_Qxyzw:np.ndarray):
