@@ -146,8 +146,8 @@ class ExtendedKalmanFilter(object):
     # modified for qekf and quarternion states
 
     # x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
-    # x_prior_TVQxyz_tmp[0:6,0] = self.x_TVQwxyz[0:6,0]
-    # x_prior_TVQxyz_tmp[6:9,0] = self.x_TVQwxyz[7:10,0]
+    # x_prior_TVQxyz_tmp[0:6] = self.x_TVQwxyz[0:6]
+    # x_prior_TVQxyz_tmp[6:9] = self.x_TVQwxyz[7:10]
 
     st()
     nprint('self.H',self.H)
@@ -161,23 +161,23 @@ class ExtendedKalmanFilter(object):
     st()
     ''' lin part
     '''
-    self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12,0], hx.T).T # TVWQxyz
+    self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12], hx.T).T # TVWQxyz
     ''' quat part
     '''
-    x_prior_est_Qwxyz_q = Quaternion(self.x_TVQwxyz[6:10,0]) # wxyz input
+    x_prior_est_Qwxyz_q = Quaternion(self.x_TVQwxyz[6:10]) # wxyz input
     x_obs_est_Qwxyz_q = Quaternion(self.xz_TVWrpyQxyzwFxyz[12], self.xz_TVWrpyQxyzwFxyz[9],
                                    self.xz_TVWrpyQxyzwFxyz[10], self.xz_TVWrpyQxyzwFxyz[11])
     e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
     e__log = Q_log(e__.elements) # get the error rotation from subtracting two orientation
-    self.y_TVWQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]] # load quat to
+    self.y_TVWQxyz[9:12] = [e__log[0],e__log[1],e__log[2]] # load quat to
     self.K = self.K * self.K_scale
     ky = dot(self.K, self.y_TVWQxyz)
     self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
     temp_exp_map = exp_map(self.T_*ky[6:9]) # quaternion correction
     # equation 6 from EKF2 paper # update quaternion
     exp_map_ = Quaternion([temp_exp_map[3],temp_exp_map[0],temp_exp_map[1],temp_exp_map[2]]) \
-      * Quaternion(self.x_TVQwxyz[6:10,0])  ## wxyz format
-    self.x_post_TVQxyz[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
+      * Quaternion(self.x_TVQwxyz[6:10])  ## wxyz format
+    self.x_post_TVQxyz[6:9] = exp_map_.elements[1:4] # load quat xyz to x_post
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
     self.log.log_update(self.y_TVWQxyz, self.x_post_TVQxyz, self.P, self.K)
@@ -186,51 +186,57 @@ class ExtendedKalmanFilter(object):
   def predict_x(self, x_TVQxyzw, u_FWrpy):
     ''' estimation model
       - eq 16-22 of QEKF2
-      - this routine is essentially \hat{x}_{k|k-1} = F.[\hat{x}_{k-1|k-1} u_{k}]^{T}
+      - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
+        f(\hat{x}_{k-1|k-1}, u_{k})
     '''
 
-    nsprint('x_TVQxyzw', x_TVQxyzw)
-    nsprint('u_FWrpy', u_FWrpy)
+    nsprint('x_TVQxyzw.T', x_TVQxyzw.T)
+    nsprint('u_FWrpy.T', u_FWrpy.T)
 
     # nprint(longtail+'dev paused here....'+longtail)
-    u_Fxyz = u_FWrpy[0:3,0]
-    u_Wrpy = u_FWrpy[3:6,0]
+    u_Fxyz = u_FWrpy[0:3]
+    u_Wrpy = u_FWrpy[3:6]
 
     # est linPos
-    x_TVQxyzw[0:3,0] = x_TVQxyzw[0:3,0]+self.T_*x_TVQxyzw[3:6,0]+\
+    x_TVQxyzw[0:3] = x_TVQxyzw[0:3]+self.T_*x_TVQxyzw[3:6]+\
       ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
 
-    nsprint('x_TVQxyzw[0:3,0]', x_TVQxyzw[0:3,0])
-    nsprint('x_TVQxyzw', x_TVQxyzw)
+    # nsprint('x_TVQxyzw[0:3]', x_TVQxyzw[0:3])
+    # nsprint('x_TVQxyzw', x_TVQxyzw)
 
     # est linVel
-    x_TVQxyzw[3:6,0] = x_TVQxyzw[3:6,0] + self.T_*(self.C.T @ u_Fxyz)
+    x_TVQxyzw[3:6] = x_TVQxyzw[3:6] + self.T_*(self.C.T @ u_Fxyz)
 
-    nsprint('x_TVQxyzw[3:6,0]', x_TVQxyzw[3:6,0])
-    nsprint('x_TVQxyzw', x_TVQxyzw)
+    # nsprint('x_TVQxyzw[6:10]', x_TVQxyzw[6:10])
+    # nsprint('x_TVQxyzw', x_TVQxyzw)
 
-    # est rotVec (quat)
-
-
+    ''' est rotVec (quat) -- eq(18)
+    '''
     # get z_FWQ some measurements are considered as system input such as force
     # get observed angular velocity
-    # u_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9,0]
+    # u_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9]
     # z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
-
-
-
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-    u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
-
-
-    #x_obs_est_Qxyzw = exp_map(self.T_ * u_Wrpy)
+    # obs_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+    _q = exp_map(self.T_ * u_Wrpy)
+    _q = np.array(_q, dtype=np.float64)
+    # _q = [_q[3],_q[0],_q[1],_q[2]]
+    nsprint('_q', _q)
+    st()
     # convert rotation matrix to unit quaternion
     # CHECK: this quaternion obj must be a unit quaternion meaning W is probably non-zero.
-    x_obs_est_Qwxyz = Quaternion(x_obs_est_Qxyzw[3],x_obs_est_Qxyzw[0],x_obs_est_Qxyzw[1],x_obs_est_Qxyzw[2]) ##w,x,y,z
-    x_prior_blf_Qwxyz = Quaternion(self.get_Qwxyz_from_Qxyz(self.x_post_TVQxyz[6:9]))
+    __obs_Qwxyz = Quaternion(_q[3],_q[0],_q[1],_q[2])
+    x_Qwxyz = Quaternion(self.get_Qwxyz_from_Qxyz(x_TVQxyzw[6:9]))
     # QEKF02: equation 18 - quaternion estimation
-    x_post_Qwxyz = (x_obs_est_Qwxyz * x_prior_blf_Qwxyz)
-    self.x_TVQwxyz[6:10,0] = x_post_Qwxyz.elements ##wxyz
+    nsprint('x_Qwxyz', x_Qwxyz)
+    nsprint('__obs_Qwxyz', __obs_Qwxyz)
+    x_Qwxyz = __obs_Qwxyz * x_Qwxyz
+    nsprint('x_Qwxyz', x_Qwxyz)
+    nsprint('x_TVQxyzw',x_TVQxyzw)
+    x_TVQxyzw[6:9] = x_Qwxyz[1:4]
+    x_TVQxyzw[10] = x_Qwxyz[0]
+    nsprint('x_TVQxyzw',x_TVQxyzw)
+
     return x_TVQxyzw
 
   def predict(self, x_TVQxyzw:np.ndarray, u_FWrpy:np.ndarray):
@@ -254,8 +260,8 @@ class ExtendedKalmanFilter(object):
   def set_F(self, u_FWrpy:np.ndarray):
     self.F = np.eye(self.dim_x)
     self.F[0:3,3:6] = self.T_*np.eye(3)
-    self.F[3:6,6:9] = -self.T_* self.C.T @ get_skew_symm_X(u_FWrpy[0:3,0])
-    self.F[6:9,6:9] = np.eye(3)-self.T_*get_skew_symm_X(u_FWrpy[3:6,0])
+    self.F[3:6,6:9] = -self.T_* self.C.T @ get_skew_symm_X(u_FWrpy[0:3])
+    self.F[6:9,6:9] = np.eye(3)-self.T_*get_skew_symm_X(u_FWrpy[3:6])
     # nsprint('self.F', self.F)
     # st()
     return
@@ -272,7 +278,7 @@ class ExtendedKalmanFilter(object):
     ## QEKF2 L matrix
     self.L = -np.eye(self.dim_x)
     self.L[3:6,3:6] = -self.C.T
-    #self.L[0:3,0:3] = 0
+    #self.L[0:3:3] = 0
     #self.L[6:9,6:9] = -np.eye(3)
     # nsprint('self.L', self.L)
     return self
