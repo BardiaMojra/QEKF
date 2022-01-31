@@ -40,7 +40,7 @@ def exp_map(x):
   #nprint(_prt, 'norm_x', norm_x)
   temp_ = np.sin(norm_x/2)*x/norm_x
   temp_2 = np.cos(norm_x/2)
-  return [ temp_[0],temp_[1],temp_[2], temp_2]
+  return [ temp_[0],temp_[1],temp_[2], temp_2] # xyzw
 
 
 

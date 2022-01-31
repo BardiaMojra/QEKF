@@ -23,49 +23,6 @@ attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
 
 class ExtendedKalmanFilter(object):
   ''' Simple Kalman Filter:
-    - x is estimate of the state a process
-      - x_k = A x_{k-1} + B u_{k-1} + w_{k-1}
-    - z is measurement matrix
-      - z_k = H x_k + v_k
-    - w_k is a random variable that represents process noise
-      - p(w) ~ Normal_Dist(0, Q)
-    - v_k is a random variable that represents measurement noise
-      - p(v) ~ Normal_Dist(0, R)
-    - Q is the process noise covariance
-    - R is the measurement noise covariance
-
-  Extended Kalman Filter:
-
-      \-->> New QEKF (var/dim):  ----------   z
-      lin_pos: T_xyz (3)
-      lin_vel: V_xyz (3)
-      ang_vel: W_rpy (3)
-      ang_vel_b:
-      ang_rot: Q_wxyz (4)
-            --->> 13 state variables
-
-    \-->> New QEKF (var/dim):  ----------   x
-      lin_acc:
-      lin_acc_bias:
-      lin_vel: V_xyz (3)
-      lin_pos: T_xyz (3)
-      ang_acc:
-      ang_vel: W_rpy
-      ang_vel_b:
-      ang_rot: Q_xyz (3)
-            --->> 9 (+1 for q_w) state variables
-
-    \-->> New QEKF (var/dim):  ----------   x_prior
-      lin_acc:
-      lin_acc_bias:
-      lin_vel: V_xyz (3)
-      lin_pos: T_xyz (3)
-      ang_acc:
-      ang_vel: W_rpy
-      ang_vel_b:
-      ang_rot: Q_wxyz (3+1)
-            --->> 9 (+1 for q_w) state variables
-
     #TODO:
       - scale factor
         lin_vel_Vest * data_time_period = delta_lin_pos_Quest * (some_scalar)
@@ -95,10 +52,10 @@ class ExtendedKalmanFilter(object):
 
     ''' state vectors '''
     self.x_TVQxyzw = np.zeros((dim_x,1)) + .0001
-    self.x_TVQxyzw[-1,0] = 0.9998
+    q_temp = self.get_Qwxyz_from_Qxyz(self.x_TVQxyzw[6:9])
+    self.x_TVQxyzw[-1,0] = q_temp[0]
     self.z_Qxyzw = np.zeros((dim_z,1))
     self.u_AWrpy = np.zeros((dim_u,1))
-
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x)     # state transition matrix
     self.Q_c = np.eye(dim_x)        # process uncertainty
@@ -189,11 +146,6 @@ class ExtendedKalmanFilter(object):
       - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
         f(\hat{x}_{k-1|k-1}, u_{k})
     '''
-
-    nsprint('x_TVQxyzw.T', x_TVQxyzw.T)
-    nsprint('u_FWrpy.T', u_FWrpy.T)
-
-    # nprint(longtail+'dev paused here....'+longtail)
     u_Fxyz = u_FWrpy[0:3]
     u_Wrpy = u_FWrpy[3:6]
 
@@ -201,42 +153,20 @@ class ExtendedKalmanFilter(object):
     x_TVQxyzw[0:3] = x_TVQxyzw[0:3]+self.T_*x_TVQxyzw[3:6]+\
       ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
 
-    # nsprint('x_TVQxyzw[0:3]', x_TVQxyzw[0:3])
-    # nsprint('x_TVQxyzw', x_TVQxyzw)
-
     # est linVel
     x_TVQxyzw[3:6] = x_TVQxyzw[3:6] + self.T_*(self.C.T @ u_Fxyz)
 
-    # nsprint('x_TVQxyzw[6:10]', x_TVQxyzw[6:10])
-    # nsprint('x_TVQxyzw', x_TVQxyzw)
-
     ''' est rotVec (quat) -- eq(18)
     '''
-    # get z_FWQ some measurements are considered as system input such as force
-    # get observed angular velocity
-    # u_Wrpy = self.xz_TVWrpyQxyzwFxyz[6:9]
-    # z_Wrpy = np.expand_dims(z_Wrpy, axis=1)
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-    # obs_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
-    _q = exp_map(self.T_ * u_Wrpy)
-    _q = np.array(_q, dtype=np.float64)
-    # _q = [_q[3],_q[0],_q[1],_q[2]]
-    nsprint('_q', _q)
-    st()
-    # convert rotation matrix to unit quaternion
-    # CHECK: this quaternion obj must be a unit quaternion meaning W is probably non-zero.
-    __obs_Qwxyz = Quaternion(_q[3],_q[0],_q[1],_q[2])
-    x_Qwxyz = Quaternion(self.get_Qwxyz_from_Qxyz(x_TVQxyzw[6:9]))
-    # QEKF02: equation 18 - quaternion estimation
-    nsprint('x_Qwxyz', x_Qwxyz)
-    nsprint('__obs_Qwxyz', __obs_Qwxyz)
-    x_Qwxyz = __obs_Qwxyz * x_Qwxyz
-    nsprint('x_Qwxyz', x_Qwxyz)
-    nsprint('x_TVQxyzw',x_TVQxyzw)
-    x_TVQxyzw[6:9] = x_Qwxyz[1:4]
-    x_TVQxyzw[10] = x_Qwxyz[0]
-    nsprint('x_TVQxyzw',x_TVQxyzw)
-
+    u_Qxyzw = exp_map(self.T_ * u_Wrpy)
+    # u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+    u_Qwxyz = Quaternion(real=u_Qxyzw[3], imaginary=u_Qxyzw[0:3])
+    x_Qwxyz = self.get_Qwxyz_from_Qxyz(x_TVQxyzw[6:9,0])
+    x_Qwxyz = Quaternion(x_Qwxyz)
+    x_Qwxyz = u_Qwxyz * x_Qwxyz
+    x_TVQxyzw[6:9,0] = x_Qwxyz.elements[1:4]
+    x_TVQxyzw[9,0] = x_Qwxyz.elements[0]
     return x_TVQxyzw
 
   def predict(self, x_TVQxyzw:np.ndarray, u_FWrpy:np.ndarray):
@@ -245,10 +175,19 @@ class ExtendedKalmanFilter(object):
     self.set_L()
     self.set_F(u_FWrpy) #
     x_TVQxyzw = self.predict_x(x_TVQxyzw, u_FWrpy)
+
+
+    nppshape('self.F', self.F)
+    nppshape('self.L', self.L)
+    nppshape('self.Q_c', self.Q_c)
+
+    st()
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
     self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
 
-    self.log.log_prediction(x_TVQxyzw, self.P)
+    st()
+
+    # self.log.log_prediction(x_TVQxyzw, self.P)
     return
 
   # def partial_update(self,gamma,beta):

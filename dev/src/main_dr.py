@@ -115,7 +115,7 @@ def run(data:str):
   # dset.plot_trans_3d(title='Ground Truth Translation', figname=get_fignum_str(fignum), show=False)
 
   # init QEKF object
-  qekf = QEKF(dim_x=10, # Txyz, Vxyz, Qxyzw -- linPos, linVel, angPos (quat)
+  qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyzw -- linPos, linVel, rotVec (quat)
               dim_z=4, # Qxyzw
               dim_u=6, # Axyz, Wrpy
               deltaT=dset.data_rate_inv,

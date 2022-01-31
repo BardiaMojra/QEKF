@@ -21,7 +21,8 @@ def eprint(*args, **kwargs):
 
 def nprint(string, *args):
   if nprt_en is True:
-    print(shorthead+(string+': ')); print(*args);
+    print(shorthead+(string+': '+str(args.__class__)));
+    pp(*args); print(shorttail)
 
 def nsprint(string, ndarr:np.ndarray):
   if nprt_en is True:
@@ -29,16 +30,25 @@ def nsprint(string, ndarr:np.ndarray):
     print(shorthead+(string+': '+shape));
     pp(ndarr); print(shorttail)
 
+def nppshape(string, ndarr:np.ndarray):
+  if nprt_en is True:
+    shape = str(ndarr.shape)
+    print(shorthead+(string+': '+shape));
+    # pp(ndarr); print(shorttail)
 
 def nprint_2(string, *args):
   if nprt_en2 is True:
-    print(shorthead+(string+': ')); print(*args);
+    print(shorthead+(string+': '));
+    pp(*args);
 
-def lh():
+def plh():
   print(longhead);
 
-def stail():
+def pstail():
   print(shorttail)
 
-def ltail():
+def pltail():
   print(longtail)
+
+def pattn():
+  print(attn)
