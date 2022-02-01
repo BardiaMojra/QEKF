@@ -213,7 +213,7 @@ class dmm:
     # load lin acce data
     fname = 'linacce.txt' # Axyz
     Axyz_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-      delimiter=' ', skiprows=1)
+      delimiter=' ', skiprows=0)
     # nprint('linAcc_np', linAcc_np)
     # st()
     Axyz_df = pd.DataFrame(Axyz_np[:,1:], columns=self.Axyz_labels)
@@ -222,13 +222,13 @@ class dmm:
     # load rotVec (Qxyzw) rv.txt
     fname = 'rv.txt' # Qxyzw
     Qxyzw_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-      delimiter=' ', skiprows=1)
+      delimiter=' ', skiprows=0)
     Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
     Qxyzw_df.index = pd.DatetimeIndex(Qxyzw_np[:,0])
     # nprint('rotVec_df', rotVec_df)
     fname = 'gyro_resamp.txt' # angVel_Wrpy
     Wrpy_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
-      delimiter=',', skiprows=1)
+      delimiter=',', skiprows=0)
     Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
                                   columns=self.Wrpy_labels)
     Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])

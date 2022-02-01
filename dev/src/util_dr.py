@@ -45,7 +45,7 @@ def exp_map(x):
 
 
 
-### Logarithmic map of Quaternion
+### Logarithmic map of Quaternion wxyz
 def Q_log(q):
   q_v = q[0]
   q_n = np.array([q[1],q[2],q[3]])

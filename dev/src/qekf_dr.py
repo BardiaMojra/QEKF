@@ -35,7 +35,7 @@ class ExtendedKalmanFilter(object):
                deltaT,
                Q_T_xyz,
                Q_V_xyz,
-               Q_quat_xyz,
+               Q_quat_xyzw,
                R_noise,
                P_est_0,
                dim_u=0,
@@ -77,13 +77,15 @@ class ExtendedKalmanFilter(object):
                                  Q_V_xyz,
                                  Q_V_xyz,
                                  Q_V_xyz,
-                                 Q_quat_xyz,
-                                 Q_quat_xyz,
-                                 Q_quat_xyz]))
+                                 Q_quat_xyzw,
+                                 Q_quat_xyzw,
+                                 Q_quat_xyzw,
+                                 Q_quat_xyzw]))
 
     ''' init the measurement iid noise covar matrix R -- 9x9 diagonal (dim_z by dim_z)
     '''
     self.R = np.diag(np.array([R_noise,
+                               R_noise,
                                R_noise,
                                R_noise]))
 
@@ -92,52 +94,79 @@ class ExtendedKalmanFilter(object):
     self.plotter = dmm
     ## end of init
 
-  def update(self, x_TVQxyzw, z_Qxyzw):
+  def update(self, x_TVQxyzw, u_AWrpy, z_Qxyzw):
     if z_Qxyzw is None:
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
 
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+    nsprint('u_AWrpy', u_AWrpy)
+    nsprint('z_Qxyzw', z_Qxyzw)
+
+    # nppshape('self.P', self.P)
+    # nppshape('self.H.T', self.H.T)
+    # nppshape('self.R', self.R)
     # compute Kalman gain
     PHT = dot(self.P, self.H.T)
     self.S = dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
+
+    # nppshape('self.S', self.S)
+    # nppshape('self.K', self.K)
+
+
     # modified for qekf and quarternion states
 
     # x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
     # x_prior_TVQxyz_tmp[0:6] = self.x_TVQwxyz[0:6]
     # x_prior_TVQxyz_tmp[6:9] = self.x_TVQwxyz[7:10]
 
-    st()
-    nprint('self.H',self.H)
-    nprint('self.H.shape',self.H.shape)
-    nprint('x_TVQwxyz', x_TVQxyzw)
-    nprint('x_TVQwxyz.shape', x_TVQxyzw.shape)
-    st()
 
     hx = np.dot(self.H, x_TVQxyzw)
-    nsprint('hx', hx)
-    st()
+    # nsprint('hx.T', hx.T)
+
+    # st()
     ''' lin part
     '''
-    self.y_TVWQxyz = np.subtract(self.xz_TVWrpyQxyzwFxyz[0:12], hx.T).T # TVWQxyz
+    # self.y_Qxyzw = np.subtract(z_Qxyzw, hx.T).T # TVWQxyz
     ''' quat part
     '''
-    x_prior_est_Qwxyz_q = Quaternion(self.x_TVQwxyz[6:10]) # wxyz input
-    x_obs_est_Qwxyz_q = Quaternion(self.xz_TVWrpyQxyzwFxyz[12], self.xz_TVWrpyQxyzwFxyz[9],
-                                   self.xz_TVWrpyQxyzwFxyz[10], self.xz_TVWrpyQxyzwFxyz[11])
-    e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
-    e__log = Q_log(e__.elements) # get the error rotation from subtracting two orientation
-    self.y_TVWQxyz[9:12] = [e__log[0],e__log[1],e__log[2]] # load quat to
+    x_q = self.get_Qwxyz_from_Qxyz(x_TVQxyzw[6:9,0])
+    # nprint('x_q', x_q)
+    x_q = Quaternion(x_q) # wxyz input
+    z_q = Quaternion(real=z_Qxyzw[3,0], imaginary=z_Qxyzw[0:3,0])
+    nprint('x_q', x_q)
+    nprint('z_q', z_q)
+
+
+
+    err_x_q = z_q * x_q.inverse # get quaternion error
+    nprint('err_x_q', err_x_q)
+    st()
+
+    nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
+    nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
+    nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
+    e__log = Q_log(err_x_q.elements) # get rotation error
+    nsprint('e__log', e__log)
+    st()
+
+    # y_Qxyz = [e__log[0],e__log[1],e__log[2]] # load quat to
     self.K = self.K * self.K_scale
-    ky = dot(self.K, self.y_TVWQxyz)
-    self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
-    temp_exp_map = exp_map(self.T_*ky[6:9]) # quaternion correction
+    ky_Qxyzw = dot(self.K, e__log)
+    nsprint('ky_Qxyzw', ky_Qxyzw)
+    # self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
+    x_q_corr = exp_map(self.T_*ky_Qxyzw[0:3,0]) # quaternion correction
+    nsprint('x_q_corr', x_q_corr)
+    x_q_corr = Quaternion([x_q_corr[3],x_q_corr[0],x_q_corr[1],x_q_corr[2]])
+    nsprint('x_q_corr', x_q_corr)
+    st()
     # equation 6 from EKF2 paper # update quaternion
-    exp_map_ = Quaternion([temp_exp_map[3],temp_exp_map[0],temp_exp_map[1],temp_exp_map[2]]) \
-      * Quaternion(self.x_TVQwxyz[6:10])  ## wxyz format
-    self.x_post_TVQxyz[6:9] = exp_map_.elements[1:4] # load quat xyz to x_post
+    exp_map_ = x_q_corr  * x_q  ## wxyz format
+    x_TVQxyzw[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
+    x_TVQxyzw[9,0] = self.get_Qwxyz_from_Qxyz(exp_map_.elements[1:4])[0] # load quat xyz to x_post
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-    self.log.log_update(self.y_TVWQxyz, self.x_post_TVQxyz, self.P, self.K)
+    self.log.log_update(self.y_Qxyzw, self.x_post_TVQxyz, self.P, self.K)
     return
 
   def predict_x(self, x_TVQxyzw, u_FWrpy):
@@ -166,7 +195,7 @@ class ExtendedKalmanFilter(object):
     x_Qwxyz = Quaternion(x_Qwxyz)
     x_Qwxyz = u_Qwxyz * x_Qwxyz
     x_TVQxyzw[6:9,0] = x_Qwxyz.elements[1:4]
-    x_TVQxyzw[9,0] = x_Qwxyz.elements[0]
+    x_TVQxyzw[9,0] = self.get_Qwxyz_from_Qxyz(x_Qwxyz.elements[1:4])[0]
     return x_TVQxyzw
 
   def predict(self, x_TVQxyzw:np.ndarray, u_FWrpy:np.ndarray):
@@ -175,20 +204,10 @@ class ExtendedKalmanFilter(object):
     self.set_L()
     self.set_F(u_FWrpy) #
     x_TVQxyzw = self.predict_x(x_TVQxyzw, u_FWrpy)
-
-
-    nppshape('self.F', self.F)
-    nppshape('self.L', self.L)
-    nppshape('self.Q_c', self.Q_c)
-
-    st()
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
     self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
-
-    st()
-
-    # self.log.log_prediction(x_TVQxyzw, self.P)
-    return
+    self.log.log_prediction(x_TVQxyzw, self.P)
+    return x_TVQxyzw
 
   # def partial_update(self,gamma,beta):
   #   for i in range(self.dim_x):
@@ -200,6 +219,7 @@ class ExtendedKalmanFilter(object):
     self.F = np.eye(self.dim_x)
     self.F[0:3,3:6] = self.T_*np.eye(3)
     self.F[3:6,6:9] = -self.T_* self.C.T @ get_skew_symm_X(u_FWrpy[0:3])
+
     self.F[6:9,6:9] = np.eye(3)-self.T_*get_skew_symm_X(u_FWrpy[3:6])
     # nsprint('self.F', self.F)
     # st()
@@ -226,9 +246,8 @@ class ExtendedKalmanFilter(object):
     ''' calculates state estimate (belief) rotation matrix (C) given
       the corresponding orientation in quaternion form.
     '''
-    r = R.from_quat([x_Qxyzw[3], x_Qxyzw[0],x_Qxyzw[1], x_Qxyzw[2]])
+    r = R.from_quat(x_Qxyzw)
     self.C = r.as_matrix()
-    # nprint('r (rotation vector in radians)', r)
     # nsprint('self.C', self.C)
     # st()
     return

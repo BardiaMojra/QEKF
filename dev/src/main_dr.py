@@ -115,13 +115,13 @@ def run(data:str):
   # dset.plot_trans_3d(title='Ground Truth Translation', figname=get_fignum_str(fignum), show=False)
 
   # init QEKF object
-  qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyzw -- linPos, linVel, rotVec (quat)
+  qekf = QEKF(dim_x=10, # Txyz, Vxyz, Qxyzw -- linPos, linVel, rotVec (quat)
               dim_z=4, # Qxyzw
               dim_u=6, # Axyz, Wrpy
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
-              Q_quat_xyz=0.5e-3,
+              Q_quat_xyzw=0.5e-3,
               R_noise=1e-6, # measurement noise covar
               P_est_0=1e-4,
               K_scale=1.0)
@@ -138,16 +138,15 @@ def run(data:str):
     x_TVQxyzw = x_TVQxyzw # state estimate
     u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
     z_Qxyzw  = dset.z_Qxyzw_np[i].reshape(-1,1)
-    nsprint('x_TVQxyzw', x_TVQxyzw)
-    nsprint('u_AWrpy', u_AWrpy)
-    nsprint('z_Qxyzw', z_Qxyzw)
+    # nsprint('x_TVQxyzw', x_TVQxyzw)
+    # nsprint('u_AWrpy', u_AWrpy)
+    # nsprint('z_Qxyzw', z_Qxyzw)
     # qekf.log.log_state(x_prior=x_TVQxyz, idx=i)
     x_TVQxyzw = qekf.predict(x_TVQxyzw, u_AWrpy)
     x_TVQxyzw = qekf.update(x_TVQxyzw, u_AWrpy, z_Qxyzw)
 
   # end of qekf data iterator ----->>
   nprint('end of qekf data iterator ----->>')
-
 
   ''' post processing
   '''
