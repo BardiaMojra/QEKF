@@ -137,7 +137,7 @@ def run(data:str):
     # load prior belief, new observations and ground truth (vicon) for ith  state
     x_TVQxyzw = x_TVQxyzw # state estimate
     u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
-    z_Qxyzw  = dset.z_Qxyzw_np[i].reshape(-1,1)
+    z_Qxyzw = dset.z_Qxyzw_np[i].reshape(-1,1)
     # nsprint('x_TVQxyzw', x_TVQxyzw)
     # nsprint('u_AWrpy', u_AWrpy)
     # nsprint('z_Qxyzw', z_Qxyzw)
