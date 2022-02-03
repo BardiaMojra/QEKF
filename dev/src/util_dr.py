@@ -14,6 +14,39 @@ def get_skew_symm_X(x):
   X[2,1] =  x[0]
   return X
 
+# def qProd(q,r):
+#   '''
+#     This routine uses quaternions of the form of
+#       q=q0+iq1+jq2+kq3
+#     and
+#       r=r0+ir1+jr2+kr3.
+#     The quaternion product has the form of
+#       t=q×r=t0+it1+jt2+kt3,
+#     where
+#       t0=(r0q0−r1q1−r2q2−r3q3)
+#       t1=(r0q1+r1q0−r2q3+r3q2)
+#       t2=(r0q2+r1q3+r2q0−r3q1)
+#       t3=(r0q3−r1q2+r2q1+r3q0)
+
+#     @link https://www.mathworks.com/help/aeroblks/quaternionmultiplication.html?searchHighlight=quaternion%20multiplication&s_tid=srchtitle_quaternion%20multiplication_1
+#   '''
+
+#   st()
+
+
+#   q[0],q[1],q[2],q[3]
+#   r[0],r[1],r[2],r[3]
+
+
+
+#   t0=(r0q0−r1q1−r2q2−r3q3)
+#   t1=(r0q1+r1q0−r2q3+r3q2)
+#   t2=(r0q2+r1q3+r2q0−r3q1)
+#   t3=(r0q3−r1q2+r2q1+r3q0)
+
+#   t = [t0,t1,t2,t3]
+#   return t
+
 def get_omega(q):
   omega = np.array([  [-q[1], -q[2], -q[3] ],
                       [ q[0],  q[3], -q[2] ],
@@ -49,6 +82,7 @@ def exp_map(x):
 def Q_log(q):
   q_v = q[0]
   q_n = np.array([q[1],q[2],q[3]])
+  q_n = q_n.reshape(-1,1)
   norm_q_n = np.linalg.norm(q_n)
   #todo: re-evluate this
   if q_v>1:
@@ -63,6 +97,23 @@ def Q_log(q):
     return -2*np.arccos(-q_v)*q_n/norm_q_n
   elif norm_q_n==0:
     return np.zeros((3,1))
+
+def get_Qwxyz(xyz: np.array):
+  ''' Calculate the real term (w), given the imaginary terms (xyz)
+    calculates unit quaternion from Qxyz (point quaternion)
+  '''
+  # sqrt(1-x^2-y%2-z^2) to confirm real part calc
+  w = np.sqrt(1 -xyz[0]**2 -xyz[1]**2 -xyz[2]**2)
+  return [w, xyz[0], xyz[1], xyz[2]]
+
+def get_Qxyzw(xyz: np.array):
+  ''' Calculate the real term (w), given the imaginary terms (xyz)
+    calculates unit quaternion from Qxyz (point quaternion)
+  '''
+  # sqrt(1-x^2-y%2-z^2) to confirm real part calc
+  w = np.sqrt(1 -xyz[0]**2 -xyz[1]**2 -xyz[2]**2)
+  return [xyz[0], xyz[1], xyz[2], w]
+
 
 # # 3d plot
 def set_axes_equal(ax):
@@ -90,13 +141,4 @@ def set_axes_equal(ax):
   ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
   ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
   ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
-  return
-
-
-
-
-def print_losses(df: pd.DataFrame):
-  print(shorthead+"L1 (total): ", df['L1'].sum())
-  print(shorthead+"L2 (total): ", df['L2'].sum())
-
   return

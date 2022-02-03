@@ -35,7 +35,7 @@ class ExtendedKalmanFilter(object):
                deltaT,
                Q_T_xyz,
                Q_V_xyz,
-               Q_quat_xyzw,
+               Q_quat_xyz,
                R_noise,
                P_est_0,
                dim_u=0,
@@ -51,15 +51,13 @@ class ExtendedKalmanFilter(object):
     self.dim_u = dim_u
 
     ''' state vectors '''
-    self.x_TVQxyzw = np.zeros((dim_x,1)) + .0001
-    q_temp = self.get_Qwxyz_from_Qxyz(self.x_TVQxyzw[6:9])
-    self.x_TVQxyzw[-1,0] = q_temp[0]
-    self.z_Qxyzw = np.zeros((dim_z,1))
+    self.x_TVQxyz = np.zeros((dim_x,1)) + .0001
+    self.z_Qxyz = np.zeros((dim_z,1))
     self.u_AWrpy = np.zeros((dim_u,1))
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x)     # state transition matrix
-    self.Q_c = np.eye(dim_x)        # process uncertainty
-    self.y_Qxyzw = np.zeros((dim_z, 1)) # residual
+    self.Q_c = np.eye(dim_z)        # process uncertainty
+    self.y_Qxyz = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
     self.K = np.zeros((dim_x,1)) # kalman gain -- 9
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
@@ -77,15 +75,13 @@ class ExtendedKalmanFilter(object):
                                  Q_V_xyz,
                                  Q_V_xyz,
                                  Q_V_xyz,
-                                 Q_quat_xyzw,
-                                 Q_quat_xyzw,
-                                 Q_quat_xyzw,
-                                 Q_quat_xyzw]))
+                                 Q_quat_xyz,
+                                 Q_quat_xyz,
+                                 Q_quat_xyz]))
 
-    ''' init the measurement iid noise covar matrix R -- 9x9 diagonal (dim_z by dim_z)
+    ''' init the measurement iid noise covar matrix R -- 4X4 diagonal (dim_z by dim_z)
     '''
     self.R = np.diag(np.array([R_noise,
-                               R_noise,
                                R_noise,
                                R_noise]))
 
@@ -94,13 +90,13 @@ class ExtendedKalmanFilter(object):
     self.plotter = dmm
     ## end of init
 
-  def update(self, x_TVQxyzw, u_AWrpy, z_Qxyzw):
-    if z_Qxyzw is None:
+  def update(self, x_TVQxyz, u_AWrpy, z_Qxyz):
+    if z_Qxyz is None:
       eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
 
-    nsprint('x_TVQxyzw', x_TVQxyzw)
-    nsprint('u_AWrpy', u_AWrpy)
-    nsprint('z_Qxyzw', z_Qxyzw)
+    # nsprint('x_TVQxyzw', x_TVQxyz)
+    # nsprint('u_AWrpy', u_AWrpy)
+    # nsprint('z_Qxyzw', z_Qxyz)
 
     # nppshape('self.P', self.P)
     # nppshape('self.H.T', self.H.T)
@@ -121,7 +117,7 @@ class ExtendedKalmanFilter(object):
     # x_prior_TVQxyz_tmp[6:9] = self.x_TVQwxyz[7:10]
 
 
-    hx = np.dot(self.H, x_TVQxyzw)
+    # hx = np.dot(self.H, x_TVQxyz)
     # nsprint('hx.T', hx.T)
 
     # st()
@@ -130,46 +126,53 @@ class ExtendedKalmanFilter(object):
     # self.y_Qxyzw = np.subtract(z_Qxyzw, hx.T).T # TVWQxyz
     ''' quat part
     '''
-    x_q = self.get_Qwxyz_from_Qxyz(x_TVQxyzw[6:9,0])
+    x_q = get_Qwxyz(x_TVQxyz[6:9,0])
     # nprint('x_q', x_q)
     x_q = Quaternion(x_q) # wxyz input
-    z_q = Quaternion(real=z_Qxyzw[3,0], imaginary=z_Qxyzw[0:3,0])
-    nprint('x_q', x_q)
-    nprint('z_q', z_q)
-
+    z_q = Quaternion(get_Qwxyz(z_Qxyz[0:3,0]))
+    # nprint('x_q', x_q)
+    # nprint('z_q', z_q)
+    # st()
 
 
     err_x_q = z_q * x_q.inverse # get quaternion error
-    nprint('err_x_q', err_x_q)
-    st()
+    # nprint('err_x_q = z_q * x_q.inverse')
+    # nprint('err_x_q', err_x_q)
+    # st()
 
-    nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
-    nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
-    nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
-    e__log = Q_log(err_x_q.elements) # get rotation error
-    nsprint('e__log', e__log)
-    st()
+    # nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
+    # nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
+    # nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
+    y_PHIrpy = Q_log(err_x_q.elements) # get rotation error
 
     # y_Qxyz = [e__log[0],e__log[1],e__log[2]] # load quat to
-    self.K = self.K * self.K_scale
-    ky_Qxyzw = dot(self.K, e__log)
-    nsprint('ky_Qxyzw', ky_Qxyzw)
+    # self.K = self.K * self.K_scale
+    # nsprint('self.K', self.K)
+    # nsprint('e__log', y_PHIrpy)
+    # st()
+    ky_PHIrpy = np.matmul(self.K, y_PHIrpy)
+    # nsprint('ky_Qxyz', ky_PHIrpy)
     # self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
-    x_q_corr = exp_map(self.T_*ky_Qxyzw[0:3,0]) # quaternion correction
-    nsprint('x_q_corr', x_q_corr)
+    x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
+    # nsprint('x_q_corr', x_q_corr)
     x_q_corr = Quaternion([x_q_corr[3],x_q_corr[0],x_q_corr[1],x_q_corr[2]])
-    nsprint('x_q_corr', x_q_corr)
-    st()
+    # nprint('x_q_corr', x_q_corr)
+    # st()
     # equation 6 from EKF2 paper # update quaternion
-    exp_map_ = x_q_corr  * x_q  ## wxyz format
-    x_TVQxyzw[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
-    x_TVQxyzw[9,0] = self.get_Qwxyz_from_Qxyz(exp_map_.elements[1:4])[0] # load quat xyz to x_post
+    x_q_post = x_q_corr * x_q  ## wxyz format
+    x_TVQxyz[6:9,0] = x_q_post.elements[1:4] # load quat xyz to x_post
+    # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
+    # st()
+    # x_TVQxyz[9,0] = get_Qwxyz(x_q_post.elements[1:4])[0] # load quat xyz to x_post
+    # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
+    # st()
+
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-    self.log.log_update(self.y_Qxyzw, self.x_post_TVQxyz, self.P, self.K)
-    return
+    self.log.log_update(y_PHIrpy, x_TVQxyz, self.P, self.K)
+    return x_TVQxyz
 
-  def predict_x(self, x_TVQxyzw, u_FWrpy):
+  def predict_x(self, x_TVQxyz, u_FWrpy):
     ''' estimation model
       - eq 16-22 of QEKF2
       - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
@@ -179,35 +182,34 @@ class ExtendedKalmanFilter(object):
     u_Wrpy = u_FWrpy[3:6]
 
     # est linPos
-    x_TVQxyzw[0:3] = x_TVQxyzw[0:3]+self.T_*x_TVQxyzw[3:6]+\
+    x_TVQxyz[0:3] = x_TVQxyz[0:3]+self.T_*x_TVQxyz[3:6]+\
       ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
 
     # est linVel
-    x_TVQxyzw[3:6] = x_TVQxyzw[3:6] + self.T_*(self.C.T @ u_Fxyz)
+    x_TVQxyz[3:6] = x_TVQxyz[3:6] + self.T_*(self.C.T @ u_Fxyz)
 
     ''' est rotVec (quat) -- eq(18)
     '''
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-    u_Qxyzw = exp_map(self.T_ * u_Wrpy)
-    # u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
-    u_Qwxyz = Quaternion(real=u_Qxyzw[3], imaginary=u_Qxyzw[0:3])
-    x_Qwxyz = self.get_Qwxyz_from_Qxyz(x_TVQxyzw[6:9,0])
-    x_Qwxyz = Quaternion(x_Qwxyz)
+    # u_Qxyzw = exp_map(self.T_ * u_Wrpy)
+    u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+    u_Qwxyz = Quaternion(get_Qwxyz(u_Qxyzw[0:3]))
+    x_Qwxyz = Quaternion(get_Qwxyz(x_TVQxyz[6:9,0]))
     x_Qwxyz = u_Qwxyz * x_Qwxyz
-    x_TVQxyzw[6:9,0] = x_Qwxyz.elements[1:4]
-    x_TVQxyzw[9,0] = self.get_Qwxyz_from_Qxyz(x_Qwxyz.elements[1:4])[0]
-    return x_TVQxyzw
+    x_TVQxyz[6:9,0] = x_Qwxyz.elements[1:4]
+    # x_TVQxyz[9,0] = get_Qwxyz_from_Qxyz(x_Qwxyz.elements[1:4])[0]
+    return x_TVQxyz
 
-  def predict(self, x_TVQxyzw:np.ndarray, u_FWrpy:np.ndarray):
-    self.set_C(x_TVQxyzw[6:10,0])
+  def predict(self, x_TVQxyz:np.ndarray, u_FWrpy:np.ndarray):
+    self.set_C(get_Qxyzw(x_TVQxyz[6:9,0]))
     self.set_H()
     self.set_L()
     self.set_F(u_FWrpy) #
-    x_TVQxyzw = self.predict_x(x_TVQxyzw, u_FWrpy)
+    x_TVQxyz = self.predict_x(x_TVQxyz, u_FWrpy)
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
     self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
-    self.log.log_prediction(x_TVQxyzw, self.P)
-    return x_TVQxyzw
+    self.log.log_prediction(x_TVQxyz, self.P)
+    return x_TVQxyz
 
   # def partial_update(self,gamma,beta):
   #   for i in range(self.dim_x):
@@ -228,7 +230,7 @@ class ExtendedKalmanFilter(object):
   def set_H(self):
     # set measurement transition function (H matrix)
     self.H = np.zeros((self.dim_z, self.dim_x))
-    self.H[:,6:10] = np.eye(4)
+    self.H[:,6:9] = np.eye(3)
     # nsprint('self.H', self.H)
     # st()
     return
@@ -237,64 +239,51 @@ class ExtendedKalmanFilter(object):
     ## QEKF2 L matrix
     self.L = -np.eye(self.dim_x)
     self.L[3:6,3:6] = -self.C.T
-    #self.L[0:3:3] = 0
     #self.L[6:9,6:9] = -np.eye(3)
     # nsprint('self.L', self.L)
     return self
 
-  def set_C(self, x_Qxyzw:np.ndarray):
+  def set_C(self, x_Qxyz:np.ndarray):
     ''' calculates state estimate (belief) rotation matrix (C) given
       the corresponding orientation in quaternion form.
     '''
-    r = R.from_quat(x_Qxyzw)
+    r = R.from_quat(x_Qxyz)
     self.C = r.as_matrix()
     # nsprint('self.C', self.C)
     # st()
     return
 
-  def get_Qwxyz_from_Qxyz(self, xyz: np.array):
-    ''' Calculate the real term (w), given the imaginary terms (xyz)
-      calculates unit quaternion from Qxyz (point quaternion)
-    '''
-    # sqrt(1-x^2-y%2-z^2) to confirm real part calc
-    w = np.sqrt(1 -xyz[0]**2 -xyz[1]**2 -xyz[2]**2)
-    return [w, xyz[0], xyz[1], xyz[2]]
+def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):
+  L1 = list()
+  L2 = list()
+  for i in range(len(res.index)):
+    state_l1 = 0.0
+    state_l2 = 0.0
+    for j in range(len(res.columns)):
+      l1 = abs(res.iloc[i,j])
+      l2 = res.iloc[i,j] ** 2
+      state_l1 += l1
+      state_l2 += l2
+    L1.append(state_l1);  L2.append(state_l2)
+  L1_df = pd.DataFrame(L1, columns=['L1'])
+  L2_df = pd.DataFrame(L2, columns=['L2'])
+  res = pd.concat([res,L1_df, L2_df], axis=1)
+  if save_en==True and  output_dir is not None:
+    file_name = output_dir+'losses.txt'
+    with open(file_name, 'a+') as f:
+      L1_str = shorthead+f"L1 (total): {res['L1'].sum()}"
+      L2_str = shorthead+f"L2 (total): {res['L2'].sum()}"
+      f.write(L1_str)
+      f.write(L2_str+'\n\n')
+      f.close()
+  return res
 
-  def get_losses(self, res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):
-    L1 = list()
-    L2 = list()
-    # nprint_2('get_L2loss: res', res.head(5))
-
-    # L2 = np.zeros((len(res.index), len(res.columns)))
-    for i in range(len(res.index)):
-      state_l1 = 0.0
-      state_l2 = 0.0
-      for j in range(len(res.columns)):
-        # st()
-        l1 = abs(res.iloc[i,j])
-        l2 = res.iloc[i,j] ** 2
-        state_l1 += l1
-        state_l2 += l2
-        # nprint(shorthead+'row sum ', res.iloc[i,:].sum())
-      L1.append(state_l1)
-      L2.append(state_l2)
-    L1_df = pd.DataFrame(L1, columns=['L1'])
-    L2_df = pd.DataFrame(L2, columns=['L2'])
-    res = pd.concat([res,L1_df, L2_df], axis=1)
-    # nprint_2('get_L2loss: res', res.head(5))
-    # st()
-    if save_en==True and  output_dir is not None:
-      file_name = output_dir+'losses.txt'
-      # if os.path.exists(file_name):
-      with open(file_name, 'a+') as f:
-        L1_str = shorthead+f"L1 (total): {res['L1'].sum()}"
-        L2_str = shorthead+f"L2 (total): {res['L2'].sum()}"
-        f.write(L1_str)
-        f.write(L2_str+'\n\n')
-        f.close()
+def print_losses(df: pd.DataFrame):
+  print(shorthead+"L1 (total): ", df['L1'].sum())
+  print(shorthead+"L2 (total): ", df['L2'].sum())
+  return
 
 
-    return res
 
 
 # EOF
