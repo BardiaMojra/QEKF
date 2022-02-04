@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<KinematicModel VERSION="3.2">
+	<Parameters/>
+	<Skeleton RGB="93 93 93">
+		<Segment NAME="Root" OPACITY="255" BOUNDS="0 0 0 0 0 0" INERTIA="0 0 0" RGB="255 255 255" HIDDEN="false" DRAW-END-RATIO="1" DRAW-HEIGHT="0.5" DRAW-TWIST="0" DRAW-WIDTH="0.5" DRAW-STYLE="box" DRAW-SHADING="shaded-smooth">
+			<JointFree NAME="World_Root" PRE-ORIENTATION="0 0 0" PRE-POSITION="0 0 0" INVERSE-POST-ORIENTATION="0 0 0" INVERSE-POST-POSITION="0 0 0" MEAN="0 0 0 0 0 0" COVARIANCE="10 0 0 0 0 0 0 10 0 0 0 0 0 0 10 0 0 0 0 0 0 100000000 0 0 0 0 0 0 100000000 0 0 0 0 0 0 100000000" T="* * * * * *" SIGNS="+ + + + + +" RANGE-CENTRING-STATE="0 0 0 0 0 0" RANGE-MATRIX="29.60881233215332 0 0 0 0 0 0 29.60881233215332 0 0 0 0 0 0 29.60881233215332 0 0 0 0 0 0 100000000 0 0 0 0 0 0 100000000 0 0 0 0 0 0 100000000">
+				<JointTemplate MEAN="0 0 0 0 0 0" COVARIANCE="10 0 0 0 0 0 0 10 0 0 0 0 0 0 10 0 0 0 0 0 0 100000000 0 0 0 0 0 0 100000000 0 0 0 0 0 0 100000000" TPOSE-MEAN="0 0 0 0 0 0" TPOSE-COVARIANCE="0.10000000149011612 0 0 0 0 0 0 0.10000000149011612 0 0 0 0 0 0 0.10000000149011612 0 0 0 0 0 0 0.10000000149011612 0 0 0 0 0 0 0.10000000149011612 0 0 0 0 0 0 0.10000000149011612" PRE-ORIENTATION="0 0 0" PRE-POSITION="0 0 0" INVERSE-POST-ORIENTATION="0 0 0" INVERSE-POST-POSITION="0 0 0"/>
+			</JointFree>
+		</Segment>
+	</Skeleton>
+	<MarkerSet>
+		<Markers>
+			<Marker NAME="MarkerA" RADIUS="7" RGB="255 255 255" STATUS="required" VIEW-ANGLE="0"/>
+			<Marker NAME="MarkerB" RADIUS="7" RGB="255 255 255" STATUS="required" VIEW-ANGLE="0"/>
+			<Marker NAME="MarkerC" RADIUS="7" RGB="255 255 255" STATUS="required" VIEW-ANGLE="0"/>
+			<Marker NAME="MarkerD" RADIUS="7" RGB="255 255 255" STATUS="required" VIEW-ANGLE="0"/>
+		</Markers>
+		<Sticks>
+			<Stick MARKER1="MarkerA" MARKER2="MarkerB" RGB1="255 0 0" RGB2="255 0 0"/>
+			<Stick MARKER1="MarkerA" MARKER2="MarkerD" RGB1="0 255 0" RGB2="0 255 0"/>
+			<Stick MARKER1="MarkerB" MARKER2="MarkerC" RGB1="255 0 0" RGB2="255 0 0"/>
+		</Sticks>
+	</MarkerSet>
+	<TargetSet>
+		<Targets>
+			<TargetLocalPointToWorldPoint COVARIANCE="50 0 0 0 50 0 0 0 50" FILL-GAPS="false" GAUSSIAN="true" HIDDEN="false" MARKER="MarkerA" OPACITY="255" POSITION="38.1 -14.48 48.275" RGB="93 93 93" SEGMENT="Root" WEIGHT="1" DRAW-STYLE="None">
+				<TargetLocalPointToWorldPointTemplate COVARIANCE="50 0 0 0 50 0 0 0 50"/>
+			</TargetLocalPointToWorldPoint>
+			<TargetLocalPointToWorldPoint COVARIANCE="50 0 0 0 50 0 0 0 50" FILL-GAPS="false" GAUSSIAN="true" HIDDEN="false" MARKER="MarkerB" OPACITY="255" POSITION="88.9 -14.48 48.275" RGB="93 93 93" SEGMENT="Root" WEIGHT="1" DRAW-STYLE="None">
+				<TargetLocalPointToWorldPointTemplate COVARIANCE="50 0 0 0 50 0 0 0 50"/>
+			</TargetLocalPointToWorldPoint>
+			<TargetLocalPointToWorldPoint COVARIANCE="50 0 0 0 50 0 0 0 50" FILL-GAPS="false" GAUSSIAN="true" HIDDEN="false" MARKER="MarkerC" OPACITY="255" POSITION="1714.5 -14.48 48.275" RGB="93 93 93" SEGMENT="Root" WEIGHT="1" DRAW-STYLE="None">
+				<TargetLocalPointToWorldPointTemplate COVARIANCE="50 0 0 0 50 0 0 0 50"/>
+			</TargetLocalPointToWorldPoint>
+			<TargetLocalPointToWorldPoint COVARIANCE="50 0 0 0 50 0 0 0 50" FILL-GAPS="false" GAUSSIAN="true" HIDDEN="false" MARKER="MarkerD" OPACITY="255" POSITION="38.1 1135.3 48.275" RGB="93 93 93" SEGMENT="Root" WEIGHT="1" DRAW-STYLE="None">
+				<TargetLocalPointToWorldPointTemplate COVARIANCE="50 0 0 0 50 0 0 0 50"/>
+			</TargetLocalPointToWorldPoint>
+		</Targets>
+	</TargetSet>
+</KinematicModel>
+

@@ -16,3 +16,4 @@ dependencies:
       - pyqt5
       - xlrd
       - openpyxl
+      - pyCGM2
