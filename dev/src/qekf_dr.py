@@ -127,12 +127,12 @@ class ExtendedKalmanFilter(object):
     # nprint('x_q', x_q)
     x_q = Quaternion(x_q) # wxyz input
     z_q = Quaternion(get_Qwxyz(z_Qxyz[0:3,0]))
-    # nprint('x_q', x_q)
-    # nprint('z_q', z_q)
+    nprint('x_q', x_q)
+    nprint('z_q', z_q)
     # st()
     err_x_q = z_q * x_q.inverse # get quaternion error
     # nprint('err_x_q = z_q * x_q.inverse')
-    # nprint('err_x_q', err_x_q)
+    nprint('err_x_q', err_x_q)
     # st()
     # nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
     # nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
@@ -149,7 +149,7 @@ class ExtendedKalmanFilter(object):
     x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
     # nsprint('x_q_corr', x_q_corr)
     x_q_corr = Quaternion([x_q_corr[3],x_q_corr[0],x_q_corr[1],x_q_corr[2]])
-    # nprint('x_q_corr', x_q_corr)
+    nprint('x_q_corr', x_q_corr)
     # st()
     # equation 6 from EKF2 paper # update quaternion
     x_q_post = x_q_corr * x_q  ## wxyz format

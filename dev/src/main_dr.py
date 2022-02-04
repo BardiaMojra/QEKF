@@ -13,6 +13,7 @@ from dmm_dr import *
 from util_dr import *
 from qekf_dr import ExtendedKalmanFilter as QEKF
 from qekf_dr import print_losses
+from qekf_dr import get_losses
 
 
 ''' NBUG libraries
@@ -23,10 +24,10 @@ from nbug import *
 ''' general config '''
 NBUG = True
 print_output = True
-_show = False #True
+_show = True
 _save = True
 _prt = True
-_zoom = 150
+_zoom = 5000
 
 ''' matplotlib config '''
 # matplotlib.pyplot.ion()
@@ -99,8 +100,8 @@ def run(data:str):
   dset = dmm(name=data,
              VestScale=1,
              data_rate_inv=1/10,
-             #start=0,
-             #end=16,
+             start=950,
+             end=2500,
              prt=_prt)
 
   dset.format_data()
@@ -122,8 +123,8 @@ def run(data:str):
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
-              Q_quat_xyz=0.5e-3,
-              R_noise=1e-6, # measurement noise covar
+              Q_quat_xyz=0.5e-6,
+              R_noise=1e-3, # measurement noise covar
               P_est_0=1e-4,
               K_scale=1.0)
   # init state vectors
@@ -152,13 +153,30 @@ def run(data:str):
 
   ''' post processing
   '''
-  quat_meas_df = pd.DataFrame(qekf.log.z_hist.copy(),
-                              index=qekf.log.idx,
+  # nsprint('qekf.log.z_hist[:,:]', qekf.log.z_hist[:,:])
+  # st()
+  quat_meas_df = pd.DataFrame(qekf.log.z_hist[:,:],
+                              # index=qekf.log.idx[dset.start:dset.end],
                               columns=['qx', 'qy', 'qz', 'qw'])# change to xyzw
   # x_quat_wxyz
   quat_est_df = pd.DataFrame(qekf.log.x_hist[:,6:10],\
-    index=qekf.log.idx,\
+    # index=qekf.log.idx,\
     columns=['qx', 'qy', 'qz', 'qw'])
+
+  W_df = pd.DataFrame(dset.u_AWrpy_np[dset.start:dset.end,3:6],
+                      # index=qekf.log.idx,
+                      columns=['Wx', 'Wy', 'Wz'])
+  WQ_df = pd.concat([W_df, quat_est_df])
+  WQ_df.plot()
+  # plot_df(W_df)
+  fignum+=1;
+  plot_df(df=W_df,
+    rows=3,
+    cols=1,
+    title='Angular Velocity',
+    show=_show,
+    figname=get_fignum_str(fignum),
+    output_dir=dset.output_dir)
 
   # plot EKF output
   fignum+=1;
@@ -191,12 +209,9 @@ def run(data:str):
 
   residual_df = pd.DataFrame(qekf.log.v_hist,
     index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-             'wr', 'wp', 'wy',\
-             'qx', 'qy', 'qz'])
+    columns=['qx', 'qy', 'qz'])
 
-  residual_df = qekf.get_losses(residual_df, dset.output_dir)
+  residual_df = get_losses(residual_df, dset.output_dir)
   fignum+=1;
   plot_df(df=residual_df,
     rows=14,
@@ -210,77 +225,77 @@ def run(data:str):
   print_losses(residual_df)
 
 
-  # z_TVWQxyzw
-  z_df = pd.DataFrame(qekf.log.z_hist,
-    index=qekf.log.idx,\
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-             'wr', 'wp', 'wy',\
-             'qx', 'qy', 'qz', 'qw'])
+  # # z_TVWQxyzw
+  # z_df = pd.DataFrame(qekf.log.z_hist,
+  #   index=qekf.log.idx,\
+  #   columns=['Tx', 'Ty', 'Tz',\
+  #            'vx', 'vy', 'vz',\
+  #            'wr', 'wp', 'wy',\
+  #            'qx', 'qy', 'qz', 'qw'])
 
-  x_prior_df = pd.DataFrame(qekf.log.x_hist,
+  x_df = pd.DataFrame(qekf.log.x_hist,
     index=qekf.log.idx,\
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
              'qw', 'qx', 'qy', 'qz'])
 
-  x_post_df = pd.DataFrame(qekf.log.x_hist,
-    index=qekf.log.idx,\
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-             'qx', 'qy', 'qz'])
+  # x_post_df = pd.DataFrame(qekf.log.x_hist,
+  #   index=qekf.log.idx,\
+  #   columns=['Tx', 'Ty', 'Tz',\
+  #            'vx', 'vy', 'vz',\
+  #            'qx', 'qy', 'qz'])
 
-  z_Txyz_df = pd.DataFrame(qekf.log.z_hist[:,0:3],\
-    index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz'])
+  # z_Txyz_df = pd.DataFrame(qekf.log.z_hist[:,0:3],\
+  #   index=qekf.log.idx,
+  #   columns=['Tx', 'Ty', 'Tz'])
 
-  x_post_Txyz_df = pd.DataFrame(qekf.log.x_hist[:,0:3],\
-    index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz'])
+  # x_post_Txyz_df = pd.DataFrame(qekf.log.x_hist[:,0:3],\
+  #   index=qekf.log.idx,
+  #   columns=['Tx', 'Ty', 'Tz'])
 
-  fignum+=1;
-  plot_Txyz_vs_Txyz_3d(z_Txyz_df,
-    x_post_Txyz_df,
-    title='z vs x_posterior translation',
-    figname=get_fignum_str(fignum),
-    show=_show,
-    labels=['z', 'x_post'],
-    output_dir=dset.output_dir)
+  # fignum+=1;
+  # plot_Txyz_vs_Txyz_3d(z_Txyz_df,
+  #   x_post_Txyz_df,
+  #   title='z vs x_posterior translation',
+  #   figname=get_fignum_str(fignum),
+  #   show=_show,
+  #   labels=['z', 'x_post'],
+  #   output_dir=dset.output_dir)
 
-  fignum+=1;
-  plot_Txyz_vs_Txyz_3d(z_Txyz_df,
-    x_post_Txyz_df,
-    title='z vs x_posterior translation zoom',
-    figname=get_fignum_str(fignum),
-    show=_show,
-    labels=['z', 'x_post'],
-    end=_zoom,
-    output_dir=dset.output_dir)
+  # fignum+=1;
+  # plot_Txyz_vs_Txyz_3d(z_Txyz_df,
+  #   x_post_Txyz_df,
+  #   title='z vs x_posterior translation zoom',
+  #   figname=get_fignum_str(fignum),
+  #   show=_show,
+  #   labels=['z', 'x_post'],
+  #   end=_zoom,
+  #   output_dir=dset.output_dir)
 
-  # z_TVWQxyz
-  z_TVQxyz_df = pd.DataFrame(qekf.log.z_hist[:,[0,1,2,3,4,5,9,10,11]],\
-    index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-  #           'wr', 'wp', 'wy',\
-             'qx', 'qy', 'qz'])
+  # # z_TVWQxyz
+  # z_TVQxyz_df = pd.DataFrame(qekf.log.z_hist[:,[0,1,2,3,4,5,9,10,11]],\
+  #   index=qekf.log.idx,
+  #   columns=['Tx', 'Ty', 'Tz',\
+  #            'vx', 'vy', 'vz',\
+  # #           'wr', 'wp', 'wy',\
+  #            'qx', 'qy', 'qz'])
 
-  x_post_TVQxyz_df = pd.DataFrame(qekf.log.x_hist,\
-    index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-  #           'wr', 'wp', 'wy',\
-             'qx', 'qy', 'qz'])
+  # x_post_TVQxyz_df = pd.DataFrame(qekf.log.x_hist,\
+  #   index=qekf.log.idx,
+  #   columns=['Tx', 'Ty', 'Tz',\
+  #            'vx', 'vy', 'vz',\
+  # #           'wr', 'wp', 'wy',\
+  #            'qx', 'qy', 'qz'])
 
 
-  fignum+=1;
-  plot_z_df_vs_x_df_iso(z_TVQxyz_df,
-    x_post_TVQxyz_df,
-    labels=['z', 'x_post'],
-    title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
-    figname=get_fignum_str(fignum),
-    show=_show,
-    output_dir=dset.output_dir)
+  # fignum+=1;
+  # plot_z_df_vs_x_df_iso(z_TVQxyz_df,
+  #   x_post_TVQxyz_df,
+  #   labels=['z', 'x_post'],
+  #   title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
+  #   figname=get_fignum_str(fignum),
+  #   show=_show,
+  #   output_dir=dset.output_dir)
 
   #todo: still working on this routineshow=_showshow=_show
   #plot_z_df_vs_x_df_grp(z_TVQxyz_df,
@@ -292,12 +307,9 @@ def run(data:str):
   #  output_dir=dset.output_dir)
 
   K_columns = ['K_%03d' % i for i in range(qekf.log.K_hist.shape[1])]
-
-
   K_df = pd.DataFrame(qekf.log.K_hist,
     index=qekf.log.idx,
     columns= K_columns)
-
 
   fignum+=1;
   plot_df_grp_K(df=K_df,

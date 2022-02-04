@@ -88,7 +88,7 @@ class dlm:
         self.P_hist = np.copy(P.reshape(1,-1))
         self.K_hist = np.copy(K.reshape(1,-1))
         self.K_hist = np.copy(K.reshape(1,-1))
-    else:
+      else:
         self.v_hist = np.concatenate((self.v_hist, v.T), axis=0)
         self.x_hist = np.concatenate((self.x_hist, x.T), axis=0)
         self.P_hist = np.concatenate((self.P_hist, P.reshape(1,-1)), axis=0)
