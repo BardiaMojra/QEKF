@@ -137,19 +137,22 @@ def run(data:str):
     x_TVQxyz = x_TVQxyz # state estimate
     u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
     z_Qxyz = dset.z_Qxyzw_np[i,:-1].reshape(-1,1)
+    z_Qxyzw = dset.z_Qxyzw_np[i].reshape(-1,1)
     # nsprint('x_TVQxyz', x_TVQxyz)
     # nsprint('u_AWrpy', u_AWrpy)
     # nsprint('z_Qxyz', z_Qxyz)
     # st()
     x_TVQxyz = qekf.predict(x_TVQxyz, u_AWrpy)
     x_TVQxyz = qekf.update(x_TVQxyz, z_Qxyz, i)
-
+    ''' log z state
+    '''
+    qekf.log.log_z_state(z_Qxyzw, i)
   # end of qekf data iterator ----->>
   print('end of qekf data iterator ----->>')
 
   ''' post processing
   '''
-  quat_meas_df = pd.DataFrame(dset.z_Qxyzw_np,
+  quat_meas_df = pd.DataFrame(qekf.log.z_hist.copy(),
                               index=qekf.log.idx,
                               columns=['qx', 'qy', 'qz', 'qw'])# change to xyzw
   # x_quat_wxyz

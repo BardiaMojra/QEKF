@@ -169,7 +169,7 @@ class ExtendedKalmanFilter(object):
 
     # nsprint('x_TVQxyzw', x_TVQxyzw)
     # st()
-    self.log.log_update(y_PHIrpy, x_TVQxyzw, self.P, self.K, idx)
+    self.log.log_update(y_PHIrpy, x_TVQxyzw, self.P, self.K)
     return x_TVQxyz
 
   def predict_x(self, x_TVQxyz, u_FWrpy):

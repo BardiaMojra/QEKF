@@ -77,7 +77,7 @@ class dlm:
   #       self.P_prior_hist = np.concatenate((self.P_prior_hist, P.flatten()), axis=0)
   #   return
 
-  def log_update(self, v, x, P, K, idx):
+  def log_update(self, v, x, P, K):
     if self.enabled == True:
       if (self.v_hist is None) or \
          (self.x_hist is None) or \
