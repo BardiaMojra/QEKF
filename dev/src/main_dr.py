@@ -130,33 +130,32 @@ def run(data:str):
   x_TVQxyz = qekf.x_TVQxyz
 
   for i in range(dset.start, dset.end):
-    print('\\--->>> new state ------->>>>>:', i)
+    # print('\\--->>> new state ------->>>>>:', i)
     ''' EKF state machine
     '''
     # load prior belief, new observations and ground truth (vicon) for ith  state
     x_TVQxyz = x_TVQxyz # state estimate
     u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
     z_Qxyz = dset.z_Qxyzw_np[i,:-1].reshape(-1,1)
-    nsprint('x_TVQxyz', x_TVQxyz)
-    nsprint('u_AWrpy', u_AWrpy)
-    nsprint('z_Qxyz', z_Qxyz)
+    # nsprint('x_TVQxyz', x_TVQxyz)
+    # nsprint('u_AWrpy', u_AWrpy)
+    # nsprint('z_Qxyz', z_Qxyz)
     # st()
     x_TVQxyz = qekf.predict(x_TVQxyz, u_AWrpy)
-    x_TVQxyz = qekf.update(x_TVQxyz, u_AWrpy, z_Qxyz)
-    # qekf.log.log_state(x_prior=x_TVQxyz, idx=i)
+    x_TVQxyz = qekf.update(x_TVQxyz, z_Qxyz, i)
 
   # end of qekf data iterator ----->>
-  nprint('end of qekf data iterator ----->>')
+  print('end of qekf data iterator ----->>')
 
   ''' post processing
   '''
-  quat_meas_df = pd.DataFrame(qekf.log.z_hist[:,9:13],
+  quat_meas_df = pd.DataFrame(dset.z_Qxyzw_np,
                               index=qekf.log.idx,
                               columns=['qx', 'qy', 'qz', 'qw'])# change to xyzw
   # x_quat_wxyz
-  quat_est_df = pd.DataFrame(qekf.log.x_prior_hist[:,6:10],\
+  quat_est_df = pd.DataFrame(qekf.log.x_hist[:,6:10],\
     index=qekf.log.idx,\
-    columns=['qw', 'qx', 'qy', 'qz'])
+    columns=['qx', 'qy', 'qz', 'qw'])
 
   # plot EKF output
   fignum+=1;
@@ -216,13 +215,13 @@ def run(data:str):
              'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz', 'qw'])
 
-  x_prior_df = pd.DataFrame(qekf.log.x_prior_hist,
+  x_prior_df = pd.DataFrame(qekf.log.x_hist,
     index=qekf.log.idx,\
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
              'qw', 'qx', 'qy', 'qz'])
 
-  x_post_df = pd.DataFrame(qekf.log.x_post_hist,
+  x_post_df = pd.DataFrame(qekf.log.x_hist,
     index=qekf.log.idx,\
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
@@ -232,7 +231,7 @@ def run(data:str):
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz'])
 
-  x_post_Txyz_df = pd.DataFrame(qekf.log.x_post_hist[:,0:3],\
+  x_post_Txyz_df = pd.DataFrame(qekf.log.x_hist[:,0:3],\
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz'])
 
@@ -263,7 +262,7 @@ def run(data:str):
   #           'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz'])
 
-  x_post_TVQxyz_df = pd.DataFrame(qekf.log.x_post_hist,\
+  x_post_TVQxyz_df = pd.DataFrame(qekf.log.x_hist,\
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\

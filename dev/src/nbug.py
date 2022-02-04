@@ -21,8 +21,11 @@ def eprint(*args, **kwargs):
 
 def nprint(string, *args):
   if nprt_en is True:
-    print(shorthead+(string+': '+str(args.__class__)));
-    pp(*args); print(shorttail)
+    if args is not None:
+      print(shorthead+(string+': '+str(args.__class__)));
+      pp(*args); print(shorttail)
+
+
 
 def nsprint(string, ndarr:np.ndarray):
   if nprt_en is True:

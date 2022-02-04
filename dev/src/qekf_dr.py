@@ -90,10 +90,7 @@ class ExtendedKalmanFilter(object):
     self.plotter = dmm
     ## end of init
 
-  def update(self, x_TVQxyz, u_AWrpy, z_Qxyz):
-    if z_Qxyz is None:
-      eprint(longhead+'Err: in update(), z is None and z vect is created...'+longtail)
-
+  def update(self, x_TVQxyz, z_Qxyz, idx):
     # nsprint('x_TVQxyzw', x_TVQxyz)
     # nsprint('u_AWrpy', u_AWrpy)
     # nsprint('z_Qxyzw', z_Qxyz)
@@ -133,18 +130,14 @@ class ExtendedKalmanFilter(object):
     # nprint('x_q', x_q)
     # nprint('z_q', z_q)
     # st()
-
-
     err_x_q = z_q * x_q.inverse # get quaternion error
     # nprint('err_x_q = z_q * x_q.inverse')
     # nprint('err_x_q', err_x_q)
     # st()
-
     # nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
     # nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
     # nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
     y_PHIrpy = Q_log(err_x_q.elements) # get rotation error
-
     # y_Qxyz = [e__log[0],e__log[1],e__log[2]] # load quat to
     # self.K = self.K * self.K_scale
     # nsprint('self.K', self.K)
@@ -165,11 +158,18 @@ class ExtendedKalmanFilter(object):
     # st()
     # x_TVQxyz[9,0] = get_Qwxyz(x_q_post.elements[1:4])[0] # load quat xyz to x_post
     # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
-    # st()
-
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-    self.log.log_update(y_PHIrpy, x_TVQxyz, self.P, self.K)
+
+    ''' log state variables
+    '''
+    x_TVQxyzw = np.ndarray((self.dim_x+1,1))
+    x_TVQxyzw[:6,0] = x_TVQxyz[:6,0]
+    x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
+
+    # nsprint('x_TVQxyzw', x_TVQxyzw)
+    # st()
+    self.log.log_update(y_PHIrpy, x_TVQxyzw, self.P, self.K, idx)
     return x_TVQxyz
 
   def predict_x(self, x_TVQxyz, u_FWrpy):
@@ -208,7 +208,6 @@ class ExtendedKalmanFilter(object):
     x_TVQxyz = self.predict_x(x_TVQxyz, u_FWrpy)
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
     self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
-    self.log.log_prediction(x_TVQxyz, self.P)
     return x_TVQxyz
 
   # def partial_update(self,gamma,beta):
@@ -221,7 +220,6 @@ class ExtendedKalmanFilter(object):
     self.F = np.eye(self.dim_x)
     self.F[0:3,3:6] = self.T_*np.eye(3)
     self.F[3:6,6:9] = -self.T_* self.C.T @ get_skew_symm_X(u_FWrpy[0:3])
-
     self.F[6:9,6:9] = np.eye(3)-self.T_*get_skew_symm_X(u_FWrpy[3:6])
     # nsprint('self.F', self.F)
     # st()
