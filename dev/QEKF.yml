@@ -8,13 +8,14 @@ dependencies:
   - numpy
   - scipy
   - basemap
-#  - numpy-quaternion
+  #  - numpy-quaternion
   - matplotlib
   - pandas
   - numba
-  - pip
+  #  - pip
   - pip:
       - pyqt5
       - xlrd
       - openpyxl
-      - pyCGM2
+      - pyquaternion
+      # - pyCGM2
