@@ -1,0 +1,21 @@
+name: QEKFwVicon
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - basemap
+  #  - numpy-quaternion
+  - matplotlib
+  - pandas
+  - numba
+  #  - pip
+  - pip:
+      - pyqt5
+      - xlrd
+      - openpyxl
+      - pyquaternion
+      - pyCGM3

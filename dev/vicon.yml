@@ -1,0 +1,11 @@
+name: vicon
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.7
+  - numpy
+  - matplotlib
+  - pandas
+#  - pip:
