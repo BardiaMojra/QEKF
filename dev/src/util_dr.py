@@ -3,6 +3,7 @@ from scipy.linalg import norm
 import pandas as pd
 from nbug import *
 from pdb import set_trace as st
+import datetime
 
 def get_skew_symm_X(x):
   X = np.zeros((3,3))
@@ -14,6 +15,15 @@ def get_skew_symm_X(x):
   X[2,1] =  x[0]
   return X
 
+
+
+def get_unix_time_from_str(dateStr):
+  datetime_format = '%Y-%m-%d %H:%M:%S.%f'
+  date_format = datetime.datetime.strptime(dateStr,datetime_format)
+  unix_time = datetime.datetime.timestamp(date_format)
+  # print(unix_time)
+  # st()
+  return int(unix_time*1000)
 # def qProd(q,r):
 #   '''
 #     This routine uses quaternions of the form of

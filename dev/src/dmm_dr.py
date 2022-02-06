@@ -9,24 +9,26 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
 import csv
+import datetime
 
-from util_dr import exp_map
-
+from util_dr import *
 
 # from pprint import pprint as pp
 from nbug import *
 from pdb import set_trace as st
+prt_file_save_en = False
 
 
-
-''' matplotlib config
-'''
+# matplotlib config
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
 ''' module config
 '''
-prt_file_save_en = False
+END_TIME="2021-07-12 13:35:53.530"
+START_TIME="2021-07-12 13:30:37.063"
+imuDir = r"../data/dead_reckoning_data/1/imu/"
+viconDir = r"../data/dead_reckoning_data/1/vicon/"
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
 
 ''' dataset config
@@ -38,6 +40,9 @@ Axyz_labels = ['Ax', 'Ay', 'Az'] # lin acc
 Wrpy_labels = ['Wr', 'Wp', 'Wy'] # aVel (ang vel Omega)
 Qxyzw_labels =['Qx', 'Qy', 'Qz', 'Qw'] # rot vec (in quat)
 all_labels = Axyz_labels+Wrpy_labels+Qxyzw_labels
+
+
+
 class dmm:
   ''' Data Management Module
   '''
@@ -51,7 +56,7 @@ class dmm:
                save=True):
     # set dataset configs
     if name == 'dead_reckoning_01':
-      src_dir = '../data/dead_reckoning_data/1/imu/'
+      # src_dir = _src_dir01
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'txt'
       opt = ' '
@@ -67,7 +72,7 @@ class dmm:
     ''' init '''
     # data
     self.name = name
-    self.src_dir = src_dir
+    self.imuDir = None
     self.ext = ext
     self.dtype = np.float64
     self.options = opt
@@ -105,11 +110,8 @@ class dmm:
         - Gyro or angular rate (Wrpy), gyro_resamp.txt
         - vicon for Txyz and Qxyzw for z (ground truth)
       '''
-    if self.name=="dead_reckoning_01" and self.ext=='txt':
-      # Read utari data
-      imu_dir = r"../data/dead_reckoning_data/1/imu"
-      vicon_file = r"../data/dead_reckoning_data/1/vicon/vi_clean.csv"
-      self.read_interp_data(imu_dir, vicon_file)
+    if self.name=="dead_reckoning_01":
+      self.read_interp_data()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
@@ -123,9 +125,9 @@ class dmm:
 
   # syned to orientation data
   def read_utari_data(self, imu_dir, vicon_file):
-    acc_file = open(imu_dir+r'/acce.txt')
-    gyro_file = open(imu_dir+r'/gyro.txt')
-    quat_file = open(imu_dir+r'/rv.txt')
+    acc_file = open(imu_dir+r'acce.txt')
+    gyro_file = open(imu_dir+r'gyro.txt')
+    quat_file = open(imu_dir+r'rv.txt')
     # st()
     acc_lines = acc_file.readlines()
     gyro_lines = gyro_file.readlines()
@@ -181,7 +183,7 @@ class dmm:
             _acc.append(acceleration[j+1,1:4])
             k=j
             break
-    gyro_bias_file = open(imu_dir+r'/gyro_bias.txt')
+    gyro_bias_file = open(imu_dir+r'gyro_bias.txt')
     lines = gyro_bias_file.readlines()
     data = lines[1].split()
     gyro_bias = data[0:3]
@@ -209,10 +211,10 @@ class dmm:
     return np.asarray(_acc), np.asarray(_gyro), np.asarray(quat_[:,1:5]), np.double(gyro_bias), translation*1e-3, rotation
 
 
-  def read_interp_data(self, imu_dir, vicon_file):
+  def read_interp_data(self):
     # load lin acce data
     fname = 'linacce.txt' # Axyz
-    Axyz_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    Axyz_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=0)
     # nprint('linAcc_np', linAcc_np)
     # st()
@@ -221,13 +223,13 @@ class dmm:
     # nprint('linAcc_df', linAcc_df)
     # load rotVec (Qxyzw) rv.txt
     fname = 'rv.txt' # Qxyzw
-    Qxyzw_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    Qxyzw_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=0)
     Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
     Qxyzw_df.index = pd.DatetimeIndex(Qxyzw_np[:,0])
     # nprint('rotVec_df', rotVec_df)
     fname = 'gyro_resamp.txt' # angVel_Wrpy
-    Wrpy_np = np.loadtxt(self.src_dir+fname, dtype=np.float64,\
+    Wrpy_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
       delimiter=',', skiprows=0)
     Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
                                   columns=self.Wrpy_labels)
@@ -237,9 +239,15 @@ class dmm:
     ''' get vicon position and orientation (rv-quat)
       - as ground truth only
     '''
-    #todo get vicon ground truth data
-    #todo get position data
-    # get rv data
+    fname = 'vi_clean.csv'
+    vicon_df = pd.read_csv(viconDir+fname, header=0)
+    vicon_df.head(5)
+    start_epoch = get_unix_time_from_str(START_TIME)
+    end_epoch = get_unix_time_from_str(END_TIME)
+
+    get_epoch_series(start_epoch, end_epoch, numSamps)
+    st()
+
 
     # compare timestamps
     compare = np.where(Axyz_df.index==Qxyzw_df.index, True, False)
@@ -266,6 +274,9 @@ class dmm:
     self.z_Qxyzw_np = self.Qxyzw_np
     self.u_AWrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
     return
+
+
+
 
   # def get(self, quat_format=None):
   #   if quat_format=='xyzw':
@@ -329,7 +340,7 @@ class dmm:
         └── timestamps.txt
     '''
     # get time stamp
-    times_dir = self.src_dir+'timestamps.txt'
+    times_dir = self.imuDir+'timestamps.txt'
     times = list()
     periods = list()
     with open(times_dir) as file:
@@ -350,7 +361,7 @@ class dmm:
     # get data format
     labels = list()
     briefs = list()
-    format_dir = self.src_dir+'dataformat.txt'
+    format_dir = self.imuDir+'dataformat.txt'
     with open(format_dir) as file:
       for line in file:
         [label, brief] = line.split(sep=':', maxsplit=1)
@@ -358,7 +369,7 @@ class dmm:
         brief = brief.replace('\n','')
         briefs.append(brief)
     # get data
-    data_dir = self.src_dir+'data/'
+    data_dir = self.imuDir+'data/'
     files = os.listdir(data_dir)
     imu_data = None
     for file in sorted(files):
@@ -405,11 +416,11 @@ class dmm:
   def load_QuVest_set(self):
     # load QuEst data
     fname = 'quest_post_vest.csv'
-    self.quest = pd.read_csv(self.src_dir+fname,
+    self.quest = pd.read_csv(self.imuDir+fname,
       sep=self.options, index_col=0, dtype=self.dtype)
     # load VEst data
     fname = 'vest.csv'
-    self.vest = pd.read_csv(self.src_dir+fname,
+    self.vest = pd.read_csv(self.imuDir+fname,
       sep=self.options, index_col=0, dtype=self.dtype)
     # load data frame
     self.df = pd.concat([self.quest, self.vest], axis=1)
@@ -419,11 +430,11 @@ class dmm:
   def load_sigfig_set(self):
     # load QuEst data
     fname = 'quest_post_vest.csv'
-    self.quest = pd.read_csv(self.src_dir+fname,
+    self.quest = pd.read_csv(self.imuDir+fname,
       sep=self.options, index_col=0, dtype=self.dtype)
     # load VEst data
     fname = 'vest.csv'
-    self.vest = pd.read_csv(self.src_dir+fname,
+    self.vest = pd.read_csv(self.imuDir+fname,
       sep=self.options, index_col=0, dtype=self.dtype)
     # load data frame
     self.df = pd.concat([self.quest, self.vest], axis=1)
