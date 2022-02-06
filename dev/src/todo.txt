@@ -1,4 +1,0 @@
-# todo
-
-1- down sample accelation
-2- Find Asif's old implementation and use H, F and L matrices
