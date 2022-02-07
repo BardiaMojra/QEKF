@@ -24,6 +24,23 @@ def get_unix_time_from_str(dateStr):
   # print(unix_time)
   # st()
   return int(unix_time*1000)
+
+def get_epoch_series(start_epoch, end_epoch, numSamps):
+  timestamps = list()
+
+  delta = end_epoch - start_epoch
+  period = delta/numSamps
+
+  timestamps = np.arange(start_epoch, end_epoch, period)
+
+  epochs = [ int(i) for i in timestamps]
+
+  nprint('delta', delta)
+  nprint('period', period)
+  # nprint('epochs', epochs)
+
+  return epochs
+
 # def qProd(q,r):
 #   '''
 #     This routine uses quaternions of the form of

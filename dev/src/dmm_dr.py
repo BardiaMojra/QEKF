@@ -239,13 +239,8 @@ class dmm:
     ''' get vicon position and orientation (rv-quat)
       - as ground truth only
     '''
-    fname = 'vi_clean.csv'
-    vicon_df = pd.read_csv(viconDir+fname, header=0)
-    vicon_df.head(5)
-    start_epoch = get_unix_time_from_str(START_TIME)
-    end_epoch = get_unix_time_from_str(END_TIME)
 
-    get_epoch_series(start_epoch, end_epoch, numSamps)
+
     st()
 
 

@@ -83,10 +83,6 @@ plot(t,qz_viq,':.');
 title('gyro: qz');
 legend('qz');
 
-figure
-plot(t,qw_viq,':.');
-title('gyro: qw');
-legend('qw');
 
 
 % save new dataset as .txt file 
