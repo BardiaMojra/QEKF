@@ -47,46 +47,62 @@ y_viq = interp1(t_vi,y_vi,t);
 z_viq = interp1(t_vi,z_vi,t);
 
 
-figure
-plot(t_h,x_h,'o',t,x_hq,':.');
-title('interpolation review - gyro: x');
-legend('x', 'xq');
+% figure
+% plot(t_h,x_h,'o',t,x_hq,':.');
+% title('interpolation review - gyro: x');
+% legend('x', 'xq');
 
-figure
-plot(t,x_hq,':.');
-title('gyro: x');
-legend('xq');
-
-figure
-plot(t,y_hq,':.');
-title('gyro: y');
-legend('yq');
-
-figure
-plot(t,z_hq,':.');
-title('gyro: z');
-legend('zq');
+% figure
+% plot(t,x_hq,':.');
+% title('gyro: x');
+% legend('xq');
+% 
+% figure
+% plot(t,y_hq,':.');
+% title('gyro: y');
+% legend('yq');
+% 
+% figure
+% plot(t,z_hq,':.');
+% title('gyro: z');
+% legend('zq');
 
 
 figure
 plot(t,qx_viq,':.');
-title('gyro: qx');
+title('vi: qx');
 legend('qx');
 
 figure
 plot(t,qy_viq,':.');
-title('gyro: qy');
+title('vi: qy');
 legend('qy');
 
 figure
 plot(t,qz_viq,':.');
-title('gyro: qz');
+title('vi: qz');
 legend('qz');
 
 figure
 plot(t,qw_viq,':.');
-title('gyro: qw');
+title('vi: qw');
 legend('qw');
+
+
+figure
+plot(t,x_viq,':.');
+title('vi: x');
+legend('x');
+
+figure
+plot(t,y_viq,':.');
+title('vi: y');
+legend('y');
+
+figure
+plot(t,z_viq,':.');
+title('z');
+legend('vi: z');
 
 
 % save new dataset as .txt file 

@@ -25,8 +25,6 @@ plt.style.use('ggplot')
 
 ''' module config
 '''
-END_TIME="2021-07-12 13:35:53.530"
-START_TIME="2021-07-12 13:30:37.063"
 imuDir = r"../data/dead_reckoning_data/1/imu/"
 viconDir = r"../data/dead_reckoning_data/1/vicon/"
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
@@ -40,7 +38,9 @@ Axyz_labels = ['Ax', 'Ay', 'Az'] # lin acc
 Wrpy_labels = ['Wr', 'Wp', 'Wy'] # aVel (ang vel Omega)
 Qxyzw_labels =['Qx', 'Qy', 'Qz', 'Qw'] # rot vec (in quat)
 all_labels = Axyz_labels+Wrpy_labels+Qxyzw_labels
-
+''' ground truth data labels
+'''
+vicon_labels = ['qx_gt','qy_gt','qz_gt','qw_gt','x_gt','y_gt','z_gt']
 
 
 class dmm:
@@ -91,7 +91,8 @@ class dmm:
     self.Axyz_labels = Axyz_labels
     self.Wrpy_labels = Wrpy_labels
     self.Qxyzw_labels = Qxyzw_labels
-    self.labels = all_labels
+    # self.labels = all_labels
+    self.vicon_labels = vicon_labels
 
     # self.quest = None
     # self.vest = None
@@ -216,52 +217,56 @@ class dmm:
     fname = 'linacce.txt' # Axyz
     Axyz_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=0)
-    # nprint('linAcc_np', linAcc_np)
-    # st()
     Axyz_df = pd.DataFrame(Axyz_np[:,1:], columns=self.Axyz_labels)
-    Axyz_df.index = pd.DatetimeIndex(Axyz_np[:,0])
-    # nprint('linAcc_df', linAcc_df)
+    # Axyz_df.index = Axyz_np[:,0]
     # load rotVec (Qxyzw) rv.txt
     fname = 'rv.txt' # Qxyzw
     Qxyzw_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
       delimiter=' ', skiprows=0)
     Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
-    Qxyzw_df.index = pd.DatetimeIndex(Qxyzw_np[:,0])
-    # nprint('rotVec_df', rotVec_df)
+    # Qxyzw_df.index = Qxyzw_np[:,0]
     fname = 'gyro_resamp.txt' # angVel_Wrpy
     Wrpy_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
       delimiter=',', skiprows=0)
     Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
                                   columns=self.Wrpy_labels)
-    Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
+    # Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
     # nprint('angAcc_df', angAcc_df)
 
     ''' get vicon position and orientation (rv-quat)
-      - as ground truth only
+        ground truth only
     '''
-
-
-    st()
-
+    fname = 'vi_resamp.txt' # vicon
+    vicon_np = np.loadtxt(viconDir+fname, dtype=np.float64,\
+      delimiter=',', skiprows=0)
+    vicon_df = pd.DataFrame(vicon_np[:,1:],
+                                  columns=self.vicon_labels)
+    # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
 
     # compare timestamps
-    compare = np.where(Axyz_df.index==Qxyzw_df.index, True, False)
+    compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
     if np.all(compare == True):
-      print(shorthead+'linAcc_df & rotVec_df timestamps match...')
+      pass
     else:
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
-    compare = np.where(Axyz_df.index==Wrpy_df.index, True, False)
+    compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
     if np.all(compare == True):
+      pass
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    compare = np.where(Axyz_np[:,0]==vicon_np[:,0], True, False)
+    if not np.all(compare == True):
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    else:
       print(shorthead+'all timestamps match...'+longtail)
-    else:
-      nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
-      exit()
-    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
-    # load data frame
-    self.df.columns = self.labels# load state variables
+
+    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
     # load np format
     self.Axyz_np = Axyz_np[:,1:]
     self.Wrpy_np = Wrpy_np[:,1:]
