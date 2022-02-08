@@ -15,64 +15,19 @@ def get_skew_symm_X(x):
   X[2,1] =  x[0]
   return X
 
-
-
 def get_unix_time_from_str(dateStr):
   datetime_format = '%Y-%m-%d %H:%M:%S.%f'
   date_format = datetime.datetime.strptime(dateStr,datetime_format)
   unix_time = datetime.datetime.timestamp(date_format)
-  # print(unix_time)
-  # st()
   return int(unix_time*1000)
 
 def get_epoch_series(start_epoch, end_epoch, numSamps):
   timestamps = list()
-
   delta = end_epoch - start_epoch
   period = delta/numSamps
-
   timestamps = np.arange(start_epoch, end_epoch, period)
-
   epochs = [ int(i) for i in timestamps]
-
-  nprint('delta', delta)
-  nprint('period', period)
-  # nprint('epochs', epochs)
-
   return epochs
-
-# def qProd(q,r):
-#   '''
-#     This routine uses quaternions of the form of
-#       q=q0+iq1+jq2+kq3
-#     and
-#       r=r0+ir1+jr2+kr3.
-#     The quaternion product has the form of
-#       t=q×r=t0+it1+jt2+kt3,
-#     where
-#       t0=(r0q0−r1q1−r2q2−r3q3)
-#       t1=(r0q1+r1q0−r2q3+r3q2)
-#       t2=(r0q2+r1q3+r2q0−r3q1)
-#       t3=(r0q3−r1q2+r2q1+r3q0)
-
-#     @link https://www.mathworks.com/help/aeroblks/quaternionmultiplication.html?searchHighlight=quaternion%20multiplication&s_tid=srchtitle_quaternion%20multiplication_1
-#   '''
-
-#   st()
-
-
-#   q[0],q[1],q[2],q[3]
-#   r[0],r[1],r[2],r[3]
-
-
-
-#   t0=(r0q0−r1q1−r2q2−r3q3)
-#   t1=(r0q1+r1q0−r2q3+r3q2)
-#   t2=(r0q2+r1q3+r2q0−r3q1)
-#   t3=(r0q3−r1q2+r2q1+r3q0)
-
-#   t = [t0,t1,t2,t3]
-#   return t
 
 def get_omega(q):
   omega = np.array([  [-q[1], -q[2], -q[3] ],
@@ -84,8 +39,6 @@ def get_omega(q):
 
 def check_symmetric(a, tol=1e-8):
   return np.all(np.abs(a-a.T) < tol)
-
-
 
 ### Exponential Map of Quaternion: this is correct...
 ### https://www.cs.cmu.edu/~spiff/moedit99/expmap.pdf
@@ -147,7 +100,6 @@ def set_axes_equal(ax):
   '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
   cubes as cubes, etc..  This is one possible solution to Matplotlib's
   ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
-
   Input
     ax: a matplotlib axis, e.g., as output from plt.gca().
   '''
@@ -160,12 +112,36 @@ def set_axes_equal(ax):
   y_middle = np.mean(y_limits)
   z_range = abs(z_limits[1] - z_limits[0])
   z_middle = np.mean(z_limits)
-
   # The plot bounding box is a sphere in the sense of the infinity
   # norm, hence I call half the max range the plot radius.
   plot_radius = 0.5*max([x_range, y_range, z_range])
-
   ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
   ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
   ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
   return
+
+
+# def qProd(q,r):
+#   '''
+#     This routine uses quaternions of the form of
+#       q=q0+iq1+jq2+kq3
+#     and
+#       r=r0+ir1+jr2+kr3.
+#     The quaternion product has the form of
+#       t=q×r=t0+it1+jt2+kt3,
+#     where
+#       t0=(r0q0−r1q1−r2q2−r3q3)
+#       t1=(r0q1+r1q0−r2q3+r3q2)
+#       t2=(r0q2+r1q3+r2q0−r3q1)
+#       t3=(r0q3−r1q2+r2q1+r3q0)
+#     @link https://www.mathworks.com/help/aeroblks/quaternionmultiplication.html?searchHighlight=quaternion%20multiplication&s_tid=srchtitle_quaternion%20multiplication_1
+#   '''
+#   st()
+#   q[0],q[1],q[2],q[3]
+#   r[0],r[1],r[2],r[3]
+#   t0=(r0q0−r1q1−r2q2−r3q3)
+#   t1=(r0q1+r1q0−r2q3+r3q2)
+#   t2=(r0q2+r1q3+r2q0−r3q1)
+#   t3=(r0q3−r1q2+r2q1+r3q0)
+#   t = [t0,t1,t2,t3]
+#   return t

@@ -90,7 +90,7 @@ class ExtendedKalmanFilter(object):
     self.plotter = dmm
     ## end of init
 
-  def update(self, x_TVQxyz, z_Qxyz, idx):
+  def update(self, x_TVQxyz, z_Qxyz):
     # nsprint('x_TVQxyzw', x_TVQxyz)
     # nsprint('u_AWrpy', u_AWrpy)
     # nsprint('z_Qxyzw', z_Qxyz)
@@ -239,7 +239,7 @@ class ExtendedKalmanFilter(object):
     self.L[3:6,3:6] = -self.C.T
     #self.L[6:9,6:9] = -np.eye(3)
     # nsprint('self.L', self.L)
-    return self
+    return
 
   def set_C(self, x_Qxyz:np.ndarray):
     ''' calculates state estimate (belief) rotation matrix (C) given
@@ -247,8 +247,6 @@ class ExtendedKalmanFilter(object):
     '''
     r = R.from_quat(x_Qxyz)
     self.C = r.as_matrix()
-    # nsprint('self.C', self.C)
-    # st()
     return
 
 def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):

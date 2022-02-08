@@ -19,12 +19,13 @@ from pdb import set_trace as st
 from nbug import *
 
 ''' general config '''
-NBUG = True
-print_output = True
-_show = False
-_save = True
-_prt = False
-_zoom = 150
+NBUG          = True
+prt_output    = True
+_show         = False
+# _save         = True
+_prt          = False
+# _START        = 0
+# _END          = 150
 
 ''' matplotlib config '''
 # matplotlib.pyplot.ion()
@@ -57,8 +58,10 @@ _zoom = 150
 
 def main():
   testmode  = 'single'
-  # testmode = 'all'
   test_id = 13
+  ''' OR '''
+  # testmode = 'all'
+
 
   if testmode == 'all':
     print(shorthead+'starting all test sequences:')
@@ -97,21 +100,27 @@ def run(data:str):
   dset = dmm(name=data,
              VestScale=1,
              data_rate_inv=1/10,
-             #start=0,
-             #end=16,
+            #  start=_START,
+            #  end=_END,
              prt=_prt)
 
-  dset.format()
+  dset.format_data()
 
   fignum+=1;
-  dset.plot(labels=dset.df.columns, figname=get_fignum_str(fignum), title=data, show=False)
+  dset.plot(labels=dset.df.columns,
+            figname=get_fignum_str(fignum),
+            title=data,
+            show=_show)
 
-  fignum+=1;
-  dset.plot_trans_3d(title='Ground Truth Translation', figname=get_fignum_str(fignum), show=False)
+  # fignum+=1;
+  # dset.plot_trans_3d(title='Ground Truth Translation',
+  #     figname=get_fignum_str(fignum),
+  # show=False)
 
   # init QEKF object
-  qekf = QEKF(dim_x=9,
-              dim_z=12,
+  qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyz -- linPos, linVel, rotVec (quat)
+              dim_z=9, # Txyz, Vxyz, Qxyz -- linPos, linVel, rotVec (quat)
+              dim_u=6, # Axyz, Wrpy
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
@@ -120,34 +129,28 @@ def run(data:str):
               P_est_0=1e-4,
               K_scale=1.0)
 
-  ''' init state'''
-  qekf.x_prior_TVQwxyz[0] = dset.df.Tx.iloc[0]
-  qekf.x_prior_TVQwxyz[1] = dset.df.Ty.iloc[0]
-  qekf.x_prior_TVQwxyz[2] = dset.df.Tz.iloc[0]
-  qekf.x_prior_TVQwxyz[3] = dset.df.vx.iloc[0]
-  qekf.x_prior_TVQwxyz[4] = dset.df.vy.iloc[0]
-  qekf.x_prior_TVQwxyz[5] = dset.df.vz.iloc[0]
-  qekf.x_prior_TVQwxyz[6] = dset.df.qw.iloc[0]
-  qekf.x_prior_TVQwxyz[7] = dset.df.qx.iloc[0]
-  qekf.x_prior_TVQwxyz[8] = dset.df.qy.iloc[0]
-  qekf.x_prior_TVQwxyz[9] = dset.df.qz.iloc[0]
-
+  # init state vectors
+  x_TVQxyz = qekf.x_TVQxyz
   for i in range(dset.start, dset.end):
     # print('\\--->>> new state ------->>>>>:', i)
-    qekf.get_z_TVWQxyzw(lin_vel=dset.vel_xyz.to_numpy()[i,:],\
-      translation=dset.trans_xyz.to_numpy()[i,:],\
-      ang_vel=dset.vel_rpy.to_numpy()[i,:],\
-      quat=dset.quat_xyzw.to_numpy()[i,:],\
-      #quat=np.asarray([.001, .002, -.994, .003]),\
-      Vscale=dset.VestScale)
-
-    qekf.log.log_z_state(z=qekf.z_TVWQxyzw, idx=i)
-
-    qekf.predict()
-    qekf.update(qekf.z_TVWQxyzw.T)
-
+    ''' EKF state machine
+    '''
+    # load prior belief, new observations and ground truth (vicon) for ith  state
+    x_TVQxyz = x_TVQxyz # state estimate
+    u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
+    z_TVQxyz = dset.z_TVQxyzw_np[i,:-1].reshape(-1,1)
+    z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for logging
+    # nsprint('x_TVQxyz', x_TVQxyz)
+    # nsprint('u_AWrpy', u_AWrpy)
+    # nsprint('z_Qxyz', z_Qxyz)
+    # st()
+    x_TVQxyz = qekf.predict(x_TVQxyz, u_AWrpy)
+    x_TVQxyz = qekf.update(x_TVQxyz, z_TVQxyz, i)
+    ''' log z state
+    '''
+    qekf.log.log_z_state(z_TVQxyzw, i)
   # end of qekf data iterator ----->>
-  nprint('end of qekf data iterator ----->>', '')
+  print('end of qekf data iterator ----->>')
 
 
   ''' post processing
