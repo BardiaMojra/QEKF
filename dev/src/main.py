@@ -129,27 +129,22 @@ def run(data:str):
               P_est_0=1e-4,
               K_scale=1.0)
 
-  # init state vectors
-  x_TVQxyz = qekf.x_TVQxyz
+  x_TVQxyz = qekf.x_TVQxyz # init state vectors
   for i in range(dset.start, dset.end):
-    # print('\\--->>> new state ------->>>>>:', i)
-    ''' EKF state machine
-    '''
-    # load prior belief, new observations and ground truth (vicon) for ith  state
+    ''' EKF state machine '''
+    print('    \\--->>> new state ------->>>>>:  ', i)
     x_TVQxyz = x_TVQxyz # state estimate
     u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
     z_TVQxyz = dset.z_TVQxyzw_np[i,:-1].reshape(-1,1)
-    z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for logging
-    # nsprint('x_TVQxyz', x_TVQxyz)
-    # nsprint('u_AWrpy', u_AWrpy)
-    # nsprint('z_Qxyz', z_Qxyz)
-    # st()
+    z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for data logging
+    nsprint('x_TVQxyz', x_TVQxyz)
+    nsprint('u_AWrpy', u_AWrpy)
+    nsprint('z_TVQxyz', z_TVQxyz)
+    st()
     x_TVQxyz = qekf.predict(x_TVQxyz, u_AWrpy)
     x_TVQxyz = qekf.update(x_TVQxyz, z_TVQxyz, i)
-    ''' log z state
-    '''
+    ''' log z state vector '''
     qekf.log.log_z_state(z_TVQxyzw, i)
-  # end of qekf data iterator ----->>
   print('end of qekf data iterator ----->>')
 
 

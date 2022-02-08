@@ -14,7 +14,7 @@ longhead = '\n\-->> '
 shorthead = '\-->> '
 longtail = '\n\n'
 shorttail = '\n'
-attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
+attn = 'here ----------- <<<<<\n\n'
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)

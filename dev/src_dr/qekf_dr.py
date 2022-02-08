@@ -15,10 +15,7 @@ from pdb import set_trace as st
 from pprint import pprint as pp
 
 ''' general config '''
-longhead  = '\n\--->> '
-shorthead = '\--->> '
-longtail  = '\n\n'
-attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
+
 
 
 class ExtendedKalmanFilter(object):
@@ -57,7 +54,7 @@ class ExtendedKalmanFilter(object):
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x)     # state transition matrix
     self.Q_c = np.eye(dim_z)        # process uncertainty
-    self.y_Qxyz = np.zeros((dim_z, 1)) # residual
+    # self.y_Qxyz = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
     self.K = np.zeros((dim_x,1)) # kalman gain -- 9
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
@@ -88,13 +85,12 @@ class ExtendedKalmanFilter(object):
     # data logger
     self.log = dlm(enabled=log)
     self.plotter = dmm
-    ## end of init
+    ## end  of init
 
   def update(self, x_TVQxyz, z_Qxyz):
     # nsprint('x_TVQxyzw', x_TVQxyz)
     # nsprint('u_AWrpy', u_AWrpy)
     # nsprint('z_Qxyzw', z_Qxyz)
-
     # nppshape('self.P', self.P)
     # nppshape('self.H.T', self.H.T)
     # nppshape('self.R', self.R)
@@ -102,24 +98,13 @@ class ExtendedKalmanFilter(object):
     PHT = dot(self.P, self.H.T)
     self.S = dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
-
     # nppshape('self.S', self.S)
     # nppshape('self.K', self.K)
-
-
-    # modified for qekf and quarternion states
-
-    # x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
-    # x_prior_TVQxyz_tmp[0:6] = self.x_TVQwxyz[0:6]
-    # x_prior_TVQxyz_tmp[6:9] = self.x_TVQwxyz[7:10]
-
-
-    # hx = np.dot(self.H, x_TVQxyz)
-    # nsprint('hx.T', hx.T)
-
     # st()
     ''' lin part
     '''
+    # hx = np.dot(self.H, x_TVQxyz)
+    # nsprint('hx.T', hx.T)
     # self.y_Qxyzw = np.subtract(z_Qxyzw, hx.T).T # TVWQxyz
     ''' quat part
     '''
@@ -160,13 +145,10 @@ class ExtendedKalmanFilter(object):
     # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-
-    ''' log state variables
-    '''
+    ''' log state vector '''
     x_TVQxyzw = np.ndarray((self.dim_x+1,1))
     x_TVQxyzw[:6,0] = x_TVQxyz[:6,0]
     x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
-
     # nsprint('x_TVQxyzw', x_TVQxyzw)
     # st()
     self.log.log_update(y_PHIrpy, x_TVQxyzw, self.P, self.K)

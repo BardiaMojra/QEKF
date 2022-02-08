@@ -184,7 +184,7 @@ class dmm:
     self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
     # end of __init__() <<--------------------------------------
 
-  def format(self):
+  def format_data(self):
     ''' data files:
       iphone_mouse_zoom_2:
       dataset-iphone1 (_clean):
@@ -238,7 +238,8 @@ class dmm:
       self.load_QuVest_set()
     elif self.name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'\
       and self.ext=='csv':
-      self.load_sigfig_set()
+      # self.load_sigfig_set()
+      self.load_QuVest_set()
     elif self.name=="kitti_imu_0926_0001" and self.ext=='csv':
         self.load_kitti_set()
     elif self.name=="kitti_imu_0926_0002" and self.ext=='csv':
@@ -255,23 +256,15 @@ class dmm:
       self.load_kitti_set()
     elif self.name=="kitti_imu_0928_0001" and self.ext=='csv':
       self.load_kitti_set()
-    elif self.name=="dead_reckoning_01" and self.ext=='txt':
-      ''' - use same format as KITTI
-        acce.txt -- linear acce
-        rv rotation ve
-        data format doc https://developer.android.com/guide/topics/sensors/sensors_motion
-      '''
-      self.load_deadreckoning_set()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
     ''' common df section '''
     # load state variables
-    self.trans_xyz = self.df[['Tx', 'Ty', 'Tz']]
-    self.quat_xyzw = self.df[['qx', 'qy', 'qz', 'qw']]
-    self.quat_wxyz = self.df[['qw', 'qx', 'qy', 'qz']]
-    self.vel_xyz = self.df[['vx', 'vy', 'vz']]
-    self.vel_rpy = self.df[['wr', 'wp', 'wy']]
+    self.z_TVQxyzw_np = self.df[_Z_LABELS]
+    self.u_Wrpy_np = self.df[_U_LABELS]
+
+
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
@@ -429,20 +422,19 @@ class dmm:
     #self.df.columns = self.labels# load state variables
     return
 
-  def load_sigfig_set(self):
-    # load QuEst data
-    fname = 'quest_post_vest.csv'
-    self.quest = pd.read_csv(self.src_dir+fname,
-      sep=self.options, index_col=0, dtype=self.dtype)
-    # load VEst data
-    fname = 'vest.csv'
-    self.vest = pd.read_csv(self.src_dir+fname,
-      sep=self.options, index_col=0, dtype=self.dtype)
-    # load data frame
-    self.df = pd.concat([self.quest, self.vest], axis=1)
-    #self.df.columns = self.labels# load state variables
-
-    return
+  # def load_sigfig_set(self):
+  #   # load QuEst data
+  #   fname = 'quest_post_vest.csv'
+  #   self.quest = pd.read_csv(self.src_dir+fname,
+  #     sep=self.options, index_col=0, dtype=self.dtype)
+  #   # load VEst data
+  #   fname = 'vest.csv'
+  #   self.vest = pd.read_csv(self.src_dir+fname,
+  #     sep=self.options, index_col=0, dtype=self.dtype)
+  #   # load data frame
+  #   self.df = pd.concat([self.quest, self.vest], axis=1)
+  #   #self.df.columns = self.labels# load state variables
+  #   return
 
 
   ''' end of dmm class...

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
 import csv
-import datetime
+# import datetime
 
 from util_dr import *
 
@@ -242,7 +242,6 @@ class dmm:
     vicon_df = pd.DataFrame(vicon_np[:,1:],
                                   columns=self.vicon_labels)
     # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
-
     # compare timestamps
     compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
     if np.all(compare == True):
@@ -265,7 +264,6 @@ class dmm:
       exit()
     else:
       print(shorthead+'all timestamps match...'+longtail)
-
     self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
     # load np format
     self.Axyz_np = Axyz_np[:,1:]

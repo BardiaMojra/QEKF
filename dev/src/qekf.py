@@ -14,63 +14,10 @@ from dlm import *
 from util import *
 
 ''' general config '''
-longhead  = '\n\--->> '
-shorthead = '\--->> '
-longtail  = '\n\n'
-attn = 'here ----------- <<<<<\n\n'  #print(longhead+attn)
+from nbug import *
+from pdb import set_trace as st
 
 class ExtendedKalmanFilter(object):
-  ''' Simple Kalman Filter:
-    - x is estimate of the state a process
-      - x_k = A x_{k-1} + B u_{k-1} + w_{k-1}
-    - z is measurement matrix
-      - z_k = H x_k + v_k
-    - w_k is a random variable that represents process noise
-      - p(w) ~ Normal_Dist(0, Q)
-    - v_k is a random variable that represents measurement noise
-      - p(v) ~ Normal_Dist(0, R)
-    - Q is the process noise covariance
-    - R is the measurement noise covariance
-
-  Extended Kalman Filter:
-
-      \-->> New QEKF (var/dim):  ----------   z
-      lin_pos: T_xyz (3)
-      lin_vel: V_xyz (3)
-      ang_vel: W_rpy (3)
-      ang_vel_b:
-      ang_rot: Q_wxyz (4)
-            --->> 13 state variables
-
-    \-->> New QEKF (var/dim):  ----------   x
-      lin_acc:
-      lin_acc_bias:
-      lin_vel: V_xyz (3)
-      lin_pos: T_xyz (3)
-      ang_acc:
-      ang_vel: W_rpy
-      ang_vel_b:
-      ang_rot: Q_xyz (3)
-            --->> 9 (+1 for q_w) state variables
-
-    \-->> New QEKF (var/dim):  ----------   x_prior
-      lin_acc:
-      lin_acc_bias:
-      lin_vel: V_xyz (3)
-      lin_pos: T_xyz (3)
-      ang_acc:
-      ang_vel: W_rpy
-      ang_vel_b:
-      ang_rot: Q_wxyz (3+1)
-            --->> 9 (+1 for q_w) state variables
-
-
-    #TODO:
-      - scale factor
-        lin_vel_Vest * data_time_period = delta_lin_pos_Quest * (some_scalar)
-        equation must hold true per V * deltaT = deltaX and scalar factor
-        should correspond to scale factor difference.
-  '''
   def __init__(self,
                dim_x,
                dim_z,
@@ -98,7 +45,7 @@ class ExtendedKalmanFilter(object):
     self.F = np.eye(dim_x)     # state transition matrix
     self.R = np.eye(dim_z)        # state uncertainty
     self.Q_c = np.eye(dim_x)        # process uncertainty
-    self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
+    # self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
     self.K = np.zeros((dim_x,1)) # kalman gain -- 9
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
@@ -133,50 +80,75 @@ class ExtendedKalmanFilter(object):
     self.plotter = dmm
     ## end of init
 
-  def update(self, z_TVWQxyzw):
 
-
-
-
+  def update(self, x_TVQxyz, z_Qxyz):
+    nsprint('x_TVQxyzw', x_TVQxyz)
+    nsprint('z_Qxyzw', z_Qxyz)
+    nppshape('self.P', self.P)
+    nppshape('self.H.T', self.H.T)
+    nppshape('self.R', self.R)
+    st()
     # compute Kalman gain
-    PHT = dot(self.P_prior, self.H.T)
+    PHT = dot(self.P, self.H.T)
     self.S = dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
-
-
-
-    # modified for qekf and quarternion states
-    x_prior_TVQxyz_tmp = zeros((self.dim_x,1))
-    x_prior_TVQxyz_tmp[0:6,0] = self.x_prior_TVQwxyz[0:6,0]
-    x_prior_TVQxyz_tmp[6:9,0] = self.x_prior_TVQwxyz[7:10,0]
-
-
-
-
-    hx = np.dot(self.H, x_prior_TVQxyz_tmp)
+    nppshape('self.S', self.S)
+    nppshape('self.K', self.K)
+    st()
     ''' lin part
     '''
-    self.y_TVQxyz = np.subtract(self.z_TVWQxyzw[0:12,0], hx.T).T # TVWQxyz
+    hx = np.dot(self.H, x_TVQxyz)
+    nsprint('hx.T', hx.T)
+    self.y_Qxyzw = np.subtract(z_Qxyzw, hx.T).T # TVWQxyz
     ''' quat part
     '''
-    x_prior_est_Qwxyz_q = Quaternion(self.x_prior_TVQwxyz[6:10,0]) # wxyz input
-    x_obs_est_Qwxyz_q = Quaternion(self.z_TVWQxyzw[12], self.z_TVWQxyzw[9],
-                                   self.z_TVWQxyzw[10], self.z_TVWQxyzw[11])
-    e__ = (x_obs_est_Qwxyz_q * x_prior_est_Qwxyz_q.inverse) # get quaternion error
-    e__log = Q_log(e__.elements) # get the error rotation from subtracting two orientation
-    self.y_TVQxyz[9:12,0] = [e__log[0],e__log[1],e__log[2]] # load quat to
+    x_q = get_Qwxyz(x_TVQxyz[6:9,0])
+    nprint('x_q', x_q)
+    st()
+    x_q = Quaternion(x_q) # wxyz input
+    z_q = Quaternion(get_Qwxyz(z_Qxyz[0:3,0]))
+    nprint('x_q', x_q)
+    nprint('z_q', z_q)
+    st()
+    err_x_q = z_q * x_q.inverse # get quaternion error
+    nprint('err_x_q = z_q * x_q.inverse')
+    nprint('err_x_q', err_x_q)
+    st()
+    nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
+    nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
+    nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
+    y_PHIrpy = Q_log(err_x_q.elements) # get rotation error
     self.K = self.K * self.K_scale
-    ky = dot(self.K, self.y_TVQxyz)
-    self.x_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
-    temp_exp_map = exp_map(self.T_*ky[6:9]) # quaternion correction
+    # nsprint('self.K', self.K)
+    # nsprint('e__log', y_PHIrpy)
+    # st()
+    ky_PHIrpy = np.matmul(self.K, y_PHIrpy)
+    # nsprint('ky_Qxyz', ky_PHIrpy)
+    # self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
+    x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
+    # nsprint('x_q_corr', x_q_corr)
+    x_q_corr = Quaternion([x_q_corr[3],x_q_corr[0],x_q_corr[1],x_q_corr[2]])
+    nprint('x_q_corr', x_q_corr)
+    # st()
     # equation 6 from EKF2 paper # update quaternion
-    exp_map_ = Quaternion([temp_exp_map[3],temp_exp_map[0],temp_exp_map[1],temp_exp_map[2]]) \
-      * Quaternion(self.x_prior_TVQwxyz[6:10,0])  ## wxyz format
-    self.x_TVQxyz[6:9,0] = exp_map_.elements[1:4] # load quat xyz to x_post
+    x_q_post = x_q_corr * x_q  ## wxyz format
+    x_TVQxyz[6:9,0] = x_q_post.elements[1:4] # load quat xyz to x_post
+    # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
+    st()
+    # x_TVQxyz[9,0] = get_Qwxyz(x_q_post.elements[1:4])[0] # load quat xyz to x_post
+    nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
+    st()
+
     I_KH = self._I - dot(self.K, self.H)
-    self.P = dot(I_KH, self.P_prior).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
-    self.log.log_update(self.y_TVQxyz, self.x_TVQxyz, self.P, self.K)
-    return
+    self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
+    ''' log state vector '''
+    x_TVQxyzw = np.ndarray((self.dim_x+1,1))
+    x_TVQxyzw[:6,0] = x_TVQxyz[:6,0]
+    x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
+    nsprint('x_TVQxyzw', x_TVQxyzw)
+    st()
+    self.log.log_update(y_PHIrpy, x_TVQxyzw, self.P, self.K)
+    return x_TVQxyz
 
   def predict_x(self, u=0):
     # estimation model
