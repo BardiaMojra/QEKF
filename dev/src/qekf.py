@@ -136,6 +136,8 @@ class ExtendedKalmanFilter(object):
   def update(self, z_TVWQxyzw):
 
 
+
+
     # compute Kalman gain
     PHT = dot(self.P_prior, self.H.T)
     self.S = dot(self.H, PHT) + self.R
