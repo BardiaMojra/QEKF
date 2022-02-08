@@ -1,0 +1,69 @@
+Traceback (most recent call last):
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 1705, in main
+    pdb._runscript(mainpyfile)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 1573, in _runscript
+    self.run(statement)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/bdb.py", line 580, in run
+    exec(cmd, globals, locals)
+  File "<string>", line 1, in <module>
+  File "/home/smerx/git/QEKF/dev/src/main.py", line 2, in <module>
+    import numpy as np
+  File "/home/smerx/git/QEKF/dev/src/main.py", line 2, in <module>
+    import numpy as np
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/bdb.py", line 88, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/bdb.py", line 112, in dispatch_line
+    self.user_line(frame)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 262, in user_line
+    self.interaction(frame, None)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 357, in interaction
+    self._cmdloop()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 322, in _cmdloop
+    self.cmdloop()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/cmd.py", line 126, in cmdloop
+    line = input(self.prompt)
+ValueError: I/O operation on closed file.
+Traceback (most recent call last):
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 1705, in main
+    pdb._runscript(mainpyfile)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 1573, in _runscript
+    self.run(statement)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/bdb.py", line 580, in run
+    exec(cmd, globals, locals)
+  File "<string>", line 1, in <module>
+  File "/home/smerx/git/QEKF/dev/src/main.py", line 2, in <module>
+    import numpy as np
+  File "/home/smerx/git/QEKF/dev/src/main.py", line 2, in <module>
+    import numpy as np
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/bdb.py", line 88, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/bdb.py", line 112, in dispatch_line
+    self.user_line(frame)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 262, in user_line
+    self.interaction(frame, None)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 357, in interaction
+    self._cmdloop()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 322, in _cmdloop
+    self.cmdloop()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/cmd.py", line 126, in cmdloop
+    line = input(self.prompt)
+ValueError: I/O operation on closed file.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 1732, in <module>
+    pdb.main()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 1724, in main
+    pdb.interaction(None, t)
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 357, in interaction
+    self._cmdloop()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/pdb.py", line 322, in _cmdloop
+    self.cmdloop()
+  File "/home/smerx/anaconda3/envs/QEKF/lib/python3.9/cmd.py", line 126, in cmdloop
+    line = input(self.prompt)
+ValueError: I/O operation on closed file.
