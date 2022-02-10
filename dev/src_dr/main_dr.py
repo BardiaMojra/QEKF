@@ -1,5 +1,6 @@
 
 # import numpy as np
+from tracemalloc import start
 import matplotlib
 # from matplotlib import pyplot as plt
 import pandas as pd
@@ -7,8 +8,7 @@ import pandas as pd
 # from scipy.spatial.transform import Rotation as R
 # from pyquaternion import Quaternion
 
-''' custom libraries
-'''
+''' custom libraries '''
 from dmm_dr import *
 from util_dr import *
 from qekf_dr import ExtendedKalmanFilter as QEKF
@@ -30,8 +30,8 @@ _prt = True
 _zoom = 5000
 
 ''' matplotlib config '''
-# matplotlib.pyplot.ion()
-# plt.style.use('ggplot')
+matplotlib.pyplot.ion()
+plt.style.use('ggplot')
 
 ''' datasets
  0  dead_reckoning_01
@@ -100,8 +100,8 @@ def run(data:str):
   dset = dmm(name=data,
              VestScale=1,
              data_rate_inv=1/10,
-             start=950,
-             end=2500,
+             start=2000,
+             end=6000,
              prt=_prt)
 
   dset.format_data()
@@ -124,7 +124,7 @@ def run(data:str):
               Q_T_xyz=1.0e-5, # process noise covar
               Q_V_xyz=1.5e-2,
               Q_quat_xyz=0.5e-6,
-              R_noise=1e-3, # measurement noise covar
+              R_noise=1e-1, # measurement noise covar
               P_est_0=1e-4,
               K_scale=1.0)
   # init state vectors
@@ -144,7 +144,7 @@ def run(data:str):
     # nsprint('z_Qxyz', z_Qxyz)
     # st()
     x_TVQxyz = qekf.predict(x_TVQxyz, u_AWrpy)
-    x_TVQxyz = qekf.update(x_TVQxyz, z_Qxyz, i)
+    x_TVQxyz = qekf.update(x_TVQxyz, z_Qxyz)
     ''' log z state
     '''
     qekf.log.log_z_state(z_Qxyzw, i)
@@ -211,12 +211,15 @@ def run(data:str):
     index=qekf.log.idx,
     columns=['qx', 'qy', 'qz'])
 
+  residual_df.plot()
   residual_df = get_losses(residual_df, dset.output_dir)
   fignum+=1;
   plot_df(df=residual_df,
-    rows=14,
+    rows=residual_df.shape[1],
     cols=1,
-    title='v residual',
+    title='y - residual',
+    start=dset.start,
+    end=dset.end,
     show=_show,
     figname=get_fignum_str(fignum),
     output_dir=dset.output_dir)
@@ -224,7 +227,7 @@ def run(data:str):
   # print losses
   print_losses(residual_df)
 
-
+  st()
   # # z_TVWQxyzw
   # z_df = pd.DataFrame(qekf.log.z_hist,
   #   index=qekf.log.idx,\

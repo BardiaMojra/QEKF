@@ -1,7 +1,6 @@
 from util import exp_map
 import sys
 import pandas as pd
-# from pdb import set_trace as st
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,20 +9,23 @@ import os
 
 
 # from pprint import pprint as pp
+from pdb import set_trace as st
 from nbug import *
-# from scipy.spatial.transform import Rotation as R
 
 
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
-''' config
-'''
+''' config '''
 prt_file_save_en = False
 prj_outDir = '../out02'
-qlabels = ['idx', 'Tx', 'Ty', 'Tz', 'qx', 'qy', 'qz', 'qw']
-vlabels = ['idx2', 'vx', 'vy', 'vz', 'wr', 'wp', 'wy']
+
+_X_LABELS  = ['Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw']
+_Z_LABELS  = ['Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw']
+_U_LABELS  = ['wr', 'wp', 'wy'] # aVel (ang vel Omega)
+qlabels = ['idx','Tx','Ty','Tz','qx','qy','qz','qw']
+vlabels = ['idx2','vx','vy','vz','wr','wp','wy']
 datasets = ['dataset-iphone1_clean',
             'bigC_06-Aug2021',
             'kitti_imu_0926_0001',
@@ -39,6 +41,10 @@ datasets = ['dataset-iphone1_clean',
             'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
             'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
 ]
+
+
+
+
 class dmm:
   ''' Data Management Module
   '''
@@ -259,16 +265,29 @@ class dmm:
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
-    ''' common df section '''
-    # load state variables
-    self.z_TVQxyzw_np = self.df[_Z_LABELS]
-    self.u_Wrpy_np = self.df[_U_LABELS]
+
+    ''' load data vectors '''
+    self.z_TVQxyzw_df = self.df[_Z_LABELS]
+    self.u_Wrpy_df = self.df[_U_LABELS]
+
+
+    # nsprint('self.z_TVQxyzw_df.head(5)', self.z_TVQxyzw_df.head(5))
+    # nsprint('self.u_Wrpy_df.head(5)', self.u_Wrpy_df.head(5))
+
+    self.z_TVQxyzw_np = self.df[_Z_LABELS].to_numpy()
+    self.u_Wrpy_np = self.df[_U_LABELS].to_numpy()
+    # nsprint('self.z_TVQxyzw_np', self.z_TVQxyzw_np)
+    # nsprint('self.u_Wrpy_np', self.u_Wrpy_np)
+
+    # nppshape('self.z_TVQxyzw_np', self.z_TVQxyzw_np)
+    # nppshape('self.u_Wrpy_np', self.u_Wrpy_np)
 
 
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
-    # save dataset to output dir
+    if self.start is None:
+      self.start = 0
     if self.prt == True:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return

@@ -105,53 +105,44 @@ class ExtendedKalmanFilter(object):
     '''
     # hx = np.dot(self.H, x_TVQxyz)
     # nsprint('hx.T', hx.T)
-    # self.y_Qxyzw = np.subtract(z_Qxyzw, hx.T).T # TVWQxyz
+    # self.y_Qxyzw = np.subtract(z_Qxyzw, hx) # TVWQxyz
     ''' quat part
     '''
-    x_q = get_Qwxyz(x_TVQxyz[6:9,0])
-    # nprint('x_q', x_q)
-    x_q = Quaternion(x_q) # wxyz input
+    x_q = Quaternion(get_Qwxyz(x_TVQxyz[6:9,0])) # wxyz input
     z_q = Quaternion(get_Qwxyz(z_Qxyz[0:3,0]))
-    nprint('x_q', x_q)
-    nprint('z_q', z_q)
+    # nprint('x_q', x_q)
+    # nprint('z_q', z_q)
     # st()
-    err_x_q = z_q * x_q.inverse # get quaternion error
-    # nprint('err_x_q = z_q * x_q.inverse')
-    nprint('err_x_q', err_x_q)
+    err_x_q = x_q * z_q.inverse # get quaternion error
+    # nprint('err_x_q', err_x_q)
     # st()
-    # nprint('Quaternion.log(err_x_q)', Quaternion.log(err_x_q))
-    # nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
-    # nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
-    y_PHIrpy = Q_log(err_x_q.elements) # get rotation error
-    # y_Qxyz = [e__log[0],e__log[1],e__log[2]] # load quat to
-    # self.K = self.K * self.K_scale
-    # nsprint('self.K', self.K)
-    # nsprint('e__log', y_PHIrpy)
+    y_PHIxyz = Q_log(err_x_q.elements) # get rotation error
     # st()
-    ky_PHIrpy = np.matmul(self.K, y_PHIrpy)
+    ky_PHIrpy = np.matmul(self.K, y_PHIxyz)
     # nsprint('ky_Qxyz', ky_PHIrpy)
-    # self.x_post_TVQxyz = x_prior_TVQxyz_tmp + ky # dot(self.K, self.y)
     x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
     # nsprint('x_q_corr', x_q_corr)
-    x_q_corr = Quaternion([x_q_corr[3],x_q_corr[0],x_q_corr[1],x_q_corr[2]])
-    nprint('x_q_corr', x_q_corr)
+    x_q_corr = Quaternion(get_Qwxyz(x_q_corr[0:3]))
+    # nprint('x_q_corr', x_q_corr)
     # st()
     # equation 6 from EKF2 paper # update quaternion
     x_q_post = x_q_corr * x_q  ## wxyz format
-    x_TVQxyz[6:9,0] = x_q_post.elements[1:4] # load quat xyz to x_post
+    x_TVQxyz[6:9,0] = x_q_post.elements[1:4] # from wxyz load quat xyz to x_post
     # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
     # st()
     # x_TVQxyz[9,0] = get_Qwxyz(x_q_post.elements[1:4])[0] # load quat xyz to x_post
     # nsprint('x_TVQxyzw[6:9,0]', x_TVQxyz[6:9,0])
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
+
     ''' log state vector '''
     x_TVQxyzw = np.ndarray((self.dim_x+1,1))
-    x_TVQxyzw[:6,0] = x_TVQxyz[:6,0]
+    # x_TVQxyzw[:6,0] = x_TVQxyz[:6,0]
     x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
     # nsprint('x_TVQxyzw', x_TVQxyzw)
     # st()
-    self.log.log_update(y_PHIrpy, x_TVQxyzw, self.P, self.K)
+    self.log.log_update(y_PHIxyz, x_TVQxyzw, self.P, self.K)
+
     return x_TVQxyz
 
   def predict_x(self, x_TVQxyz, u_FWrpy):
@@ -166,20 +157,16 @@ class ExtendedKalmanFilter(object):
     # est linPos
     x_TVQxyz[0:3] = x_TVQxyz[0:3]+self.T_*x_TVQxyz[3:6]+\
       ((self.T_)**2/2.0)*np.dot(self.C.T , u_Fxyz)
-
     # est linVel
     x_TVQxyz[3:6] = x_TVQxyz[3:6] + self.T_*(self.C.T @ u_Fxyz)
 
-    ''' est rotVec (quat) -- eq(18)
-    '''
+    ''' est rotVec (quat) -- eq(18) '''
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-    # u_Qxyzw = exp_map(self.T_ * u_Wrpy)
-    u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
+    u_Qxyzw = exp_map(self.T_ * u_Wrpy)
     u_Qwxyz = Quaternion(get_Qwxyz(u_Qxyzw[0:3]))
     x_Qwxyz = Quaternion(get_Qwxyz(x_TVQxyz[6:9,0]))
     x_Qwxyz = u_Qwxyz * x_Qwxyz
     x_TVQxyz[6:9,0] = x_Qwxyz.elements[1:4]
-    # x_TVQxyz[9,0] = get_Qwxyz_from_Qxyz(x_Qwxyz.elements[1:4])[0]
     return x_TVQxyz
 
   def predict(self, x_TVQxyz:np.ndarray, u_FWrpy:np.ndarray):
@@ -216,11 +203,12 @@ class ExtendedKalmanFilter(object):
     return
 
   def set_L(self):
-    ## QEKF2 L matrix
-    self.L = -np.eye(self.dim_x)
+    ## QEKF2 L matrix, based on eq26, 27, L_c
+    self.L = np.zeros((self.dim_x,self.dim_x))
     self.L[3:6,3:6] = -self.C.T
-    #self.L[6:9,6:9] = -np.eye(3)
+    self.L[6:9,6:9] = -np.eye(3)
     # nsprint('self.L', self.L)
+    # st()
     return
 
   def set_C(self, x_Qxyz:np.ndarray):

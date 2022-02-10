@@ -6,12 +6,14 @@ import pandas as pd
 import time
 # from scipy.spatial.transform import Rotation as R
 # from pyquaternion import Quaternion
-from qekf import ExtendedKalmanFilter as QEKF
+
 
 ''' private libraries
 '''
 from dmm import *
 from util import *
+from qekf import *
+
 
 ''' NBUG libraries
 '''
@@ -21,11 +23,14 @@ from nbug import *
 ''' general config '''
 NBUG          = True
 prt_output    = True
-_show         = False
-# _save         = True
-_prt          = False
+_show         = True
+_save         = True
+_prt          = True
 # _START        = 0
 # _END          = 150
+# _TEST_MODE    = 'all'
+_TEST_ID      = 12; _TEST_MODE = 'single'
+
 
 ''' matplotlib config '''
 # matplotlib.pyplot.ion()
@@ -57,10 +62,8 @@ _prt          = False
 '''
 
 def main():
-  testmode  = 'single'
-  test_id = 13
-  ''' OR '''
-  # testmode = 'all'
+  testmode  = _TEST_MODE
+  test_id = _TEST_ID
 
 
   if testmode == 'all':
@@ -92,9 +95,7 @@ def get_fignum_str(fignum):
 
 
 def run(data:str):
-  # globals
-  global fignum
-  fignum = int(0)
+  global fignum; fignum = int(0)
 
   # init dataset object
   dset = dmm(name=data,
@@ -132,17 +133,19 @@ def run(data:str):
   x_TVQxyz = qekf.x_TVQxyz # init state vectors
   for i in range(dset.start, dset.end):
     ''' EKF state machine '''
-    print('    \\--->>> new state ------->>>>>:  ', i)
+    # print('    \\--->>> new state ------->>>>>:  ', i)
     x_TVQxyz = x_TVQxyz # state estimate
-    u_AWrpy = dset.u_AWrpy_np[i].reshape(-1,1)
+    u_Wrpy = dset.u_Wrpy_np[i].reshape(-1,1)
     z_TVQxyz = dset.z_TVQxyzw_np[i,:-1].reshape(-1,1)
     z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for data logging
-    nsprint('x_TVQxyz', x_TVQxyz)
-    nsprint('u_AWrpy', u_AWrpy)
-    nsprint('z_TVQxyz', z_TVQxyz)
-    st()
-    x_TVQxyz = qekf.predict(x_TVQxyz, u_AWrpy)
-    x_TVQxyz = qekf.update(x_TVQxyz, z_TVQxyz, i)
+    # nsprint('x_TVQxyz', x_TVQxyz)
+    # nsprint('u_Wrpy', u_Wrpy)
+    # nsprint('z_TVQxyz', z_TVQxyz)
+    # st()
+    x_TVQxyz = qekf.predict(x_TVQxyz, u_Wrpy)
+    # nsprint('x_TVQxyz', x_TVQxyz)
+    x_TVQxyz = qekf.update(x_TVQxyz, z_TVQxyz)
+    # st()
     ''' log z state vector '''
     qekf.log.log_z_state(z_TVQxyzw, i)
   print('end of qekf data iterator ----->>')
@@ -150,13 +153,13 @@ def run(data:str):
 
   ''' post processing
   '''
-  quat_meas_df = pd.DataFrame(qekf.log.z_hist[:,9:13],
+  quat_meas_df = pd.DataFrame(qekf.log.z_hist[:,6:10],
                               index=qekf.log.idx,
                               columns=['qx', 'qy', 'qz', 'qw'])# change to xyzw
   # x_quat_wxyz
-  quat_est_df = pd.DataFrame(qekf.log.x_prior_hist[:,6:10],\
+  quat_est_df = pd.DataFrame(qekf.log.x_hist[:,6:10],\
     index=qekf.log.idx,\
-    columns=['qw', 'qx', 'qy', 'qz'])
+    columns=['qx', 'qy', 'qz', 'qw'])
 
   # plot EKF output
   fignum+=1;
@@ -191,7 +194,7 @@ def run(data:str):
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
-             'wr', 'wp', 'wy',\
+            #  'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz'])
 
   residual_df = qekf.get_losses(residual_df, dset.output_dir)
@@ -216,11 +219,11 @@ def run(data:str):
              'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz', 'qw'])
 
-  x_prior_df = pd.DataFrame(qekf.log.x_prior_hist,
+  x_prior_df = pd.DataFrame(qekf.log.x_hist,
     index=qekf.log.idx,\
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
-             'qw', 'qx', 'qy', 'qz'])
+             'qx', 'qy', 'qz', 'qw'])
 
   x_post_df = pd.DataFrame(qekf.log.x_post_hist,
     index=qekf.log.idx,\

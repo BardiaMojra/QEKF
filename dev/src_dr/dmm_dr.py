@@ -264,7 +264,8 @@ class dmm:
       exit()
     else:
       print(shorthead+'all timestamps match...'+longtail)
-    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
+    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
+    # self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
     # load np format
     self.Axyz_np = Axyz_np[:,1:]
     self.Wrpy_np = Wrpy_np[:,1:]
@@ -508,7 +509,7 @@ def set_axes_equal(ax):
 def plot_quat_vs_quat(quat_A_df,
   quat_B_df,
   title='_',
-  figname='fig_04',
+  figname='fig_0X',
   show=False,
   colors=['r','b'],
   save=True,
@@ -660,7 +661,7 @@ def plot_df(df:pd.DataFrame,
   t_cols = ['Tx', 'Ty', 'Tz']
   v_cols = ['vx', 'vy', 'vz']
   w_cols = ['wr', 'wp', 'wy']
-  q_cols = ['qx', 'qy', 'qz', 'qw']
+  q_cols = ['qx', 'qy', 'qz']
   loss_cols = ['L1', 'L2']
   # range padding
   pad = 1+range_padding
