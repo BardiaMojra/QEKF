@@ -1,10 +1,14 @@
 clear;clc;close all; 
 
-% activate vision toolbox by Peter Corke
-addpath('C:\Users\yxz162530\Downloads\vision-4.3\rvctools'); 
-run('C:\Users\yxz162530\Downloads\vision-4.3\rvctools\startup_rvc.m'); 
+% install Statistics and Machine Learning Toolbox
 
+% activate vision toolbox by Peter Corke
+addpath('rtb'); 
+addpath('vision'); 
 addpath('Helpers'); 
+run('./rtb/startup_rtb.m'); 
+
+
 
 % % show points and optical flows -------------------------------------------
 % figure(1); 
