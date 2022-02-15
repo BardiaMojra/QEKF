@@ -4,6 +4,7 @@ clear;clc;close all;
 
 % activate vision toolbox by Peter Corke
 addpath('rtb'); 
+addpath('smtb'); 
 addpath('vision'); 
 addpath('Helpers'); 
 run('./rtb/startup_rtb.m'); 
