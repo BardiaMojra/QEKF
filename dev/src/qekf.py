@@ -29,10 +29,7 @@ class ExtendedKalmanFilter(object):
                P_est_0,
                dim_u=0,
                log=True,
-               adaWind=25,
-               K_scale=1.0,
-               x_check=None,
-               P_check=None):
+               K_scale=1.0):
 
     self.K_scale = K_scale
     self.dim_x = dim_x
@@ -47,7 +44,8 @@ class ExtendedKalmanFilter(object):
     self.Q_c = np.eye(dim_x)        # process uncertainty
     # self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
-    self.K = np.zeros((dim_x,1)) # kalman gain -- 9
+    self.K = np.zeros((dim_x,1)) # kalman gain
+    self.K_scale = K_scale
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
     self.SI = np.zeros((dim_z, dim_z))  # inverse system uncertainty
     self.L = None

@@ -3,6 +3,7 @@ import sys
 # import pdb
 from pprint import pprint as pp
 import numpy as np
+import pandas as pd
 
 # enable nbug print
 nprt_en = True #False
@@ -34,12 +35,13 @@ def nppshape(string, ndarr:np.ndarray):
   if nprt_en is True:
     shape = str(ndarr.shape)
     print(shorthead+(string+': '+shape));
-    # pp(ndarr); print(shorttail)
 
-def nprint_2(string, *args):
-  if nprt_en2 is True:
-    print(shorthead+(string+': '));
-    pp(*args);
+def dfspp(string, df:pd.DataFrame):
+  if nprt_en is True:
+    shape = str(df.shape)
+    print(shorthead+(string+': '+shape));
+
+
 
 def plh():
   print(longhead);
@@ -47,7 +49,7 @@ def plh():
 def pstail():
   print(shorttail)
 
-def pltail():
+def plt():
   print(longtail)
 
 def pattn():

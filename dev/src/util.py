@@ -1,20 +1,12 @@
 import numpy as np
 from scipy.linalg import norm
 import pandas as pd
-from nbug import *
-from pdb import set_trace as st
 import datetime
 
 
+from nbug import *
+from pdb import set_trace as st
 
-
-
-
-def toQuat_set(Rrpy_df:pd.DataFrame) -> pd.DataFrame:
-
-  #todo
-
-  return Qxyzw_df
 
 
 def get_skew_symm_X(x):
