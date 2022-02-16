@@ -5,6 +5,18 @@ from nbug import *
 from pdb import set_trace as st
 import datetime
 
+
+
+
+
+
+def toQuat_set(Rrpy_df:pd.DataFrame) -> pd.DataFrame:
+
+  #todo
+
+  return Qxyzw_df
+
+
 def get_skew_symm_X(x):
   X = np.zeros((3,3))
   X[0,1] = -x[2]
