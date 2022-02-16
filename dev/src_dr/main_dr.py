@@ -27,7 +27,7 @@ print_output = True
 _show = True
 _save = True
 _prt = True
-_zoom = 5000
+# _zoom = 5000
 
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
@@ -35,7 +35,7 @@ plt.style.use('ggplot')
 
 ''' datasets
  0  dead_reckoning_01
- 1
+ 1  test_001_vicon_training_day
  2
  3
  4
@@ -61,7 +61,7 @@ plt.style.use('ggplot')
 def main():
   testmode  = 'single'
   # testmode = 'all'
-  test_id = 0
+  test_id = 1
 
   if testmode == 'all':
     print(shorthead+'starting all test sequences:')
@@ -100,8 +100,8 @@ def run(data:str):
   dset = dmm(name=data,
              VestScale=1,
              data_rate_inv=1/10,
-             start=2000,
-             end=6000,
+            #  start=2000,
+            #  end=6000,
              prt=_prt)
 
   dset.format_data()

@@ -25,13 +25,18 @@ plt.style.use('ggplot')
 
 ''' module config
 '''
-imuDir = r"../data/dead_reckoning_data/1/imu/"
-viconDir = r"../data/dead_reckoning_data/1/vicon/"
+# imuDir = r"../data/dead_reckoning_data/1/imu/"
+# viconDir = r"../data/dead_reckoning_data/1/vicon/"
+
+imuDir = r"../data/test_001_vicon_training_day/imu/"
+viconDir = r"../data/test_001_vicon_training_day/vicon/"
 prj_outDir = '../out03' # <<-- used out03 for acce qekf output
 
 ''' dataset config
 '''
-datasets = [ 'dead_reckoning_01']
+datasets = [ 'dead_reckoning_01',
+            'test_001_vicon_training_day',
+            ]
 Axyz_labels = ['Ax', 'Ay', 'Az'] # lin acc
 # Vxyz_labels = ['Vx', 'Vy', 'Vz'] # lin vel
 # Txyz_labels = ['Tx', 'Ty', 'Tz'] # lin trans
@@ -57,6 +62,13 @@ class dmm:
     # set dataset configs
     if name == 'dead_reckoning_01':
       # src_dir = _src_dir01
+      output_dir = prj_outDir+'/out_'+name+'/'
+      ext = 'txt'
+      opt = ' '
+      # data_rate_inv = 0.1
+      # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+    elif name == 'test_001_vicon_training_day':
+        # src_dir = _src_dir01
       output_dir = prj_outDir+'/out_'+name+'/'
       ext = 'txt'
       opt = ' '
@@ -112,6 +124,8 @@ class dmm:
         - vicon for Txyz and Qxyzw for z (ground truth)
       '''
     if self.name=="dead_reckoning_01":
+      self.read_interp_data()
+    elif self.name=="test_001_vicon_training_day":
       self.read_interp_data()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
@@ -227,33 +241,34 @@ class dmm:
     # Qxyzw_df.index = Qxyzw_np[:,0]
     fname = 'gyro_resamp.txt' # angVel_Wrpy
     Wrpy_np = np.loadtxt(imuDir+fname, dtype=np.float64,\
-      delimiter=',', skiprows=0)
+      delimiter=',', skiprows=1)
     Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
                                   columns=self.Wrpy_labels)
     # Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
-    # nprint('angAcc_df', angAcc_df)
-
-    ''' get vicon position and orientation (rv-quat)
-        ground truth only
-    '''
     fname = 'vi_resamp.txt' # vicon
     vicon_np = np.loadtxt(viconDir+fname, dtype=np.float64,\
-      delimiter=',', skiprows=0)
+      delimiter=',', skiprows=1)
     vicon_df = pd.DataFrame(vicon_np[:,1:],
                                   columns=self.vicon_labels)
     # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
+
     # compare timestamps
     compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
     if np.all(compare == True):
       pass
     else:
       nprint('compare', compare)
+
+
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
     compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
     if np.all(compare == True):
       pass
     else:
+
+      st()
+
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()

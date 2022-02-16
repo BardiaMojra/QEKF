@@ -1,5 +1,6 @@
 
 
+from posixpath import split
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 import pandas as pd
@@ -20,28 +21,33 @@ from vi_config import *
 
 ''' module config
 '''
+TEST_ = 'test_001_vicon_training_day'
+
 DATA_FILE = 'vi_clean.csv'
 OUT_FILE  = 'vi_w_timestamps.txt'
 CONFIG_FILE = 'vi.json'
-DIR = "../data/test_001_vicon_training_day/vicon/"
+viDir = '../data/'+TEST_+"/vicon/"
+imuDir = '../data/'+TEST_+"/imu/"
 
 
 def main():
-  fname = DIR+CONFIG_FILE
+  fname = viDir+CONFIG_FILE
   with open(fname) as f:
     config = json.load(f)
     f.close()
 
   nprint('config', config)
-  start_epoch = get_unix_time_from_str(config['start_time'])
-  end_epoch = get_unix_time_from_str(config['end_time'])
+  # start_epoch = get_unix_time_from_str(config['start_time'])
+  # end_epoch = get_unix_time_from_str(config['end_time'])
+  start_epoch = get_rv_unix_time(imuDir, 'start')
+  end_epoch = get_rv_unix_time(imuDir, 'end')
   nprint('start_epoch', start_epoch)
   nprint('end_epoch', end_epoch)
 
-  fname = DIR+DATA_FILE
+  fname = viDir+DATA_FILE
   vicon_df = pd.read_csv(fname, header=0)
   vicon_df.drop(labels=['Frame'], axis=1, inplace=True)
-  numSamps = vicon_df.shape[0] - 1
+  numSamps = vicon_df.shape[0] #- 1
   # st()
   timestamps = get_epoch_series(start_epoch, end_epoch, numSamps)
   vicon_df.index = timestamps
@@ -61,10 +67,24 @@ def main():
   dfspp('vicon_df', vicon_df)
   # st()
 
-  vicon_df.to_csv(DIR+OUT_FILE, sep=',', mode='w', header=False)
+  vicon_df.to_csv(viDir+OUT_FILE, sep=',', mode='w', header=False)
   print('end of process...')
   plt()
   return # end of main
+
+def get_rv_unix_time(imuDir, ins):
+
+  fname = imuDir+'rv.txt'
+  with open(fname, 'r') as f:
+    data = f.read().splitlines()
+    f.close()
+    if ins == 'start': i = 0;
+    if ins == 'end': i = -1;
+    line = data[i]
+    utime = line.split(' ')
+  return int(utime[0])
+
+
 
 def toQuat_set(Rxyz_df:pd.DataFrame):
   Qlabels = ['Qx','Qy','Qz','Qw']

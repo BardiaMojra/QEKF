@@ -41,7 +41,11 @@ def dfspp(string, df:pd.DataFrame):
     shape = str(df.shape)
     print(shorthead+(string+': '+shape));
 
-
+def nlprint(string, list_like:list):
+  if nprt_en is True:
+    le = str(len(list_like))
+    print(shorthead+(string+': '+le));
+    # pp(list_like); print(shorttail)
 
 def plh():
   print(longhead);

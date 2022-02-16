@@ -3,19 +3,27 @@
 % @date 01/20/2022
 % @title  Dead Reckoning Project - gyro interpolation and resampling 
 
+clear
+close all
+
+
 % config
-rv_fname = '/home/smerx/git/QEKF/dev/data/dead_reckoning_data/1/imu/rv.txt';
-gyro_fname = '/home/smerx/git/QEKF/dev/data/dead_reckoning_data/1/imu/gyro.txt';
-gyro_resamp_fname = '/home/smerx/git/QEKF/dev/data/dead_reckoning_data/1/imu/gyro_resamp.txt';
-vicon_fname = '/home/smerx/git/QEKF/dev/data/dead_reckoning_data/1/vicon/vi_w_timestamps.txt';
-vicon_resamp_fname = '/home/smerx/git/QEKF/dev/data/dead_reckoning_data/1/vicon/vi_resamp.txt';
+% testDir = 'dead_reckoning_data/1/';
+testDir = 'test_001_vicon_training_day/';
+dataDir = '/home/smerx/git/QEKF/dev/data/';
+
+rv_f    = strcat(dataDir, testDir, 'imu/rv.txt');
+gy_f    = strcat(dataDir, testDir, 'imu/gyro.txt');
+gy_n_f  = strcat(dataDir, testDir, 'imu/gyro_resamp.txt');
+vi_f    = strcat(dataDir, testDir, 'vicon/vi_w_timestamps.txt');
+vi_n_f  = strcat(dataDir, testDir, 'vicon/vi_resamp.txt');
 
 % low res data 
-data_rv = importdata(rv_fname);    
+data_rv = importdata(rv_f);    
 t = data_rv(:,1); 
 
 % high res data
-data = importdata(gyro_fname);
+data = importdata(gy_f);
 t_h = data(:,1);
 x_h = data(:,2);
 y_h = data(:,3);
@@ -27,7 +35,7 @@ z_hq = interp1(t_h,z_h,t);
 
 
 % high res data - vicon
-vi_data = importdata(vicon_fname);
+vi_data = importdata(vi_f);
 t_vi = vi_data(:,1);
 qx_vi  = vi_data(:,2);
 qy_vi  = vi_data(:,3);
@@ -108,11 +116,11 @@ legend('vi: z');
 % save new dataset as .txt file 
 % create a table [t, x, y, z]
 new_data = table(t,x_hq,y_hq,z_hq);
-writetable(new_data, gyro_resamp_fname);
+writetable(new_data, gy_n_f);
 
 % save vicon data 
 new_data = table(t,qx_viq,qy_viq,qz_viq,qw_viq,x_viq,y_viq,z_viq);
-writetable(new_data, vicon_resamp_fname);
+writetable(new_data, vi_n_f);
 
 
 
