@@ -25,9 +25,9 @@ plt.style.use('ggplot')
 # imuDir = r"../data/dead_reckoning_data/1/imu/"
 # viconDir = r"../data/dead_reckoning_data/1/vicon/"
 
-imuDir = r"../data/test_001_vicon_training_day/imu/"
-viconDir = r"../data/test_001_vicon_training_day/vicon/"
-prj_outDir = '../out03' # <<-- used out03 for acce qekf output
+imuDir = "../data/test_001_vicon_training_day/imu/"
+viconDir = "../data/test_001_vicon_training_day/vicon/"
+outDir = '../out03' # <<-- used out03 for acce qekf output
 
 ''' dataset config
 '''
@@ -50,23 +50,29 @@ class dmm:
   '''
   def __init__(self,
                name,
+               imuDir,
+               viDir,
+               outDir=None,
                VestScale=1.0,
                data_rate_inv=1/100,
                start=0,
                end=None,
                prt=True,
                save=True):
+    if outDir is None:
+      eprint(longhead+'Err--->> Missing output directory: DMM '+name+longtail)
+
     # set dataset configs
     if name == 'dead_reckoning_01':
       # src_dir = _src_dir01
-      output_dir = prj_outDir+'/out_'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'txt'
       opt = ' '
       # data_rate_inv = 0.1
       # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'test_001_vicon_training_day':
         # src_dir = _src_dir01
-      output_dir = prj_outDir+'/out_'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'txt'
       opt = ' '
       # data_rate_inv = 0.1
@@ -81,7 +87,9 @@ class dmm:
     ''' init '''
     # data
     self.name = name
-    self.imuDir = None
+    self.imuDir = imuDir
+    self.viDir = viDir
+    self.outDir = outDir
     self.ext = ext
     self.dtype = np.float64
     self.options = opt
@@ -248,24 +256,18 @@ class dmm:
     vicon_df = pd.DataFrame(vicon_np[:,1:],
                                   columns=self.vicon_labels)
     # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
-
     # compare timestamps
     compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
     if np.all(compare == True):
       pass
     else:
       nprint('compare', compare)
-
-
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()
     compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
     if np.all(compare == True):
       pass
     else:
-
-      st()
-
       nprint('compare', compare)
       eprint(shorthead+'timestamp mismatch...'+longtail)
       exit()

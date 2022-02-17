@@ -17,7 +17,7 @@ from util import *
 from nbug import *
 from pdb import set_trace as st
 
-class ExtendedKalmanFilter(object):
+class QEKF(object):
   def __init__(self,
                dim_x,
                dim_z,

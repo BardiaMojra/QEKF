@@ -5,8 +5,15 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
+import csv
 
 from util import exp_map
+
+
+
+''' matplotlib config '''
+matplotlib.pyplot.ion()
+plt.style.use('ggplot')
 
 
 # from pprint import pprint as pp
@@ -14,19 +21,28 @@ from pdb import set_trace as st
 from nbug import *
 
 
-''' matplotlib config '''
-matplotlib.pyplot.ion()
-plt.style.use('ggplot')
-
 ''' config '''
 prt_file_save_en = True
-prj_outDir = '../out02'
+outDir = '../out04'
 
-_X_LABELS  = ['Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw']
-_Z_LABELS  = ['Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw']
-_U_LABELS  = ['wr', 'wp', 'wy'] # aVel (ang vel Omega)
-qlabels = ['idx','Tx','Ty','Tz','qx','qy','qz','qw']
-vlabels = ['idx2','vx','vy','vz','wr','wp','wy']
+
+
+
+''' dataset config '''
+# Axyz_labels   = ['Ax','Ay','Az']
+Vxyz_labels   = ['Vx','Vy','Vz']
+Txyz_labels   = ['Tx','Ty','Tz']
+# Arpy_labels   = ['Ar','Ap','Ay']
+Wrpy_labels   = ['wr','wp','wy']
+Qxyzw_labels  = ['Qx','Qy','Qz','Qw']
+vicon_labels = ['Qx_gt','Qy_gt','Qz_gt','Qw_gt','Tx_gt','Ty_gt','Tz_gt']
+_X_LABELS  = Txyz_labels+Vxyz_labels+Qxyzw_labels
+_Z_LABELS  = Txyz_labels+Vxyz_labels+Qxyzw_labels
+_U_LABELS  = ['Wr', 'Wp', 'Wy'] # aVel (ang vel Omega)
+
+# qlabels = ['idx','Tx','Ty','Tz','qx','qy','qz','qw']
+# vlabels = ['idx2','vx','vy','vz','wr','wp','wy']
+
 datasets = ['dataset-iphone1_clean',
             'bigC_06-Aug2021',
             'kitti_imu_0926_0001',
@@ -41,6 +57,7 @@ datasets = ['dataset-iphone1_clean',
             'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
             'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
             'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
+            'test_001_vicon_training_day',
 ]
 
 
@@ -60,96 +77,106 @@ class dmm:
 
     # set dataset configs
     if name == 'dataset-iphone1_clean':
-      src_dir = '../data/dataset-iphone1_clean/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/dataset-iphone1_clean/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'xlsx'
       opt = None
     elif name == 'bigC_06-Aug2021':
-      src_dir = '../data/bigC_06-Aug2021/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/bigC_06-Aug2021/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name ==  'kitti_imu_0926_0001':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0002':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0005':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0018':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0060':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0084':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0113':
-      src_dir = '../data/KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0928_0001':
-      src_dir = '../data/KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off':
-      src_dir = '../data/'+name+'/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name =='Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
-      src_dir = '../data/'+name+'/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
-      src_dir = '../data/'+name+'/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
-      src_dir = '../data/'+name+'/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
-      src_dir = '../data/'+name+'/'
-      output_dir = prj_outDir+'/out_'+name+'/'
+      self.srcDir = '../data/'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ',' # space separator for csv file
+    elif name == 'test_001_vicon_training_day':
+      # src_dir = _src_dir01
+      self.srcDir = '../data/'+name+'/'
+      output_dir = outDir+'/out_'+name+'/'
+      self.imuDir = self.srcDir+'imu/'
+      self.viDir = self.srcDir+'vi/'
+      ext = 'txt'
+      opt = ' '
+      # data_rate_inv = 0.1
+      # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     else:
       eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
 
@@ -162,7 +189,6 @@ class dmm:
     ''' init '''
     # data
     self.name = name
-    self.src_dir = src_dir
     self.ext = ext
     self.dtype = np.float64
     self.options = opt
@@ -177,18 +203,26 @@ class dmm:
     # df init
     self.df = None
     self.len = None
-    self.qlabels = qlabels
-    self.vlabels = vlabels
-    self.labels = qlabels + vlabels
-    self.quest = None
-    self.vest = None
-    self.trans_xyz = None
-    self.vel_xyz = None
-    self.acc_xyz = None
-    self.quat_xyzw = None # rotation in quaternion - x,y,z,w
-    self.quat_wxyz = None # rotation in quaternion - w,x,y,z
-    self.vel_rpy = None # rad/sec - roll, pitch, yaw
-    self.acc_rpy = None # rad/sec^2 - roll, pitch, yaw
+    # self.Axyz_labels = Axyz_labels
+    self.Vxyz_labels = Vxyz_labels
+    self.Txyz_labels = Txyz_labels
+    # self.Arpy_labels = Arpy_labels
+    self.Wrpy_labels = Wrpy_labels
+    self.Qxyzw_labels = Qxyzw_labels
+    self.vicon_labels = vicon_labels
+
+
+
+    self.Axyz_np = None # xyz acc
+    self.Vxyz_np = None # xyz vel
+    self.Txyz_np = None # xyz translation
+    self.Arpy_np = None # rpy ang acc
+    self.Wrpy_np = None # rpy ang vel
+    self.Qxyzw_np = None # Qxyzw ang ori
+
+
+
+
     # end of __init__() <<--------------------------------------
 
   def format_data(self):
@@ -216,15 +250,15 @@ class dmm:
     '''
     if self.name=="iphone_mouse_zoom_2" and self.ext=='csv':
       fname = 'u_cord_subpix.csv'
-      self.df = pd.read_csv(self.src_dir+fname)
+      self.df = pd.read_csv(self.srcDir+fname)
     elif self.name=="dataset-iphone1_clean" and self.ext=='xlsx':
       # load QuEst data
       fname = 'quest.xlsx'
-      self.quest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
+      self.quest = pd.read_excel(self.srcDir+fname, engine='openpyxl',\
         index_col=0, dtype=self.dtype, header=0)
       # load VEst data
       fname = 'vest.xlsx'
-      self.vest = pd.read_excel(self.src_dir+fname, engine='openpyxl',\
+      self.vest = pd.read_excel(self.srcDir+fname, engine='openpyxl',\
         index_col=0, dtype=self.dtype, header=0)
       # load data frame
       self.df = pd.concat([self.quest, self.vest], axis=1)
@@ -263,54 +297,148 @@ class dmm:
       self.load_kitti_set()
     elif self.name=="kitti_imu_0928_0001" and self.ext=='csv':
       self.load_kitti_set()
+    elif self.name=="dead_reckoning_01":
+      self.read_interp_data()
+    elif self.name=="test_001_vicon_training_day":
+      self.load_imu_vi_data()
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
 
-    ''' load data vectors '''
-    self.z_TVQxyzw_df = self.df[_Z_LABELS]
-    self.u_Wrpy_df = self.df[_U_LABELS]
-
-
-    # nsprint('self.z_TVQxyzw_df.head(5)', self.z_TVQxyzw_df.head(5))
-    # nsprint('self.u_Wrpy_df.head(5)', self.u_Wrpy_df.head(5))
-
-    self.z_TVQxyzw_np = self.df[_Z_LABELS].to_numpy()
-    self.u_Wrpy_np = self.df[_U_LABELS].to_numpy()
-    # nsprint('self.z_TVQxyzw_np', self.z_TVQxyzw_np)
-    # nsprint('self.u_Wrpy_np', self.u_Wrpy_np)
-
-    # nppshape('self.z_TVQxyzw_np', self.z_TVQxyzw_np)
-    # nppshape('self.u_Wrpy_np', self.u_Wrpy_np)
-
-
+    ''' common df section '''
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
-    if self.start is None:
-      self.start = 0
-    if self.prt == True:
+    if self.save == True:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return
 
-  def get(self, quat_format=None):
-    if quat_format=='xyzw':
-      print(longhead+'using xyzw quaternion rotation notation...')
-      return self.trans_xyz, self.vel_xyz, self.quat_xyzw, self.vel_rpy
+  def load_imu_vi_data(self):
+    # load lin acce data
+    fname = 'linacce.txt' # Axyz
+    Axyz_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=0)
+    Axyz_df = pd.DataFrame(Axyz_np[:,1:], columns=self.Axyz_labels)
+    # Axyz_df.index = Axyz_np[:,0]
+    # load rotVec (Qxyzw) rv.txt
+    fname = 'rv.txt' # Qxyzw
+    Qxyzw_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=0)
+    Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
+    # Qxyzw_df.index = Qxyzw_np[:,0]
+    fname = 'gyro_resamp.txt' # angVel_Wrpy
+    Wrpy_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
+      delimiter=',', skiprows=1)
+    Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
+                                  columns=self.Wrpy_labels)
+    # Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
+    fname = 'vi_resamp.txt' # vicon
+    vicon_np = np.loadtxt(self.viDir+fname, dtype=np.float64,\
+      delimiter=',', skiprows=1)
+    vicon_df = pd.DataFrame(vicon_np[:,1:],
+                                  columns=self.vicon_labels)
+    # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
+    # compare timestamps
+    compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
+    if np.all(compare == True):
+      pass
     else:
-      print(longhead+'using wxyz quaternion rotation notation...')
-      return self.trans_xyz, self.vel_xyz, self.quat_wxyz, self.vel_rpy
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
+    if np.all(compare == True):
+      pass
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    compare = np.where(Axyz_np[:,0]==vicon_np[:,0], True, False)
+    if not np.all(compare == True):
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    else:
+      print(shorthead+'all timestamps match...'+longtail)
+    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
+    # self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
+    # load np format
+    self.Axyz_np = Axyz_np[:,1:]
+    self.Wrpy_np = Wrpy_np[:,1:]
+    self.Qxyzw_np = Qxyzw_np[:,1:]
+    self.z_Qxyzw_np = self.Qxyzw_np
+    self.u_AWrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
+    return
+
+  def read_interp_data(self): # dead reckoning
+    # load lin acce data
+    fname = 'linacce.txt' # Axyz
+    Axyz_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=0)
+    Axyz_df = pd.DataFrame(Axyz_np[:,1:], columns=self.Axyz_labels)
+    # Axyz_df.index = Axyz_np[:,0]
+    # load rotVec (Qxyzw) rv.txt
+    fname = 'rv.txt' # Qxyzw
+    Qxyzw_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
+      delimiter=' ', skiprows=0)
+    Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
+    # Qxyzw_df.index = Qxyzw_np[:,0]
+    fname = 'gyro_resamp.txt' # angVel_Wrpy
+    Wrpy_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
+      delimiter=',', skiprows=1)
+    Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
+                                  columns=self.Wrpy_labels)
+    # Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
+    fname = 'vi_resamp.txt' # vicon
+    vicon_np = np.loadtxt(self.viDir+fname, dtype=np.float64,\
+      delimiter=',', skiprows=1)
+    vicon_df = pd.DataFrame(vicon_np[:,1:],
+                                  columns=self.vicon_labels)
+    # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
+    # compare timestamps
+    compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
+    if np.all(compare == True):
+      pass
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
+    if np.all(compare == True):
+      pass
+    else:
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    compare = np.where(Axyz_np[:,0]==vicon_np[:,0], True, False)
+    if not np.all(compare == True):
+      nprint('compare', compare)
+      eprint(shorthead+'timestamp mismatch...'+longtail)
+      exit()
+    else:
+      print(shorthead+'all timestamps match...'+longtail)
+    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
+    # self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
+    # load np format
+    self.Axyz_np = Axyz_np[:,1:]
+    self.Wrpy_np = Wrpy_np[:,1:]
+    self.Qxyzw_np = Qxyzw_np[:,1:]
+    self.z_Qxyzw_np = self.Qxyzw_np
+    self.u_AWrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
+    return
+
+
 
   def plot(self, labels, show=True, save=True, figname='fig_01', title='_'):
     df = self.df[list(labels)] # plot mentioned columns (labels)
     #fig01 = plt.figure()
     df.plot()
-    plt.legend(loc='best')
+    # plt.legend(loc='best')
     if title != '_':
       plt.title('{}'.format(title))
       title = title.replace(' ', '_')
     plt.xlabel('Time')
-    plt.ylabel('Magnitute')
+    plt.ylabel('Magnitude')
     # save and show image utility
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
@@ -355,7 +483,7 @@ class dmm:
         └── timestamps.txt
     '''
     # get time stamp
-    times_dir = self.src_dir+'timestamps.txt'
+    times_dir = self.srcDir+'timestamps.txt'
     times = list()
     periods = list()
     with open(times_dir) as file:
@@ -376,7 +504,7 @@ class dmm:
     # get data format
     labels = list()
     briefs = list()
-    format_dir = self.src_dir+'dataformat.txt'
+    format_dir = self.srcDir+'dataformat.txt'
     with open(format_dir) as file:
       for line in file:
         [label, brief] = line.split(sep=':', maxsplit=1)
@@ -384,7 +512,7 @@ class dmm:
         brief = brief.replace('\n','')
         briefs.append(brief)
     # get data
-    data_dir = self.src_dir+'data/'
+    data_dir = self.srcDir+'data/'
     files = os.listdir(data_dir)
     imu_data = None
     for file in sorted(files):
@@ -431,39 +559,23 @@ class dmm:
   def load_QuVest_set(self):
     # load QuEst data
     fname = 'quest_post_vest.csv'
-    self.quest = pd.read_csv(self.src_dir+fname,
+    self.quest = pd.read_csv(self.srcDir+fname,
       sep=self.options, index_col=0, dtype=self.dtype)
     # load VEst data
     fname = 'vest.csv'
-    self.vest = pd.read_csv(self.src_dir+fname,
+    self.vest = pd.read_csv(self.srcDir+fname,
       sep=self.options, index_col=0, dtype=self.dtype)
     # load data frame
     self.df = pd.concat([self.quest, self.vest], axis=1)
     #self.df.columns = self.labels# load state variables
     return
 
-  # def load_sigfig_set(self):
-  #   # load QuEst data
-  #   fname = 'quest_post_vest.csv'
-  #   self.quest = pd.read_csv(self.src_dir+fname,
-  #     sep=self.options, index_col=0, dtype=self.dtype)
-  #   # load VEst data
-  #   fname = 'vest.csv'
-  #   self.vest = pd.read_csv(self.src_dir+fname,
-  #     sep=self.options, index_col=0, dtype=self.dtype)
-  #   # load data frame
-  #   self.df = pd.concat([self.quest, self.vest], axis=1)
-  #   #self.df.columns = self.labels# load state variables
-  #   return
-
-
-  ''' end of dmm class...
-  '''
+  ''' end of dmm class '''
 
 def get_quat_data(df:pd.DataFrame):
   Rrpy = df[['Rr', 'Rp', 'Ry']]
   Q_xyzw = list()
-  Qxyzw_labels = ['qx', 'qy', 'qz', 'qw']
+  Qxyzw_labels = Qxyzw_labels
   for i, row in Rrpy.iterrows():
     rot_vec = np.asarray([[row[0]], [row[1]], [row[2]]])
     q_xyzw = np.asarray(exp_map(rot_vec), dtype=object)
@@ -525,7 +637,7 @@ def set_axes_equal(ax):
 def plot_quat_vs_quat(quat_A_df,
   quat_B_df,
   title='_',
-  figname='fig_04',
+  figname='fig_0x',
   show=False,
   colors=['r','b'],
   save=True,
