@@ -9,7 +9,7 @@ import pandas as pd
 nprt_en = True #False
 nprt_en2 = True
 
-
+linehead = '\n\n  \--->> '
 longhead = '\n\-->> '
 shorthead = '\-->> '
 longtail = '\n\n'

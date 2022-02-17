@@ -1,15 +1,13 @@
 import sys
 import pandas as pd
-import math
-from math import isnan
-from pdb import set_trace as st
 import numpy as np
 
-linehead = '\n\n  \--->> '
-longtail = '\n\n'
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+from pdb import set_trace as st
+from nbug import *
+
+
+
 
 class dlm:
   ''' Data Logger Module
@@ -17,21 +15,14 @@ class dlm:
   def __init__(self, enabled=True):
     self.enabled = enabled
     if self.enabled == True:
-      # log measurement (marginal) state
       self.idx = None
       self.z_hist = None # state measurement history
-      # log est (prior) state
       self.x_hist = None # state estimate history
-      self.P_prior_hist = None # state covar estimate history
-      # log update (posterior) state
       self.v_hist = None # residual history
-      self.x_post_hist = None # state estimation posterior history
-      self.P_post_hist = None # state estimation covar posterior history
+      self.P_hist = None # state estimation covar posterior history
       self.K_hist = None # Kalman gain matrix history
-      self.x_q_hist = np.ndarray(shape=(0,4))
-      self.x_prior_q_hist = np.ndarray(shape=(0,4))
     else:
-      eprint(linehead+'Warning: data logger is DISABLED...\n\n')
+      eprint('Warning: data logger is DISABLED...\n\n')
     return
 
   def log_z_state(self, z, idx):
