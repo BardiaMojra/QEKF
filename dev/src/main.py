@@ -88,11 +88,6 @@ def main():
 
 ''' local routines
 '''
-def get_fignum_str(fignum):
-  ''' usage: fignum+=1;get_fignum_str(fignum)
-  '''
-  return 'fig_%03i' % fignum
-
 
 def run(data:str):
   global fignum; fignum = int(0)
@@ -108,19 +103,20 @@ def run(data:str):
   dset.format_data()
 
   fignum+=1;
-  dset.plot(labels=dset.df.columns,
-            figname=get_fignum_str(fignum),
+  dset.plot(df=dset.df,
+            labels=dset.df.columns,
+            fignum=fignum,
             title=data,
             show=_show)
 
   # fignum+=1;
   # dset.plot_trans_3d(title='Ground Truth Translation',
-  #     figname=get_fignum_str(fignum),
-  # show=False)
+  #                    fignum=fignum,
+  #                    show=_show)
 
   # init QEKF object
-  qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyz -- linPos, linVel, rotVec (quat)
-              dim_z=9, # Txyz, Vxyz, Qxyz -- linPos, linVel, rotVec (quat)
+  qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
+              dim_z=9, # Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
               dim_u=6, # Axyz, Wrpy
               deltaT=dset.data_rate_inv,
               Q_T_xyz=1.0e-5, # process noise covar
@@ -134,7 +130,6 @@ def run(data:str):
   for i in range(dset.start, dset.end):
     ''' EKF state machine '''
     # print('    \\--->>> new state ------->>>>>:  ', i)
-    x_TVQxyz = x_TVQxyz # state estimate
     u_Wrpy = dset.u_Wrpy_np[i].reshape(-1,1)
     z_TVQxyz = dset.z_TVQxyzw_np[i,:-1].reshape(-1,1)
     z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for data logging
@@ -166,7 +161,7 @@ def run(data:str):
   plot_quat_vs_quat(quat_A_df=quat_meas_df,
     quat_B_df=quat_est_df,
     title='z vs x_prior free range',
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     show=_show,
     colors=['maroon','darkgoldenrod'],
     save=True,
@@ -180,7 +175,7 @@ def run(data:str):
   plot_quat_vs_quat(quat_A_df=quat_meas_df,
     quat_B_df=quat_est_df,
     title='z vs x_prior unit range',
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     show=_show,
     colors=['maroon','darkgoldenrod'],
     save=True,
@@ -204,7 +199,7 @@ def run(data:str):
     cols=1,
     title='v residual',
     show=_show,
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     output_dir=dset.output_dir)
 
   # print losses
@@ -243,7 +238,7 @@ def run(data:str):
   plot_Txyz_vs_Txyz_3d(z_Txyz_df,
     x_post_Txyz_df,
     title='z vs x_posterior translation',
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     show=_show,
     labels=['z', 'x_post'],
     output_dir=dset.output_dir)
@@ -252,7 +247,7 @@ def run(data:str):
   plot_Txyz_vs_Txyz_3d(z_Txyz_df,
     x_post_Txyz_df,
     title='z vs x_posterior translation zoom',
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     show=_show,
     labels=['z', 'x_post'],
     end=_zoom,
@@ -279,7 +274,7 @@ def run(data:str):
     x_post_TVQxyz_df,
     labels=['z', 'x_post'],
     title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     show=_show,
     output_dir=dset.output_dir)
 
@@ -288,7 +283,7 @@ def run(data:str):
   #  x_post_TVQxyz_df,
   #  labels=['z', 'x_post'],
   #  title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
-  #  figname='fig_13',
+  #  fignum='fig_13',
   #  show=_show,
   #  output_dir=dset.output_dir)
 
@@ -303,7 +298,7 @@ def run(data:str):
   fignum+=1;
   plot_df_grp_K(df=K_df,
     title='Kalman Gain - K_scalar '+str(qekf.K_scale),
-    figname=get_fignum_str(fignum),
+    fignum=fignum,
     show=False,
     output_dir=dset.output_dir)
 
@@ -325,13 +320,13 @@ def run(data:str):
     print(x_prior_q_df.head(5))
 
   # plot EKF output
-  fignum+=1; get_fignum_str(fignum)
+  fignum+=1; fignum
   plot_z_df_vs_x_df(x_q_df,
     x_prior_q_df,
     labels=['x_q', 'x_prior'],
     rows=4,cols=1,
     title='x_q vs x_prior Quaternions',
-    figname='fig_13',
+    fignum='fig_13',
     show=_show,
     figsize=[5,10])
   '''

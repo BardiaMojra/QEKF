@@ -211,17 +211,12 @@ class dmm:
     self.Qxyzw_labels = Qxyzw_labels
     self.vicon_labels = vicon_labels
 
-
-
-    self.Axyz_np = None # xyz acc
+    # self.Axyz_np = None # xyz acc
     self.Vxyz_np = None # xyz vel
     self.Txyz_np = None # xyz translation
-    self.Arpy_np = None # rpy ang acc
+    # self.Arpy_np = None # rpy ang acc
     self.Wrpy_np = None # rpy ang vel
     self.Qxyzw_np = None # Qxyzw ang ori
-
-
-
 
     # end of __init__() <<--------------------------------------
 
@@ -306,6 +301,8 @@ class dmm:
       exit()
 
     ''' common df section '''
+    nprint('self.df.head(5)', self.df.head(5))
+    nprint('self.df.tail(5)', self.df.tail(5))
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len
@@ -314,6 +311,9 @@ class dmm:
     return
 
   def load_imu_vi_data(self):
+
+    #todo not valid -- need QUest Vest processing
+
     # load lin acce data
     fname = 'linacce.txt' # Axyz
     Axyz_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
@@ -366,108 +366,52 @@ class dmm:
     self.Axyz_np = Axyz_np[:,1:]
     self.Wrpy_np = Wrpy_np[:,1:]
     self.Qxyzw_np = Qxyzw_np[:,1:]
-    self.z_Qxyzw_np = self.Qxyzw_np
-    self.u_AWrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
-    return
-
-  def read_interp_data(self): # dead reckoning
-    # load lin acce data
-    fname = 'linacce.txt' # Axyz
-    Axyz_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
-      delimiter=' ', skiprows=0)
-    Axyz_df = pd.DataFrame(Axyz_np[:,1:], columns=self.Axyz_labels)
-    # Axyz_df.index = Axyz_np[:,0]
-    # load rotVec (Qxyzw) rv.txt
-    fname = 'rv.txt' # Qxyzw
-    Qxyzw_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
-      delimiter=' ', skiprows=0)
-    Qxyzw_df = pd.DataFrame(Qxyzw_np[:,1:], columns=self.Qxyzw_labels)
-    # Qxyzw_df.index = Qxyzw_np[:,0]
-    fname = 'gyro_resamp.txt' # angVel_Wrpy
-    Wrpy_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
-      delimiter=',', skiprows=1)
-    Wrpy_df = pd.DataFrame(Wrpy_np[:,1:],
-                                  columns=self.Wrpy_labels)
-    # Wrpy_df.index = pd.DatetimeIndex(Wrpy_np[:,0])
-    fname = 'vi_resamp.txt' # vicon
-    vicon_np = np.loadtxt(self.viDir+fname, dtype=np.float64,\
-      delimiter=',', skiprows=1)
-    vicon_df = pd.DataFrame(vicon_np[:,1:],
-                                  columns=self.vicon_labels)
-    # vicon_df.index = pd.DatetimeIndex(vicon_np[:,0])
-    # compare timestamps
-    compare = np.where(Axyz_np[:,0]==Qxyzw_np[:,0], True, False)
-    if np.all(compare == True):
-      pass
-    else:
-      nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
-      exit()
-    compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
-    if np.all(compare == True):
-      pass
-    else:
-      nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
-      exit()
-    compare = np.where(Axyz_np[:,0]==vicon_np[:,0], True, False)
-    if not np.all(compare == True):
-      nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
-      exit()
-    else:
-      print(shorthead+'all timestamps match...'+longtail)
-    self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
-    # self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
-    # load np format
-    self.Axyz_np = Axyz_np[:,1:]
-    self.Wrpy_np = Wrpy_np[:,1:]
-    self.Qxyzw_np = Qxyzw_np[:,1:]
-    self.z_Qxyzw_np = self.Qxyzw_np
-    self.u_AWrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
+    self.z_TVQxyzw_np = self.Qxyzw_np
+    self.u_Wrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
     return
 
 
 
-  def plot(self, labels, show=True, save=True, figname='fig_01', title='_'):
-    df = self.df[list(labels)] # plot mentioned columns (labels)
-    #fig01 = plt.figure()
-    df.plot()
-    # plt.legend(loc='best')
+
+  def plot(self, df:pd.DataFrame, labels, show=True, save=True, fignum=0, title='_'):
+    figname = get_fignum_str(fignum)
+    df = df[list(labels)] # plot mentioned columns (labels)
     if title != '_':
-      plt.title('{}'.format(title))
       title = title.replace(' ', '_')
-    plt.xlabel('Time')
-    plt.ylabel('Magnitude')
+    dfplot = df.plot(title=title,xlabel='Time',ylabel='Magnitude')
+    fig = dfplot.get_figure()
+    dfplot.legend(loc='best')
     # save and show image utility
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
-      plt.savefig(file_name, bbox_inches='tight',dpi=400)
+      fig.savefig(file_name, bbox_inches='tight',dpi=400)
       prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
-      plt.show()
+      fig.show()
+
     else:
       plt.close()
     return
 
-  def plot_trans_3d(self, show=True, save=True, figname='fig_02', title='_'):
-    plt.figure()
-    ax = plt.subplot(111, projection='3d')
+  def plot_trans_3d(self, show=True, save=True, fignum=0, title='_'):
+    figname = get_fignum_str(fignum)
+    fig = plt.figure()
+    ax = fig.subplot(111, projection='3d')
     ax.scatter3D(self.df['Tx'].iloc[0], self.df['Ty'].iloc[0], self.df['Tz'].iloc[0], s=200, marker='*',c='y', label='start')
     ax.scatter3D(self.df.Tx, self.df.Ty, self.df.Tz, c='g', marker='.', label='translation');
     ax.scatter3D(self.df['Tx'].iloc[-1], self.df['Ty'].iloc[-1], self.df['Tz'].iloc[-1], s=200, marker='*',c='k', label='end')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    plt.legend(loc='best')
+    fig.legend(loc='best')
     ax = set_axes_equal(ax)
     if title != '_': # add title
-      plt.title('{}'.format(title))
+      fig.title('{}'.format(title))
       title = title.replace(' ', '_')
     # save and show image utility
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
-      plt.savefig(file_name, bbox_inches='tight',dpi=400)
+      fig.savefig(file_name, bbox_inches='tight',dpi=400)
       prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
@@ -637,7 +581,7 @@ def set_axes_equal(ax):
 def plot_quat_vs_quat(quat_A_df,
   quat_B_df,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   colors=['r','b'],
   save=True,
@@ -647,6 +591,7 @@ def plot_quat_vs_quat(quat_A_df,
   labels=None,
   y_range=None,
   figsize=[6,6]):
+  figname = get_fignum_str(fignum)
   if end is None:
     end = min(quat_A_df.size, quat_B_df.size)-1
   if labels is None or len(labels) != len(colors):
@@ -701,7 +646,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   quat_B_df,
   quat_C_df,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   colors=['r','b','m'],
   save=True,
@@ -711,6 +656,8 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   labels=None,
   y_range=[-1.1,1.1],
   figsize=[6,6]):
+  figname = get_fignum_str(fignum)
+
   if end is None:
     end = min(quat_A_df.size, quat_B_df.size, quat_C_df.size)-1
   if labels is None or len(labels) != len(colors):
@@ -768,7 +715,7 @@ def plot_df(df:pd.DataFrame,
   rows,
   cols,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   save=True,
   output_dir='../out/',
@@ -777,6 +724,8 @@ def plot_df(df:pd.DataFrame,
   labels=None,
   range_padding:float=0.5,
   figsize=[5,8]):
+  figname = get_fignum_str(fignum)
+
   if end is None:
     end = df.index.size-1
   if labels is None:
@@ -839,7 +788,7 @@ def plot_df(df:pd.DataFrame,
 def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   x_Txyz_df:pd.DataFrame,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   save=True,
   output_dir='../out/',
@@ -848,6 +797,8 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   labels=None,
   colors=['r','b'],
   figsize=[6,6]):
+  figname = get_fignum_str(fignum)
+
   if end is None:
     #st()
     end = min(z_Txyz_df.index.size, x_Txyz_df.index.size)-1
@@ -886,7 +837,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   rows=None,
   cols=None,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   save=True,
   output_dir='../out/',
@@ -897,6 +848,8 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   range_padding:float=0.5,
   range_q_padding:float=0.2,
   figsize=[5,8]):
+  figname = get_fignum_str(fignum)
+
   # check
   if len(z_df.columns) != len(x_df.columns):
     eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), dataframes have UNMATCHED \
@@ -1013,7 +966,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   x_df:pd.DataFrame,
   labels:list,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   save=True,
   output_dir='../out/',
@@ -1024,6 +977,8 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   range_padding:float=0.5,
   range_q_padding:float=0.2,
   figsize=[5,8]):
+  figname = get_fignum_str(fignum)
+
   # check
   if len(z_df.columns) != len(x_df.columns):
     eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), dataframes have UNMATCHED \
@@ -1161,7 +1116,7 @@ def plot_df_grp(df:pd.DataFrame,
   rows,
   cols,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   save=True,
   output_dir='../out/',
@@ -1174,6 +1129,7 @@ def plot_df_grp(df:pd.DataFrame,
     end = df.index.size-1
   if labels is None:
     labels = df.columns
+  figname = get_fignum_str(fignum)
   # set plot colors
   cmap = cm.get_cmap('plasma', 15)
   plot_colors = iter(cmap(np.linspace(0, 1, 15)))
@@ -1230,7 +1186,7 @@ def plot_df_grp(df:pd.DataFrame,
 
 def plot_df_grp_K(df:pd.DataFrame,
   title='_',
-  figname='fig_0x',
+  fignum=0,
   show=False,
   save=True,
   output_dir='../out/',
@@ -1243,6 +1199,7 @@ def plot_df_grp_K(df:pd.DataFrame,
     end = df.index.size-1
   if labels is None:
     labels = df.columns
+  figname = get_fignum_str(fignum)
   # set plot colors
   cmap = cm.get_cmap('plasma', 15)
   plot_colors = iter(cmap(np.linspace(0, 1, 15)))
@@ -1270,5 +1227,10 @@ def plot_df_grp_K(df:pd.DataFrame,
 def prt_file_save(string, *args):
   if prt_file_save_en is True:
     print(shorthead+(string+' ')); print(*args);
+
+
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum) '''
+  return 'fig_%03i' % fignum
 
 # EOF
