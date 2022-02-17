@@ -1,4 +1,3 @@
-from util import exp_map
 import sys
 import pandas as pd
 import numpy as np
@@ -6,6 +5,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
+
+from util import exp_map
 
 
 # from pprint import pprint as pp
@@ -18,7 +19,7 @@ matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
 ''' config '''
-prt_file_save_en = False
+prt_file_save_en = True
 prj_outDir = '../out02'
 
 _X_LABELS  = ['Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw']

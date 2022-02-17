@@ -1,6 +1,3 @@
-''' data management module
-  @author Bardia Mojra
-'''
 import sys
 import pandas as pd
 import numpy as np
