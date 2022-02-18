@@ -1,6 +1,6 @@
 
 # from pyquaternion import Quaternion
-import quaternion as Quaternion
+import quaternion
 import numpy as np
 import scipy.linalg as linalg
 from pdb import set_trace as st
@@ -109,14 +109,16 @@ class QEKF(object):
     x_TVQ_post[0:6] = x_TVQxyz[0:6] + Ky[0:6]
 
     ''' quat part '''
-    x_q = get_Qwxyz(x_TVQxyz[6:9,0])
+    # x_q = get_Qwxyz(x_TVQxyz[6:9,0])
+    x_q = np.quaternion(x_TVQxyz[6:9,0])
+    nprint('x_q', x_q)
+    st()
+    # x_q = Quaternion(x_q) # wxyz input
+    # z_q = Quaternion(get_Qwxyz(z_TVQxyz[6:9,0]))
+    z_q = np.quaternion(z_TVQxyz[6:9,0])
     # nprint('x_q', x_q)
-    # st()
-    x_q = Quaternion(x_q) # wxyz input
-    z_q = Quaternion(get_Qwxyz(z_TVQxyz[6:9,0]))
-    # nprint('x_q', x_q)
-    # nprint('z_q', z_q)
-    # st()
+    nprint('z_q', z_q)
+    st()
     y_PHIxyz = z_q * x_q.inverse # get quaternion error
     # nprint('y_PHIxyz', y_PHIxyz)
     # st()
@@ -130,9 +132,9 @@ class QEKF(object):
     # nsprint('ky_Qxyz', ky_PHIrpy)
     x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
     # nsprint('x_q_corr', x_q_corr)
-    x_q_corr = Quaternion([x_q_corr[3],x_q_corr[0],x_q_corr[1],x_q_corr[2]])
-    # nprint('x_q_corr', x_q_corr)
-    # st()
+    x_q_corr = q.from_vector_part(x_q_corr[0:3])
+    nprint('x_q_corr', x_q_corr)
+    st()
     # equation 6 from EKF2 paper # update quaternion
     x_q_post = x_q_corr * x_q  ## wxyz format
     ''' at last update x '''
@@ -165,11 +167,24 @@ class QEKF(object):
     ''' est rotVec (quat) -- eq(18) '''
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
     u_Qxyzw = exp_map(self.T_ * u_Wrpy)
-    # u_Qxyzw = exp_map(self.T_* self.C.T @ u_Wrpy)
-    u_Qwxyz = Quaternion(get_Qwxyz(u_Qxyzw[0:3]))
-    x_Qwxyz = Quaternion(get_Qwxyz(x_TVQxyz[6:9,0]))
-    x_Qwxyz = u_Qwxyz * x_Qwxyz
-    x_TVQxyz[6:9,0] = x_Qwxyz.elements[1:4]
+
+
+    #todo paused here
+
+
+    u_Qxyz = np.asarray(u_Qxyzw[0:3,0])
+    x_Qxyz = np.asarray(x_TVQxyz[6:9,0])
+    q_u_Qwxyz = quaternion.from_vector_part(u_Qxyz)
+    q_x_Qwxyz = quaternion.from_vector_part(x_Qxyz)
+    nprint('q_x_Qwxyz', q_x_Qwxyz)
+
+    q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz
+
+
+    x_TVQxyz[6:9,0] = q_x_Qwxyz.elements[1:4]
+    nprint('q_x_Qwxyz', q_x_Qwxyz)
+    nprint('q_u_Qwxyz', q_u_Qwxyz)
+    st()
     return x_TVQxyz
 
   def predict(self, x_TVQxyz:np.ndarray, u_Wrpy:np.ndarray):

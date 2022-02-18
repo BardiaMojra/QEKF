@@ -30,15 +30,17 @@ _dataDir = '../../data/'
 
 ''' dataset config '''
 # Axyz_labels   = ['Ax','Ay','Az']
-Vxyz_labels   = ['Vx','Vy','Vz']
+# Vxyz_labels   = ['Vx','Vy','Vz']
+Vxyz_labels   = ['vx','vy','vz']
 Txyz_labels   = ['Tx','Ty','Tz']
 # Arpy_labels   = ['Ar','Ap','Ay']
 Wrpy_labels   = ['wr','wp','wy']
-Qxyzw_labels  = ['Qx','Qy','Qz','Qw']
+# Qxyzw_labels  = ['Qx','Qy','Qz','Qw']
+Qxyzw_labels  = ['qx','qy','qz','qw']
 vicon_labels = ['Qx_gt','Qy_gt','Qz_gt','Qw_gt','Tx_gt','Ty_gt','Tz_gt']
 _X_LABELS  = Txyz_labels+Vxyz_labels+Qxyzw_labels
 _Z_LABELS  = Txyz_labels+Vxyz_labels+Qxyzw_labels
-_U_LABELS  = ['Wr', 'Wp', 'Wy'] # aVel (ang vel Omega)
+_U_LABELS  = ['wr','wp','wy']# aVel (ang vel Omega)
 
 # qlabels = ['idx','Tx','Ty','Tz','qx','qy','qz','qw']
 # vlabels = ['idx2','vx','vy','vz','wr','wp','wy']
@@ -79,13 +81,13 @@ class dmm:
     if name == 'dataset-iphone1_clean':
       self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'out_'+name+'/'
-      ext = 'xlsx'
-      opt = None
+      ext = 'csv'
+      opt = ','
     elif name == 'bigC_06-Aug2021':
       self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
-      opt = ' ' # space separator for csv file
+      opt = ',' # space separator for csv file
     elif name ==  'kitti_imu_0926_0001':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
@@ -191,7 +193,7 @@ class dmm:
     self.name = name
     self.ext = ext
     self.dtype = np.float64
-    self.options = opt
+    self.separator = opt
     self.prt = prt
     self.save = save
     self.output_dir = output_dir
@@ -243,21 +245,8 @@ class dmm:
       Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off
       Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6
     '''
-    if self.name=="iphone_mouse_zoom_2" and self.ext=='csv':
-      fname = 'u_cord_subpix.csv'
-      self.df = pd.read_csv(self.srcDir+fname)
-    elif self.name=="dataset-iphone1_clean" and self.ext=='xlsx':
-      # load QuEst data
-      fname = 'quest.xlsx'
-      self.quest = pd.read_excel(self.srcDir+fname, engine='openpyxl',\
-        index_col=0, dtype=self.dtype, header=0)
-      # load VEst data
-      fname = 'vest.xlsx'
-      self.vest = pd.read_excel(self.srcDir+fname, engine='openpyxl',\
-        index_col=0, dtype=self.dtype, header=0)
-      # load data frame
-      self.df = pd.concat([self.quest, self.vest], axis=1)
-      self.labels = self.df.columns# load state variable labels
+    if self.name=="dataset-iphone1_clean" and self.ext=='csv':
+      self.load_QuVest_xlsx_set()
     elif self.name=="bigC_06-Aug2021" and self.ext=='csv':
       self.load_QuVest_set()
     elif self.name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'\
@@ -310,10 +299,39 @@ class dmm:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return
 
+  def load_QuVest_set(self):
+    # load QuEst data
+    fname = 'quest_post_vest.csv'
+    quest_df = pd.read_csv(self.srcDir+fname, index_col=0,
+      sep=self.separator, dtype=self.dtype)
+    # quest_df.drop(['time'], axis=1, inplace=True, errors='raise')
+    # load VEst data
+    fname = 'vest.csv'
+    vest_df = pd.read_csv(self.srcDir+fname,
+      sep=self.separator, index_col=0, dtype=self.dtype)
+
+    # load df format
+    df = pd.concat([quest_df, vest_df], axis=1)
+    df.drop(['t'], axis=1, inplace=True, errors='ignore')
+    df.drop(['time'], axis=1, inplace=True, errors='ignore')
+    df.drop(['idx'],  axis=1, inplace=True, errors='ignore')
+    df.drop(['idx2'], axis=1, inplace=True, errors='ignore')
+    self.df = df
+
+    # load np format
+    self.z_TVQxyzw_np = df[_Z_LABELS].to_numpy()
+    self.u_Wrpy_np = df[_U_LABELS].to_numpy()
+
+    # nprint('self.z_TVQxyzw_np[5:]', self.z_TVQxyzw_np[5:])
+    # nprint('self.z_TVQxyzw_np[:5]', self.z_TVQxyzw_np[:5])
+    # nprint('self.u_Wrpy_np[5:]', self.u_Wrpy_np[5:])
+    # nprint('self.u_Wrpy_np[:5]', self.u_Wrpy_np[:5])
+    # st()
+    return
+
+
   def load_imu_vi_data(self):
-
     #todo not valid -- need QUest Vest processing
-
     # load lin acce data
     fname = 'linacce.txt' # Axyz
     Axyz_np = np.loadtxt(self.imuDir+fname, dtype=np.float64,\
@@ -500,19 +518,8 @@ class dmm:
     self.df = get_pose_data(self.df)
     return
 
-  def load_QuVest_set(self):
-    # load QuEst data
-    fname = 'quest_post_vest.csv'
-    self.quest = pd.read_csv(self.srcDir+fname,
-      sep=self.options, index_col=0, dtype=self.dtype)
-    # load VEst data
-    fname = 'vest.csv'
-    self.vest = pd.read_csv(self.srcDir+fname,
-      sep=self.options, index_col=0, dtype=self.dtype)
-    # load data frame
-    self.df = pd.concat([self.quest, self.vest], axis=1)
-    #self.df.columns = self.labels# load state variables
-    return
+
+
 
   ''' end of dmm class '''
 
