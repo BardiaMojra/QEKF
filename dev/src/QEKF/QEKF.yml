@@ -8,7 +8,7 @@ dependencies:
   - numpy
   - scipy
   - basemap
-  - numpy-quaternion
+  - quaternion
   - matplotlib
   - pandas
   - numba

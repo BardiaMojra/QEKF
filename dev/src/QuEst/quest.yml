@@ -1,0 +1,18 @@
+name: quest
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - basemap
+  - quaternion
+  - matplotlib
+  - pandas
+  - numba
+  - pip:
+      - pyqt5
+      - xlrd
+      - openpyxl

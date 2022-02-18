@@ -23,8 +23,8 @@ from nbug import *
 
 ''' config '''
 prt_file_save_en = True
-outDir = '../out04'
-
+outDir = '../../out04/'
+_dataDir = '../../data/'
 
 
 
@@ -77,99 +77,99 @@ class dmm:
 
     # set dataset configs
     if name == 'dataset-iphone1_clean':
-      self.srcDir = '../data/dataset-iphone1_clean/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'xlsx'
       opt = None
     elif name == 'bigC_06-Aug2021':
-      self.srcDir = '../data/bigC_06-Aug2021/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name ==  'kitti_imu_0926_0001':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0001_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0002':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0005':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0018':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0060':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0084':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0113':
-      self.srcDir = '../data/KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0928_0001':
-      self.srcDir = '../data/KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+'KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
       print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off':
-      self.srcDir = '../data/'+name+'/'
-      output_dir = outDir+'/out_'+name+'/'
+      self.srcDir = _dataDir+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name =='Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
-      self.srcDir = '../data/'+name+'/'
+      self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
-      self.srcDir = '../data/'+name+'/'
+      self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
-      self.srcDir = '../data/'+name+'/'
+      self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
-      self.srcDir = '../data/'+name+'/'
+      self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'/out_'+name+'/'
       ext = 'csv'
       opt = ',' # space separator for csv file
     elif name == 'test_001_vicon_training_day':
       # src_dir = _src_dir01
-      self.srcDir = '../data/'+name+'/'
+      self.srcDir = _dataDir+name+'/'
       output_dir = outDir+'/out_'+name+'/'
       self.imuDir = self.srcDir+'imu/'
       self.viDir = self.srcDir+'vi/'

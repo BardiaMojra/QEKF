@@ -1,5 +1,6 @@
 
-from pyquaternion import Quaternion
+# from pyquaternion import Quaternion
+import quaternion as Quaternion
 import numpy as np
 import scipy.linalg as linalg
 from pdb import set_trace as st
