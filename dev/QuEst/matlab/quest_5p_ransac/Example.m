@@ -1,4 +1,4 @@
-%% RANSAC Implementation of QuEst
+s%% RANSAC Implementation of QuEst
 %
 % Run this script to see how the RANSAC implementation of the QuEst 
 % algorithm can be used to estimate the realtive pose between keyframes in 
