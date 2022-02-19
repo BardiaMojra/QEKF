@@ -14,5 +14,5 @@ dependencies:
   - numba
   - pip:
       - pyqt5
-      - xlrd
-      - openpyxl
+      # - xlrd
+      # - openpyxl

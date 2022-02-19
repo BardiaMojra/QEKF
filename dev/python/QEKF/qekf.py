@@ -5,7 +5,7 @@ import numpy as np
 import scipy.linalg as linalg
 from pdb import set_trace as st
 from pprint import pprint as pp
-from numpy import dot, zeros, eye
+from numpy import dot, dtype, zeros, eye
 from scipy.linalg import norm
 from scipy.spatial.transform import Rotation as R
 
@@ -38,7 +38,7 @@ class QEKF(object):
     self.dim_u = dim_u
 
     ''' state vectors'''
-    self.x_TVQxyz = np.zeros((dim_x,1)) + .0001
+    self.x_TVQxyz = np.zeros((dim_x,1), dtype=np.float64) + .0001
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x)     # state transition matrix
     self.R = np.eye(dim_z)        # state uncertainty
@@ -81,76 +81,38 @@ class QEKF(object):
 
 
   def update(self, x_TVQxyz, z_TVQxyz):
-    # nsprint('x_TVQxyzw', x_TVQxyz)
-    # nsprint('z_TVQxyz', z_TVQxyz)
-    # nppshape('self.P', self.P)
-    # nppshape('self.H.T', self.H.T)
-    # nppshape('self.R', self.R)
-    # st()
     # compute Kalman gain
     PHT = dot(self.P, self.H.T)
     self.S = dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
     self.K = self.K * self.K_scale
-    # nppshape('self.S', self.S)
-    # nppshape('self.K', self.K)
-    # st()
-
     ''' lin part '''
     hx = np.dot(self.H, x_TVQxyz)
-    # nsprint('hx.T', hx.T)
     y_TVQ = np.subtract(z_TVQxyz, hx) # TVWQxyz
-    # nsprint('y_TVQ', y_TVQ)
-
     x_TVQ_post = np.zeros((self.dim_x,1))
-    # nsprint('x_TVQ_post', x_TVQ_post)
-    # nsprint('x_TVQ_post', x_TVQ_post)
     Ky = dot(self.K, y_TVQ)
     x_TVQ_post[0:6] = x_TVQxyz[0:6] + Ky[0:6]
-
     ''' quat part '''
-    # x_q = get_Qwxyz(x_TVQxyz[6:9,0])
-    x_q = np.quaternion(x_TVQxyz[6:9,0])
-    nprint('x_q', x_q)
-    st()
-    # x_q = Quaternion(x_q) # wxyz input
-    # z_q = Quaternion(get_Qwxyz(z_TVQxyz[6:9,0]))
-    z_q = np.quaternion(z_TVQxyz[6:9,0])
-    # nprint('x_q', x_q)
-    nprint('z_q', z_q)
-    st()
-    y_PHIxyz = z_q * x_q.inverse # get quaternion error
-    # nprint('y_PHIxyz', y_PHIxyz)
-    # st()
-    # nprint('Quaternion.log(y_PHIxyz)', Quaternion.log(y_PHIxyz))
-    # nprint('Quaternion.log_map(z_q, x_q.inverse)', Quaternion.log_map(z_q, x_q.inverse))
-    # nprint('Quaternion.log_map(z_q, x_q)', Quaternion.log_map(z_q, x_q))
-    y_PHIrpy = Q_log(y_PHIxyz.elements) # get rotation error
-    # nsprint('e__log', y_PHIrpy)
-    # st()
-    ky_PHIrpy = np.matmul(self.K[6:9,6:9], y_PHIrpy)
-    # nsprint('ky_Qxyz', ky_PHIrpy)
+    x_q = get_npQ(x_TVQxyz[6:9,0])
+    z_q = get_npQ(z_TVQxyz[6:9,0])
+    y_PHIxyz = z_q * x_q.inverse() # get quaternion error
+    y_PHIxyz = y_PHIxyz.normalized()
+    y_PHIrpy = Q_log(get_Qwxyz(y_PHIxyz.imag)) # get rotation error
+    ky_PHIrpy = self.K[6:9,6:9] @ y_PHIrpy
     x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
-    # nsprint('x_q_corr', x_q_corr)
-    x_q_corr = q.from_vector_part(x_q_corr[0:3])
-    nprint('x_q_corr', x_q_corr)
-    st()
+    x_q_corr = get_npQ(x_q_corr[0:3])
     # equation 6 from EKF2 paper # update quaternion
     x_q_post = x_q_corr * x_q  ## wxyz format
+    x_q_post = x_q_post.normalized()
     ''' at last update x '''
     x_TVQxyz[0:6] = x_TVQ_post[0:6]
-    x_TVQxyz[6:9,0] = x_q_post.elements[1:4] # load quat xyz to x_post
-    # nsprint('x_TVQxyz', x_TVQxyz)
-    # st()
+    x_TVQxyz[6:9,0] = x_q_post.imag # load quat xyz to x_post
     I_KH = self._I - dot(self.K, self.H)
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
     ''' log state vector '''
     x_TVQxyzw = np.ndarray((self.dim_x+1,1))
-    x_TVQxyzw[:6,0] = x_TVQxyz[:6,0]
     x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
-    # nsprint('x_TVQxyzw', x_TVQxyzw)
-    # st()
-    y_TVQ[6:9,0] = y_PHIxyz.elements[1:4]
+    y_TVQ[6:9,0] = y_PHIxyz.imag
     self.log.log_update(y_TVQ, x_TVQxyzw, self.P, self.K)
     return x_TVQxyz
 
@@ -167,24 +129,11 @@ class QEKF(object):
     ''' est rotVec (quat) -- eq(18) '''
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
     u_Qxyzw = exp_map(self.T_ * u_Wrpy)
-
-
-    #todo paused here
-
-
-    u_Qxyz = np.asarray(u_Qxyzw[0:3,0])
-    x_Qxyz = np.asarray(x_TVQxyz[6:9,0])
-    q_u_Qwxyz = quaternion.from_vector_part(u_Qxyz)
-    q_x_Qwxyz = quaternion.from_vector_part(x_Qxyz)
-    nprint('q_x_Qwxyz', q_x_Qwxyz)
-
+    q_u_Qwxyz = get_npQ(u_Qxyzw[0:3])
+    q_x_Qwxyz = get_npQ(x_TVQxyz[6:9,0])
     q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz
-
-
-    x_TVQxyz[6:9,0] = q_x_Qwxyz.elements[1:4]
-    nprint('q_x_Qwxyz', q_x_Qwxyz)
-    nprint('q_u_Qwxyz', q_u_Qwxyz)
-    st()
+    q_x_Qwxyz = q_x_Qwxyz.normalized()
+    x_TVQxyz[6:9,0] = q_x_Qwxyz.imag
     return x_TVQxyz
 
   def predict(self, x_TVQxyz:np.ndarray, u_Wrpy:np.ndarray):
@@ -196,12 +145,6 @@ class QEKF(object):
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
     self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
     return x_TVQxyz
-
-  # def partial_update(self,gamma,beta):
-  #   for i in range(self.dim_x):
-  #     self.x[i] = gamma[i]*self.x_TVQxyz[i] + (1-gamma[i])*self.x_prior_TVQwxyz[i]
-  #     for j in range(self.dim_x):
-  #       self.P[i,j] = gamma[i]*gamma[j]*self.P[i,j]+(1-gamma[i]*gamma[j])*self.P_prior[i,j]
 
   def set_F(self, u_Wrpy:np.ndarray):
     self.F = np.eye(self.dim_x)

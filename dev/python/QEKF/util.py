@@ -1,4 +1,6 @@
 import numpy as np
+import quaternion
+
 from scipy.linalg import norm
 import pandas as pd
 import datetime
@@ -53,14 +55,24 @@ def exp_map(x):
     return -1
   norm_x = norm(x)
   x = np.asarray(x)
-  if norm_x ==0: return np.array([0,0,0,1])
+  if norm_x ==0: return np.asarray([0,0,0,1],dtype=np.float64)
   #nprint(_prt, 'norm_x', norm_x)
-  temp_ = np.sin(norm_x/2)*x/norm_x
-  temp_2 = np.cos(norm_x/2)
-  return [ temp_[0],temp_[1],temp_[2], temp_2] # xyzw
+  qxyz = np.sin(norm_x/2)*x/norm_x
+  qw = np.cos(norm_x/2)
+  return np.asarray([qxyz[0],qxyz[1],qxyz[2],qw],dtype=np.float64) # xyzw
+
+def get_npQ(Qxyz):
+  Q = get_Qwxyz(Qxyz)
+  return np.quaternion(Q[0],Q[1],Q[2],Q[3]).normalized()
 
 
-
+def check_q(_q:quaternion, tolerance=0.00001):
+  v = _q.imag
+  mag2 = sum(n * n for n in v)
+  if abs(mag2 - 1.0) > tolerance:
+    return _q.normalize()
+  elif abs(mag2) < tolerance:
+    return quaternion(1,0,0,0)
 
 ### Logarithmic map of Quaternion wxyz
 def Q_log(q):

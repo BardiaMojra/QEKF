@@ -10,11 +10,9 @@ import csv
 from util import exp_map
 
 
-
 ''' matplotlib config '''
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
-
 
 # from pprint import pprint as pp
 from pdb import set_trace as st
@@ -212,7 +210,6 @@ class dmm:
     self.Wrpy_labels = Wrpy_labels
     self.Qxyzw_labels = Qxyzw_labels
     self.vicon_labels = vicon_labels
-
     # self.Axyz_np = None # xyz acc
     self.Vxyz_np = None # xyz vel
     self.Txyz_np = None # xyz translation
@@ -288,7 +285,6 @@ class dmm:
     else:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
-
     ''' common df section '''
     nprint('self.df.head(5)', self.df.head(5))
     nprint('self.df.tail(5)', self.df.tail(5))
@@ -328,7 +324,6 @@ class dmm:
     # nprint('self.u_Wrpy_np[:5]', self.u_Wrpy_np[:5])
     # st()
     return
-
 
   def load_imu_vi_data(self):
     #todo not valid -- need QUest Vest processing
@@ -388,14 +383,12 @@ class dmm:
     self.u_Wrpy_np = np.concatenate((self.Axyz_np, self.Wrpy_np), axis=1)
     return
 
-
-
-
   def plot(self, df:pd.DataFrame, labels, show=True, save=True, fignum=0, title='_'):
     figname = get_fignum_str(fignum)
     df = df[list(labels)] # plot mentioned columns (labels)
     if title != '_':
       title = title.replace(' ', '_')
+    # plt.hold(False)
     dfplot = df.plot(title=title,xlabel='Time',ylabel='Magnitude')
     fig = dfplot.get_figure()
     dfplot.legend(loc='best')
@@ -406,15 +399,13 @@ class dmm:
       prt_file_save(shorthead+'saving figure: '+file_name+'.png')
     if show==True:
       fig.show()
-
     else:
       plt.close()
     return
 
   def plot_trans_3d(self, show=True, save=True, fignum=0, title='_'):
     figname = get_fignum_str(fignum)
-    fig = plt.figure()
-    ax = fig.subplot(111, projection='3d')
+    fig, ax = plt.subplots(111, projection='3d')
     ax.scatter3D(self.df['Tx'].iloc[0], self.df['Ty'].iloc[0], self.df['Tz'].iloc[0], s=200, marker='*',c='y', label='start')
     ax.scatter3D(self.df.Tx, self.df.Ty, self.df.Tz, c='g', marker='.', label='translation');
     ax.scatter3D(self.df['Tx'].iloc[-1], self.df['Ty'].iloc[-1], self.df['Tz'].iloc[-1], s=200, marker='*',c='k', label='end')
@@ -609,7 +600,10 @@ def plot_quat_vs_quat(quat_A_df,
     label_B = labels[1]
   if output_dir is None:
     eprint(longhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
-  fig04 = plt.figure(figsize=figsize)
+  # fig04 = plt.subplots(num=fignum, figsize=figsize)
+  # import matplotlib.pyplot as plt
+  fig04 = plt.figure(num=fignum, figsize=figsize)
+  # fig, ax = plt.subplots(111, projection='3d')
   ax1 = fig04.add_subplot(411)
   ax1.plot(quat_A_df.qw[start:end], marker='.',c=colors[0], ms=1, label=label_A)
   ax1.plot(quat_B_df.qw[start:end], marker='.',c=colors[1], ms=2, label=label_B)
@@ -678,7 +672,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   if output_dir is None:
     eprint(longhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
   # plot
-  fig05 = plt.figure(figsize=figsize)
+  fig05 = plt.figure(fignum,figsize=figsize)
   ax1 = fig05.add_subplot(411)
   ax1.plot(quat_A_df.qw[start:end], marker='.',c=colors[0], ms=1, label=label_A)
   ax1.plot(quat_B_df.qw[start:end], marker='.',c=colors[1], ms=1, label=label_B)
@@ -811,7 +805,7 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
     end = min(z_Txyz_df.index.size, x_Txyz_df.index.size)-1
   if labels is None:
     labels = ['z_Txyz', 'x_Txyz']
-  plt.figure(figsize=figsize)
+  plt.figure(fignum,figsize=figsize)
   ax = plt.subplot(111, projection='3d')
   ax.scatter3D(z_Txyz_df['Tx'].iloc[start], z_Txyz_df['Ty'].iloc[start], z_Txyz_df['Tz'].iloc[start], s=50, marker='*',c='y')#, label='z_0')
   #ax.scatter3D(x_Txyz_df['Tx'].iloc[start], x_Txyz_df['Ty'].iloc[start], x_Txyz_df['Tz'].iloc[start], s=50, marker='*',c=colors[1], label='x_0')

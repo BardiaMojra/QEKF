@@ -1,11 +1,7 @@
 
 # import numpy as np
 import matplotlib
-# from matplotlib import pyplot as plt
 import pandas as pd
-import time
-# from scipy.spatial.transform import Rotation as R
-# from pyquaternion import Quaternion
 
 
 ''' private libraries
@@ -29,7 +25,7 @@ _prt          = True
 # _START        = 0
 # _END          = 150
 # _TEST_MODE    = 'all'
-_TEST_ID      = 1; _TEST_MODE = 'single'
+_TEST_ID      = 10; _TEST_MODE = 'single'
 
 
 ''' matplotlib config '''
@@ -192,7 +188,7 @@ def run(data:str):
             #  'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz'])
 
-  residual_df = qekf.get_losses(residual_df, dset.output_dir)
+  residual_df = get_losses(residual_df, dset.output_dir)
   fignum+=1;
   plot_df(df=residual_df,
     rows=14,

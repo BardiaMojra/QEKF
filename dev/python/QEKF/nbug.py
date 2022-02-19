@@ -24,6 +24,8 @@ def nprint(string, *args):
     if args is not None:
       print(shorthead+(string+': '+str(args.__class__)));
       pp(*args); print(shorttail)
+    else:
+      print(shorthead+(string+shorttail))
 
 def nsprint(string, ndarr:np.ndarray):
   if nprt_en is True:
@@ -53,8 +55,8 @@ def plh():
 def pstail():
   print(shorttail)
 
-def plt():
-  print(longtail)
+# def plt():
+#   print(longtail)
 
 def pattn():
   print(attn)
