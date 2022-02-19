@@ -200,6 +200,7 @@ def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=
 def print_losses(df: pd.DataFrame):
   print(shorthead+"L1 (total): ", df['L1'].sum())
   print(shorthead+"L2 (total): ", df['L2'].sum())
+  print('\n\n')
   return
 
 

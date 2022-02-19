@@ -2,6 +2,7 @@
 # import numpy as np
 import matplotlib
 import pandas as pd
+import time
 
 
 ''' private libraries
@@ -24,8 +25,8 @@ _save         = True
 _prt          = True
 # _START        = 0
 # _END          = 150
-# _TEST_MODE    = 'all'
-_TEST_ID      = 10; _TEST_MODE = 'single'
+# _TEST_MODE    = 'all'; _TEST_ID = None
+_TEST_ID      = 13; _TEST_MODE = 'single'
 
 
 ''' matplotlib config '''
@@ -58,11 +59,8 @@ _TEST_ID      = 10; _TEST_MODE = 'single'
 '''
 
 def main():
-  testmode  = _TEST_MODE
-  test_id = _TEST_ID
 
-
-  if testmode == 'all':
+  if _TEST_MODE == 'all':
     print(shorthead+'starting all test sequences:')
     for i in range(len(datasets)):
       print('> '+str(i)+': '+datasets[i])
@@ -70,15 +68,14 @@ def main():
     for i in range(len(datasets)):
       print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
       run(datasets[i])
-  elif isinstance(test_id, int) is True:
-    set_id = test_id
-    if set_id not in range(len(datasets)):
+  elif isinstance(_TEST_ID, int) is True:
+    if _TEST_ID not in range(len(datasets)):
       eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)-1))
-      eprint('usr input: '+str(test_id))
+      eprint('usr input: '+str(_TEST_ID))
       exit()
     else:
-      print(shorthead+'user input (int): '+str(set_id)+' ---> '+datasets[set_id])
-      run(str(datasets[set_id]))
+      print(shorthead+'user input (int): '+str(_TEST_ID)+' ---> '+datasets[_TEST_ID])
+      run(str(datasets[_TEST_ID]))
   print(longhead+'---- end of main ----')
   return
 
@@ -105,10 +102,10 @@ def run(data:str):
             title=data,
             show=_show)
 
-  # fignum+=1;
-  # dset.plot_trans_3d(title='Ground Truth Translation',
-  #                    fignum=fignum,
-  #                    show=_show)
+  fignum+=1;
+  dset.plot_trans_3d(title='Measured Translation',
+                     fignum=fignum,
+                     show=_show)
 
   # init QEKF object
   qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
@@ -191,7 +188,7 @@ def run(data:str):
   residual_df = get_losses(residual_df, dset.output_dir)
   fignum+=1;
   plot_df(df=residual_df,
-    rows=14,
+    rows=residual_df.shape[1],
     cols=1,
     title='v residual',
     show=_show,
@@ -207,141 +204,49 @@ def run(data:str):
     index=qekf.log.idx,\
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
-             'wr', 'wp', 'wy',\
              'qx', 'qy', 'qz', 'qw'])
 
-  x_prior_df = pd.DataFrame(qekf.log.x_hist,
+  x_post_df = pd.DataFrame(qekf.log.x_hist,
     index=qekf.log.idx,\
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
              'qx', 'qy', 'qz', 'qw'])
-
-  x_post_df = pd.DataFrame(qekf.log.x_post_hist,
-    index=qekf.log.idx,\
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-             'qx', 'qy', 'qz'])
 
   z_Txyz_df = pd.DataFrame(qekf.log.z_hist[:,0:3],\
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz'])
 
-  x_post_Txyz_df = pd.DataFrame(qekf.log.x_post_hist[:,0:3],\
+  x_post_Txyz_df = pd.DataFrame(qekf.log.x_hist[:,0:3],\
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz'])
 
   fignum+=1;
   plot_Txyz_vs_Txyz_3d(z_Txyz_df,
     x_post_Txyz_df,
-    title='z vs x_posterior translation',
+    title='z vs x_post translation',
     fignum=fignum,
     show=_show,
     labels=['z', 'x_post'],
     output_dir=dset.output_dir)
 
+
   fignum+=1;
-  plot_Txyz_vs_Txyz_3d(z_Txyz_df,
-    x_post_Txyz_df,
-    title='z vs x_posterior translation zoom',
-    fignum=fignum,
-    show=_show,
+  plot_z_df_vs_x_df_iso(z_df,
+    x_post_df,
     labels=['z', 'x_post'],
-    end=_zoom,
-    output_dir=dset.output_dir)
-
-  # z_TVWQxyz
-  z_TVQxyz_df = pd.DataFrame(qekf.log.z_hist[:,[0,1,2,3,4,5,9,10,11]],\
-    index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-  #           'wr', 'wp', 'wy',\
-             'qx', 'qy', 'qz'])
-
-  x_post_TVQxyz_df = pd.DataFrame(qekf.log.x_post_hist,\
-    index=qekf.log.idx,
-    columns=['Tx', 'Ty', 'Tz',\
-             'vx', 'vy', 'vz',\
-  #           'wr', 'wp', 'wy',\
-             'qx', 'qy', 'qz'])
-
-
-  fignum+=1;
-  plot_z_df_vs_x_df_iso(z_TVQxyz_df,
-    x_post_TVQxyz_df,
-    labels=['z', 'x_post'],
-    title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
+    title='z meas vs x_post est - K_scalar '+str(qekf.K_scale),
     fignum=fignum,
     show=_show,
     output_dir=dset.output_dir)
-
-  #todo: still working on this routineshow=_showshow=_show
-  #plot_z_df_vs_x_df_grp(z_TVQxyz_df,
-  #  x_post_TVQxyz_df,
-  #  labels=['z', 'x_post'],
-  #  title='z meas vs x_posterior est - K_scalar '+str(qekf.K_scale),
-  #  fignum='fig_13',
-  #  show=_show,
-  #  output_dir=dset.output_dir)
-
-  K_columns = ['K_%03d' % i for i in range(qekf.log.K_hist.shape[1])]
-
-
-  K_df = pd.DataFrame(qekf.log.K_hist,
-    index=qekf.log.idx,
-    columns= K_columns)
-
-
-  fignum+=1;
-  plot_df_grp_K(df=K_df,
-    title='Kalman Gain - K_scalar '+str(qekf.K_scale),
-    fignum=fignum,
-    show=False,
-    output_dir=dset.output_dir)
-
-
-  # x_quat_wxyz
-  '''x_q_df = pd.DataFrame(drk.log.x_q_hist,\
-    index=drk.log.idx,\
-    columns=['qw', 'qx', 'qy', 'qz'])
-
-  x_prior_q_df = pd.DataFrame(drk.log.x_prior_q_hist,\
-    index=drk.log.idx,\
-    columns=['qw', 'qx', 'qy', 'qz'])
-
-  prt_x_q_vs_x_prior_q = True
-  if prt_x_q_vs_x_prior_q is True and NBUG is True:
-    print(longhead+'x_q_df:'+str(x_q_df.shape))
-    print(x_q_df.head(5))
-    print(shorthead+'x_prior_q_df:'+str(x_prior_q_df.shape))
-    print(x_prior_q_df.head(5))
-
-  # plot EKF output
-  fignum+=1; fignum
-  plot_z_df_vs_x_df(x_q_df,
-    x_prior_q_df,
-    labels=['x_q', 'x_prior'],
-    rows=4,cols=1,
-    title='x_q vs x_prior Quaternions',
-    fignum='fig_13',
-    show=_show,
-    figsize=[5,10])
-  '''
 
   '''---------   End of QEKF  -->>>>>>>>>>>>>>>>>'''
   return # end of main
 
 
-
-
-
-
 if __name__ == "__main__":
 
   main()
-
-
   print('---------   End   ---------')
-  # time.sleep(1000)
-  # exit()
+  exit()
 
 # EOF

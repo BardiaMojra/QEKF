@@ -149,28 +149,28 @@ class dmm:
       opt = ' ' # space separator for csv file
     elif name =='Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
       self.srcDir = _dataDir+name+'/'
-      output_dir = outDir+'/out_'+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
       self.srcDir = _dataDir+name+'/'
-      output_dir = outDir+'/out_'+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
       self.srcDir = _dataDir+name+'/'
-      output_dir = outDir+'/out_'+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
       self.srcDir = _dataDir+name+'/'
-      output_dir = outDir+'/out_'+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ',' # space separator for csv file
     elif name == 'test_001_vicon_training_day':
       # src_dir = _src_dir01
       self.srcDir = _dataDir+name+'/'
-      output_dir = outDir+'/out_'+name+'/'
+      output_dir = outDir+'out_'+name+'/'
       self.imuDir = self.srcDir+'imu/'
       self.viDir = self.srcDir+'vi/'
       ext = 'txt'
@@ -243,7 +243,7 @@ class dmm:
       Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6
     '''
     if self.name=="dataset-iphone1_clean" and self.ext=='csv':
-      self.load_QuVest_xlsx_set()
+      self.load_QuVest_set()
     elif self.name=="bigC_06-Aug2021" and self.ext=='csv':
       self.load_QuVest_set()
     elif self.name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'\
@@ -396,7 +396,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       fig.savefig(file_name, bbox_inches='tight',dpi=400)
-      prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+      prt_file_save('saving figure: '+file_name+'.png')
     if show==True:
       fig.show()
     else:
@@ -405,23 +405,24 @@ class dmm:
 
   def plot_trans_3d(self, show=True, save=True, fignum=0, title='_'):
     figname = get_fignum_str(fignum)
-    fig, ax = plt.subplots(111, projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(111,projection='3d')
     ax.scatter3D(self.df['Tx'].iloc[0], self.df['Ty'].iloc[0], self.df['Tz'].iloc[0], s=200, marker='*',c='y', label='start')
     ax.scatter3D(self.df.Tx, self.df.Ty, self.df.Tz, c='g', marker='.', label='translation');
     ax.scatter3D(self.df['Tx'].iloc[-1], self.df['Ty'].iloc[-1], self.df['Tz'].iloc[-1], s=200, marker='*',c='k', label='end')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    fig.legend(loc='best')
+    ax.legend(loc='best')
     ax = set_axes_equal(ax)
     if title != '_': # add title
-      fig.title('{}'.format(title))
+      ax.set_title(title)
       title = title.replace(' ', '_')
     # save and show image utility
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       fig.savefig(file_name, bbox_inches='tight',dpi=400)
-      prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+      prt_file_save('saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -638,7 +639,7 @@ def plot_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save('saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -707,7 +708,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save('saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -809,8 +810,8 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   ax = plt.subplot(111, projection='3d')
   ax.scatter3D(z_Txyz_df['Tx'].iloc[start], z_Txyz_df['Ty'].iloc[start], z_Txyz_df['Tz'].iloc[start], s=50, marker='*',c='y')#, label='z_0')
   #ax.scatter3D(x_Txyz_df['Tx'].iloc[start], x_Txyz_df['Ty'].iloc[start], x_Txyz_df['Tz'].iloc[start], s=50, marker='*',c=colors[1], label='x_0')
-  ax.scatter3D(z_Txyz_df['Tx'].iloc[start:end], z_Txyz_df['Ty'].iloc[start:end], z_Txyz_df['Tz'].iloc[start:end], marker='.',c=colors[0], label='Ground-truth', alpha=.3)#labels[0])
-  ax.scatter3D(x_Txyz_df['Tx'].iloc[start:end], z_Txyz_df['Ty'].iloc[start:end], z_Txyz_df['Tz'].iloc[start:end], marker='.',c=colors[1], label='QEKF', alpha=.3)#labels[1])
+  ax.scatter3D(z_Txyz_df['Tx'].iloc[start:end], z_Txyz_df['Ty'].iloc[start:end], z_Txyz_df['Tz'].iloc[start:end], marker='.',c=colors[0], label='meas', alpha=.3)#labels[0])
+  ax.scatter3D(x_Txyz_df['Tx'].iloc[start:end], z_Txyz_df['Ty'].iloc[start:end], z_Txyz_df['Tz'].iloc[start:end], marker='.',c=colors[1], label='est', alpha=.3)#labels[1])
   #ax.scatter3D(z_Txyz_df['Tx'].iloc[end], z_Txyz_df['Ty'].iloc[end], z_Txyz_df['Tz'].iloc[end], s=50, marker='^',c=colors[0], label='z_f')
   #ax.scatter3D(x_Txyz_df['Tx'].iloc[end], x_Txyz_df['Ty'].iloc[end], x_Txyz_df['Tz'].iloc[end], s=50, marker='^',c=colors[1], label='x_f')
   ax.set_xlabel('x')
@@ -825,7 +826,7 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save('saving figure: '+file_name+'.png')
   if show==True:
     plt.show()
   else:
@@ -952,7 +953,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save('saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
@@ -1103,7 +1104,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save('saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
@@ -1179,7 +1180,7 @@ def plot_df_grp(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    prt_file_save(shorthead+'saving figure: '+fig_name+'.png')
+    prt_file_save('saving figure: '+fig_name+'.png')
   if show==True: fig.show()
   else: plt.close()
   return
@@ -1220,7 +1221,7 @@ def plot_df_grp_K(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    prt_file_save(shorthead+'saving figure: '+fig_name+'.png')
+    prt_file_save('saving figure: '+fig_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
