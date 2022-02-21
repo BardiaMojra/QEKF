@@ -55,12 +55,14 @@ _TEST_ID      = 13; _TEST_MODE = 'single'
 18
 19
 
-
 '''
 
 def main():
-
-  if _TEST_MODE == 'all':
+  if sys.argv[1] is not None and isinstance(int(sys.argv[1]), int) is True:
+    _TEST_ID = int(sys.argv[1])
+    print(shorthead+'user input (int): '+str(_TEST_ID)+' ---> '+datasets[_TEST_ID])
+    run(str(datasets[_TEST_ID]))
+  elif _TEST_MODE == 'all':
     print(shorthead+'starting all test sequences:')
     for i in range(len(datasets)):
       print('> '+str(i)+': '+datasets[i])
@@ -79,9 +81,7 @@ def main():
   print(longhead+'---- end of main ----')
   return
 
-''' local routines
-'''
-
+''' local routines '''
 def run(data:str):
   global fignum; fignum = int(0)
 
@@ -242,11 +242,7 @@ def run(data:str):
   '''---------   End of QEKF  -->>>>>>>>>>>>>>>>>'''
   return # end of main
 
-
 if __name__ == "__main__":
-
   main()
   print('---------   End   ---------')
-  exit()
-
 # EOF

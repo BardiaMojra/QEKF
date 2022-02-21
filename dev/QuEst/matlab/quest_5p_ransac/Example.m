@@ -1,4 +1,4 @@
-s%% RANSAC Implementation of QuEst
+%% RANSAC Implementation of QuEst
 %
 % Run this script to see how the RANSAC implementation of the QuEst 
 % algorithm can be used to estimate the realtive pose between keyframes in 
@@ -33,7 +33,7 @@ addpath(genpath('Algorithms'));
 addpath(genpath('RANSAC'));
 
 % Path to the dataset files
-dataroot = [pwd '\Datasets'];
+dataroot = [pwd 'Datasets'];
 
 % Load dataset
 benchtype = 'KITTI';
