@@ -33,7 +33,7 @@ addpath(genpath('Algorithms'));
 addpath(genpath('RANSAC'));
 
 % Path to the dataset files
-dataroot = [pwd 'Datasets'];
+dataroot = [pwd '/Datasets'];
 
 % Load dataset
 benchtype = 'KITTI';

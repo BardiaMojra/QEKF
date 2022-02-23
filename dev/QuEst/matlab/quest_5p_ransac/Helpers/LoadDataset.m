@@ -9,19 +9,19 @@ dataset.benchnum = benchnum;
 
 if strcmp(benchtype, 'KITTI')
     
-    imgpath = [dataroot '\KITTI\sequences\' num2str(benchnum, '%02d') ...
-               '\image_0'];
-    datapath = [dataroot '\KITTI\poses'];
+    imgpath = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d') ...
+               '/image_0'];
+    datapath = [dataroot '/KITTI/poses'];
     
 elseif strcmp(benchtype, 'ICL')
     
-    imgpath = [dataroot '\ICL\kt' num2str(benchnum) '\rgb'];
-    datapath = [dataroot '\ICL\kt' num2str(benchnum)];
+    imgpath = [dataroot '/ICL/kt' num2str(benchnum) '/rgb'];
+    datapath = [dataroot '/ICL/kt' num2str(benchnum)];
     
 elseif strcmp(benchtype, 'NAIST')
     
-    imgpath = [dataroot '\NAIST\naist' num2str(benchnum, '%03d')];
-    datapath = [dataroot, '\NAIST'];
+    imgpath = [dataroot '/NAIST/naist' num2str(benchnum, '%03d')];
+    datapath = [dataroot, '/NAIST'];
     
 elseif strcmp(benchtype, 'TUM')   
     
@@ -36,8 +36,8 @@ elseif strcmp(benchtype, 'TUM')
     'rgbd_dataset_freiburg2_large_no_loop', ...
     'rgbd_dataset_freiburg2_large_with_loop', ...
     'rgbd_dataset_freiburg3_long_office_household'};
-    imgpath = [dataroot '\TUM\' tum_names{benchnum} '\rgb'];
-    datapath = [dataroot '\TUM\' tum_names{benchnum}];
+    imgpath = [dataroot '/TUM/' tum_names{benchnum} '/rgb'];
+    datapath = [dataroot '/TUM/' tum_names{benchnum}];
     
 else
     error('Undefined dataset.')
@@ -88,8 +88,8 @@ dataset.fnames = fnames;
 if strcmp(benchtype, 'KITTI')
     
     %Use textscan to load the calibration matrix
-    calibfile = [dataroot '\KITTI\sequences\' num2str(benchnum, '%02d') ...
-               '\calib.txt'];
+    calibfile = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d') ...
+               '/calib.txt'];
     fileid = fopen(calibfile);
     C = textscan(fileid, '%s %f %f %f %f %f %f %f %f %f %f %f %f');
     fclose(fileid);
@@ -157,7 +157,7 @@ if strcmp(benchtype, 'KITTI')
     
     % The KITTI dataset has exactly one pose per image, so there is no need
     % to interpolate poses
-    rawdata = load([datapath '\' num2str(benchnum, '%02d') '.txt']);
+    rawdata = load([datapath '/' num2str(benchnum, '%02d') '.txt']);
     tx = rawdata(:,4);
     ty = rawdata(:,8);
     tz = rawdata(:,12);
@@ -170,13 +170,13 @@ if strcmp(benchtype, 'KITTI')
     
 elseif strcmp(benchtype, 'ICL')
     
-    rawdata = load([datapath '\traj' num2str(benchnum) '.gt.freiburg']);    
+    rawdata = load([datapath '/traj' num2str(benchnum) '.gt.freiburg']);    
     tTru = rawdata(:,2:4)';
     qTru = [rawdata(:,8) rawdata(:,5:7)]';     
     
 elseif strcmp(benchtype, 'NAIST')
     
-    datafile = [datapath '\naist' num2str(benchnum, '%03d') '_camerapath.csv'];
+    datafile = [datapath '/naist' num2str(benchnum, '%03d') '_camerapath.csv'];
     fileid = fopen(datafile);
     C = textscan(fileid, '%s %f %f %f %f %f %f %f %f %f %f %f %f', 'Delimiter', ',', 'CommentStyle', '#');
     fclose(fileid);
@@ -196,7 +196,7 @@ elseif strcmp(benchtype, 'TUM')
     
     % Using textscan instead of textread to deal with comment lines,
     % instead of editing every groundtruth.txt file
-    datafile = [datapath '\groundtruth.txt'];
+    datafile = [datapath '/groundtruth.txt'];
     fileid = fopen(datafile);
     C = textscan(fileid, '%f %f %f %f %f %f %f %f', 'CommentStyle', '#');
     fclose(fileid);
