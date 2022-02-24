@@ -1,4 +1,4 @@
-name: quest
+name: QUEST
 channels:
   - conda-forge
   - anaconda
@@ -6,13 +6,12 @@ channels:
 dependencies:
   - python
   - numpy
-  - scipy
-  - basemap
   - quaternion
-  - matplotlib
   - pandas
-  - numba
-  - pip:
-      - pyqt5
-      - xlrd
-      - openpyxl
+  - scipy
+  - matplotlib
+  - basemap
+  - libopencv
+  - opencv
+  - py-opencv
+  # - pip:

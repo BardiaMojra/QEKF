@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import opencv as cv
 
 
 ''' private modules '''
@@ -9,29 +10,27 @@ from nbug import *
 from pdb import set_trace as st
 
 
-def GetFeaturePoints(i:int, dataset:dmm, surfThresh:np.float32):
-  benchtype =
-
-  return points, Im
-
+def GetFeaturePoints(i:int, dset:dmm, surfThresh:dmm.dtype):
+  benchtype = dset.benchtype
+  K = dset.K
 
 
-#todo: convert matlab code
-function [points, Im] = GetFeaturePoints(i, dataset, surfThresh)
+  for i, fname in dset.fnames:
+    f = dset.imgpath+fname
+    img = cv.imread(f, 0) # read image in gray scale (0)
+    h, w = img.shape[:2]
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+    if benchtype == 'TUM' or benchtype == 'ICL' or benchtype == 'NAIST':
 
-benchtype = dataset.benchtype;
+      image = cv.undistort(img, )
 
-% Read image
-Im = imread([dataset.imgpath '\' dataset.fnames{i}]);
+      img = undistortImage(img, dataset.camParams);
+  end
 
-if (strcmp(benchtype, 'TUM') || strcmp(benchtype, 'ICL'))|| strcmp(benchtype,'NAIST')
-    Im = rgb2gray(Im);
-    Im = undistortImage(Im, dataset.camParams);
-end
 
-% Surf feature points
-points = detectSURFFeatures(Im, 'MetricThreshold', surfThresh);   % Detect feature points
+  points = detectSURFFeatures(img, 'MetricThreshold', surfThresh)
 
+  return points, img
 
 
 

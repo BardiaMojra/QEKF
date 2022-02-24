@@ -111,6 +111,7 @@ class QEKF(object):
     self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
     ''' log state vector '''
     x_TVQxyzw = np.ndarray((self.dim_x+1,1))
+    x_TVQxyzw[:-4,0] = x_TVQxyz[:-3,0]
     x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
     y_TVQ[6:9,0] = y_PHIxyz.imag
     self.log.log_update(y_TVQ, x_TVQxyzw, self.P, self.K)

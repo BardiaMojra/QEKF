@@ -178,7 +178,7 @@ def run(data:str):
     labels=['meas.', 'est.'],
     y_range=[-1.1,1.1])
 
-  residual_df = pd.DataFrame(qekf.log.v_hist,
+  residual_df = pd.DataFrame(qekf.log.y_hist,
     index=qekf.log.idx,
     columns=['Tx', 'Ty', 'Tz',\
              'vx', 'vy', 'vz',\
