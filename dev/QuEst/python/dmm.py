@@ -33,15 +33,15 @@ class dmm:
                save_en=True
                ):
     if benchtype == 'KITTI':
-      benchnumStr = '%02d'.format(benchnum)
-      imgpath = DATA_DIR+'KITTI/sequences/'+benchnumStr+'/image_0'
+      numStr = '%02d'.format(benchnum)
+      imgpath = DATA_DIR+'KITTI/sequences/'+numStr+'/image_0/'
       datapath = DATA_DIR+'/KITTI/poses/'
     elif  benchtype == 'ICL':
       imgpath =  DATA_DIR+'/ICL/kt'+str(benchnum)+'/rgb/'
       datapath = DATA_DIR+'/ICL/kt'+str(benchnum)
     elif  benchtype == 'NAIST':
-      benchnumStr = '%03d'.format(benchnum)
-      imgpath =  DATA_DIR+'/NAIST/naist'+benchnumStr
+      numStr = '%03d'.format(benchnum)
+      imgpath =  DATA_DIR+'/NAIST/naist'+numStr
       datapath = DATA_DIR+'/NAIST/'
     elif  benchtype == 'TUM':
       tum_names = ['rgbd_dataset_freiburg1_360',
@@ -62,8 +62,8 @@ class dmm:
 
 
     ''' check '''
-    benchnumStr = '%03d'.format(benchnum)
-    outDir = OUT_DIR+benchtype+'_'+benchnumStr+'/'
+    numStr = '%03d'.format(benchnum)
+    outDir = OUT_DIR+benchtype+'_'+numStr+'/'
     if not os.path.exists(outDir):
       print(lhead+'the following directory DOES NOT EXIST: '+outDir)
       print(shead+"create is it with 'mkdir "+outDir+"'/n/n")
@@ -85,11 +85,12 @@ class dmm:
     st()
 
     fnames = get_images(imgpath, benchtype)
-    camParams, K = get_calib_matrix(benchtype, datapath, benchnum)
+    camParams, K, dist = get_calib_matrix(benchtype, datapath, benchnum)
     t1, q1, qTru, tTru = load_gt(benchtype, datapath, benchnum)
     self.fnames = fnames
     self.camParams = camParams
     self.K = K
+    self.dist = dist
     self.t1 = t1
     self.q1 = q1
     self.qTru = qTru
@@ -144,17 +145,23 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
     K = np.array([C[2],  C[3],  C[4],
                   C[6],  C[7],  C[8],
                   C[10], C[11], C[12]], dtype=_DTYPE)
-    dp = np.zeros((1,3), dtype=_DTYPE)
-    tp = np.zeros((1,2), dtype=_DTYPE)
+
+    ''' on radial distortion, tangential distortion, and distortion vector:
+    https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga69f2545a8b62a6b0fc2ee060dc30559d
+    http://researchspace.csir.co.za/dspace/bitstream/handle/10204/3168/De%20Villiers_2008.pdf;jsessionid=5F6421340C2DB3733478D1A1E00DD050?sequence=1
+    '''
+    # dp = np.zeros((1,3), dtype=_DTYPE) # radDist k
+    # tp = np.zeros((1,2), dtype=_DTYPE) # tanDist p
+    dist = np.zeros((1,5), dtype=_DTYPE) # dist = k[0],k[1],p[0],p[1],k[2]
 
   elif benchtype == 'ICL':
     K = np.array([481.20,	      0.0,      319.50,
                     0.0,     -480.00,     239.50,
                     0.0,        0.0,        1.0], dtype=_DTYPE)
     K = K.reshape((3,3))
-    dp = np.zeros((1,3), dtype=_DTYPE)
-    tp = np.zeros((1,2), dtype=_DTYPE)
-
+    # dp = np.zeros((1,3), dtype=_DTYPE)
+    # tp = np.zeros((1,2), dtype=_DTYPE)
+    dist = np.zeros((1,5), dtype=_DTYPE) # dist = k[0],k[1],p[0],p[1],k[2]
   elif benchtype == 'NAIST':
     K = np.array([884.9574219,    0.0,        634.0410934,
                     0.0,        883.5555857,  367.8930972,
@@ -193,7 +200,7 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
                 'NumRadialDistortionCoefficients': 3,
                 'RadialDistortion': dp,
                 'TangentialDistortion': tp}
-  return camParams, K
+  return camParams, K, dist
 
 def load_gt(benchtype, dataDir, benchnum):
   if benchtype == 'KITTI':
@@ -201,14 +208,16 @@ def load_gt(benchtype, dataDir, benchnum):
     # to interpolate poses
     #todo check file
     st()
-    fname = dataDir+'/'+benchnum+' '+'.txt'
-    rawdata = load(fname)
-    tx = rawdata(:,4);
-    ty = rawdata(:,8);
-    tz = rawdata(:,12);
-    Rmats = zeros(3,3,size(rawdata,1));
-    for k in rawdata_df.rows:
-      size(rawdata,1)
+    numStr = '{%2d}'.format(benchnum)
+    fname = dataDir+numStr+'.txt'
+    dat_np = np.loadtxt(fname, dtype=_DTYPE)
+    Txyz_gt = dat_np[:,3,7,11]
+    nprint('Txyz_gt',Txyz_gt)
+    st()
+
+    Rmats = np.zeros((dat_np.shape[0],3,3), dtype=_DTYPE);
+    for k in dat_np:
+      # size(dat_np,1)
       Rmats(:,:,k) = [rawdata(k,1:3); rawdata(k,5:7); rawdata(k,9:11)];
     qTru = R2Q(Rmats)
     tTru = [tx, ty, tz]

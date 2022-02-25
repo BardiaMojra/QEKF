@@ -2,20 +2,13 @@
 # import matplotlib
 import pandas as pd
 
-
 ''' private libraries '''
-from GetFeaturePoints
 from dmm import *
 from util import *
-
 
 ''' NBUG libraries '''
 from pdb import set_trace as st
 from nbug import *
-
-
-
-
 
 ''' general config '''
 NBUG          = True
@@ -57,19 +50,19 @@ def main():
   st()
 
   numKeyFrames = len(keyFrames) # num of key frames
-
-  # Preallocate pose estimation variables
-  numMethods  = len(_ALGORITHMS) # num of algorithms used in the comparison
-  rotErr      = NaN(numKeyFrames, numMethods) # rotation error for each method
-  tranErr     = NaN(numKeyFrames, numMethods) # translation error for each method
-  Q           = cell(numKeyFrames, numMethods) # recovered quaternions
-  T           = cell(numKeyFrames, numMethods) # recovered translations
+  numMethods   = len(_ALGORITHMS) # num of algorithms used in the comparison
+  # rotErr      = NaN(numKeyFrames, numMethods) # rotation error for each method
+  # tranErr     = NaN(numKeyFrames, numMethods) # translation error for each method
+  # Q           = cell(numKeyFrames, numMethods) # recovered quaternions
+  # T           = cell(numKeyFrames, numMethods) # recovered translations
 
 
   ''' recover Pose using RANSAC and compare with ground truth '''
   # Initialize with the first image feature points
-  [ppoints, Ip] = GetFeaturePoints(1, dset, surfThresh);
+  ppoints, Ip = GetFeaturePoints(0, dset, surfThresh)
 
+  nprint('ppoints', ppoints)
+  st()
 
   # init QEKF object
   # quest = QuEst()
