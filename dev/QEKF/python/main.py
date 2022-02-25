@@ -25,8 +25,8 @@ _save         = True
 _prt          = True
 # _START        = 0
 # _END          = 150
-# _TEST_MODE    = 'all'; _TEST_ID = None
-_TEST_ID      = 13; _TEST_MODE = 'single'
+_TEST_MODE    = 'all'; _TEST_ID = None
+# _TEST_ID      = 13; _TEST_MODE = 'single'
 
 
 ''' matplotlib config '''
@@ -36,18 +36,18 @@ _TEST_ID      = 13; _TEST_MODE = 'single'
 ''' datasets
  0  'dataset-iphone1_clean'
  1  'bigC_06-Aug2021'
- 2  'kitti_imu_0926_0001'
- 3  'kitti_imu_0926_0002'
- 4  'kitti_imu_0926_0005'
- 5  'kitti_imu_0926_0018'
- 6  'kitti_imu_0926_0060'
- 7  'kitti_imu_0926_0084'
- 8  'kitti_imu_0926_0113'
- 9  'kitti_imu_0928_0001'
-10  'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
-11  'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
-12  'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
-13  'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'
+#  2  'kitti_imu_0926_0001'
+#  3  'kitti_imu_0926_0002'
+#  4  'kitti_imu_0926_0005'
+#  5  'kitti_imu_0926_0018'
+#  6  'kitti_imu_0926_0060'
+#  7  'kitti_imu_0926_0084'
+#  8  'kitti_imu_0926_0113'
+#  9  'kitti_imu_0928_0001'
+2  'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
+3  'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
+4  'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
+5  'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'
 14
 15
 16
@@ -58,26 +58,38 @@ _TEST_ID      = 13; _TEST_MODE = 'single'
 '''
 
 def main():
-  if sys.argv[1] is not None and isinstance(int(sys.argv[1]), int) is True:
-    _TEST_ID = int(sys.argv[1])
-    print(shorthead+'user input (int): '+str(_TEST_ID)+' ---> '+datasets[_TEST_ID])
-    run(str(datasets[_TEST_ID]))
-  elif _TEST_MODE == 'all':
-    print(shorthead+'starting all test sequences:')
-    for i in range(len(datasets)):
-      print('> '+str(i)+': '+datasets[i])
-    print('\n')
-    for i in range(len(datasets)):
-      print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
-      run(datasets[i])
-  elif isinstance(_TEST_ID, int) is True:
-    if _TEST_ID not in range(len(datasets)):
+  tmode = _TEST_MODE
+  tnum = _TEST_ID
+  if len(sys.argv) > 1:
+    st()
+    if isinstance(sys.argv[1], int):
+      input_ID = sys.argv[1]
+      print(shorthead+'user input (int): '+str(input_ID)+' ---> '+datasets[input_ID])
+      run(str(datasets[input_ID]))
+    elif sys.argv[1] == 'all':
+      print(shorthead+'starting all test sequences:')
+      for i in range(len(datasets)):
+        print('> '+str(i)+': '+datasets[i])
+      print('\n')
+      for i in range(len(datasets)):
+        print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
+        run(datasets[i])
+  else:
+    if tmode == 'all':
+      print(shorthead+'starting all test sequences:')
+      for i in range(len(datasets)):
+        print('> '+str(i)+': '+datasets[i])
+      print('\n')
+      for i in range(len(datasets)):
+        print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
+        run(datasets[i])
+    elif tnum not in range(len(datasets)):
       eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)-1))
-      eprint('usr input: '+str(_TEST_ID))
+      eprint('usr input: '+str(tnum))
       exit()
     else:
-      print(shorthead+'user input (int): '+str(_TEST_ID)+' ---> '+datasets[_TEST_ID])
-      run(str(datasets[_TEST_ID]))
+      print(shorthead+'user input (int): '+str(tnum)+' ---> '+datasets[tnum])
+      run(str(datasets[tnum]))
   print(longhead+'---- end of main ----')
   return
 
