@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import opencv as cv
+import cv2 as cv
 
 
 ''' private modules '''

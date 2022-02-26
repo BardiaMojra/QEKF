@@ -40,9 +40,9 @@ def main():
             )
 
   numImag = len(dset.fnames) # total number of images
-  i = 2+skipFrame
+  i = 1+skipFrame
   keyFrames = list()
-  while i <= numImag:
+  while i < numImag:
     keyFrames.append(i)
     i = i+1+skipFrame
 

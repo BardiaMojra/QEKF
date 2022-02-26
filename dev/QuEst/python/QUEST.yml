@@ -1,17 +1,22 @@
 name: QUEST
 channels:
+  - menpo
   - conda-forge
   - anaconda
   - defaults
 dependencies:
   - python
   - numpy
+  - scipy
+  - numba
   - quaternion
   - pandas
-  - scipy
   - matplotlib
   - basemap
-  - libopencv
-  - opencv
-  - py-opencv
-  # - pip:
+  # - opencv
+  # - libopencv
+  # - py-opencv
+  - pip
+  - pip:
+      - opencv-python
+      - opencv-contrib-python

@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
+import quaternion
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -18,7 +19,7 @@ from nbug import *
 
 ''' module configs '''
 OUT_DIR = '../out00/'
-DATA_DIR = 'Datasets/'
+DATA_ROOT = '../Datasets/'
 _DTYPE = np.float64
 
 class dmm:
@@ -33,16 +34,16 @@ class dmm:
                save_en=True
                ):
     if benchtype == 'KITTI':
-      numStr = '%02d'.format(benchnum)
-      imgpath = DATA_DIR+'KITTI/sequences/'+numStr+'/image_0/'
-      datapath = DATA_DIR+'/KITTI/poses/'
+      numStr = '{:02d}'.format(benchnum)
+      imgpath = DATA_ROOT+'KITTI/sequences/'+numStr+'/image_0/'
+      datapath = DATA_ROOT+'KITTI/poses/'
     elif  benchtype == 'ICL':
-      imgpath =  DATA_DIR+'/ICL/kt'+str(benchnum)+'/rgb/'
-      datapath = DATA_DIR+'/ICL/kt'+str(benchnum)
+      imgpath =  DATA_ROOT+'ICL/kt'+str(benchnum)+'/rgb/'
+      datapath = DATA_ROOT+'ICL/kt'+str(benchnum)
     elif  benchtype == 'NAIST':
-      numStr = '%03d'.format(benchnum)
-      imgpath =  DATA_DIR+'/NAIST/naist'+numStr
-      datapath = DATA_DIR+'/NAIST/'
+      numStr = '{:03d}'.format(benchnum)
+      imgpath =  DATA_ROOT+'NAIST/naist'+numStr
+      datapath = DATA_ROOT+'NAIST/'
     elif  benchtype == 'TUM':
       tum_names = ['rgbd_dataset_freiburg1_360',
                    'rgbd_dataset_freiburg1_desk',
@@ -55,20 +56,19 @@ class dmm:
                    'rgbd_dataset_freiburg2_large_no_loop',
                    'rgbd_dataset_freiburg2_large_with_loop',
                    'rgbd_dataset_freiburg3_long_office_household']
-      imgpath =  DATA_DIR+'/TUM/'+tum_names[benchnum]+'/rgb'
-      datapath = DATA_DIR+'/TUM/'+tum_names[benchnum]
+      imgpath =  DATA_ROOT+'TUM/'+tum_names[benchnum]+'/rgb/'
+      datapath = DATA_ROOT+'TUM/'+tum_names[benchnum]
     else:
       eprint(lhead+'Err--->> selected dataset not found: '+benchtype+' '+str(benchnum)+ltail)
 
 
     ''' check '''
-    numStr = '%03d'.format(benchnum)
+    numStr = '{:03d}'.format(benchnum)
     outDir = OUT_DIR+benchtype+'_'+numStr+'/'
     if not os.path.exists(outDir):
       print(lhead+'the following directory DOES NOT EXIST: '+outDir)
-      print(shead+"create is it with 'mkdir "+outDir+"'/n/n")
+      print(shead+"create is it with 'mkdir "+outDir+"'\n\n")
       exit()
-    st()
     ''' init '''
     self.benchtype = benchtype
     self.imgpath = imgpath
@@ -79,34 +79,32 @@ class dmm:
     self.dtype = _DTYPE
     self.prt = prt_en
     self.save = save_en
-    # self.df = None
-    # self.len = None
-
-    st()
 
     fnames = get_images(imgpath, benchtype)
     camParams, K, dist = get_calib_matrix(benchtype, datapath, benchnum)
-    t1, q1, qTru, tTru = load_gt(benchtype, datapath, benchnum)
+    t0, q0, qTru, tTru = load_gt(benchtype, datapath, benchnum)
+
     self.fnames = fnames
     self.camParams = camParams
     self.K = K
     self.dist = dist
-    self.t1 = t1
-    self.q1 = q1
+    self.t0 = t0
+    self.q0 = q0
     self.qTru = qTru
     self.tTru = tTru
-
 
     # end of __init__() <<--------------------------------------
 
 def get_images(imgpath, benchtype):
   files = os.listdir(imgpath)
+  files = sorted(files)
   if benchtype ==  'KITTI':
-    nprint('files', files)
-    st()
+    # nprint('files', files)
+    # st()
     #todo get file names
     # for f in files:
       # fnames.append
+    pass
   elif benchtype ==  'NAIST':
     nprint('files', files)
     st()
@@ -128,32 +126,39 @@ def get_images(imgpath, benchtype):
   else:
     assert False, 'unknown benchtype '+benchtype
 
-  nprint('files', files)
-  st()
+  # nprint('files', files)
+  # st()
   return files
 
 def get_calib_matrix(benchtype, dataDir, benchnum):
   if benchtype == 'KITTI':
-    benchnumStr = '%02d'.format(benchnum)
-    fname = dataDir+'KITTI/sequences/'+'calib.txt'
-    with open(fname) as f:
-      C = f.readline()
-      f.close()
-    nprint('C', C)
-    C.split(' ')
+    numStr = '{:02d}'.format(benchnum)
+    fname = DATA_ROOT+'KITTI/sequences/'+numStr+'/calib.txt'
+    # with open(fname) as f:
+    #   C = f.readline()
+    #   f.close()
+    # nprint('C', C)
+    # st()
+    # C.split(' ')
+    C = np.array([7.215377000000e+02, 0.000000000000e+00, 6.095593000000e+02,
+         0.000000000000e+00, 0.000000000000e+00, 7.215377000000e+02,
+         1.728540000000e+02, 0.000000000000e+00, 0.000000000000e+00,
+         0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00], dtype=_DTYPE)
+    K = np.array([C[1],  C[2],  C[3],
+                  C[5],  C[6],  C[7],
+                  C[9], C[10], C[11]], dtype=_DTYPE)
 
-    K = np.array([C[2],  C[3],  C[4],
-                  C[6],  C[7],  C[8],
-                  C[10], C[11], C[12]], dtype=_DTYPE)
+
 
     ''' on radial distortion, tangential distortion, and distortion vector:
     https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga69f2545a8b62a6b0fc2ee060dc30559d
     http://researchspace.csir.co.za/dspace/bitstream/handle/10204/3168/De%20Villiers_2008.pdf;jsessionid=5F6421340C2DB3733478D1A1E00DD050?sequence=1
     '''
-    # dp = np.zeros((1,3), dtype=_DTYPE) # radDist k
-    # tp = np.zeros((1,2), dtype=_DTYPE) # tanDist p
+    dp = np.zeros((1,3), dtype=_DTYPE) # radDist k
+    tp = np.zeros((1,2), dtype=_DTYPE) # tanDist p
     dist = np.zeros((1,5), dtype=_DTYPE) # dist = k[0],k[1],p[0],p[1],k[2]
-
+    # nprint('dist', dist)
+    # st()
   elif benchtype == 'ICL':
     K = np.array([481.20,	      0.0,      319.50,
                     0.0,     -480.00,     239.50,
@@ -204,23 +209,22 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
 
 def load_gt(benchtype, dataDir, benchnum):
   if benchtype == 'KITTI':
-    # The KITTI dataset has exactly one pose per image, so there is no need
-    # to interpolate poses
-    #todo check file
-    st()
-    numStr = '{%2d}'.format(benchnum)
+    numStr = '{:02d}'.format(benchnum)
     fname = dataDir+numStr+'.txt'
-    dat_np = np.loadtxt(fname, dtype=_DTYPE)
-    Txyz_gt = dat_np[:,3,7,11]
-    nprint('Txyz_gt',Txyz_gt)
-    st()
-
-    Rmats = np.zeros((dat_np.shape[0],3,3), dtype=_DTYPE);
-    for k in dat_np:
-      # size(dat_np,1)
-      Rmats(:,:,k) = [rawdata(k,1:3); rawdata(k,5:7); rawdata(k,9:11)];
-    qTru = R2Q(Rmats)
-    tTru = [tx, ty, tz]
+    dat = np.loadtxt(fname, dtype=_DTYPE)
+    Tx = dat[:,3].copy()
+    Ty = dat[:,7].copy()
+    Tz = dat[:,11].copy()
+    Tx = Tx.reshape(-1,1)
+    Ty = Ty.reshape(-1,1)
+    Tz = Tz.reshape(-1,1)
+    T_gt = np.concatenate((Tx,Ty,Tz), axis=1)
+    Rmats = np.zeros((dat.shape[0],3,3), dtype=_DTYPE);
+    for i in range(dat.shape[0]):
+      R = np.concatenate((dat[i,0:3],dat[i,4:7],dat[i,8:11]), axis=0)
+      R = R.reshape(3,3)
+      Rmats[i,:] = R
+    Q_gt = quaternion.from_rotation_matrix(Rmats)
   elif benchtype == 'ICL':
     # rawdata = load([datapath '/traj' num2str(benchnum) '.gt.freiburg']);
     # tTru = rawdata(:,2:4)';
@@ -266,8 +270,9 @@ def load_gt(benchtype, dataDir, benchnum):
 
 
   # Make sure the first quaternion element is always positive
-  negIdx = qTru[1,:] < 0; #todo make the test is performed correctly
-  qTru(:,negIdx) = - qTru(:,negIdx);
+
+  # negIdx = qTru[1,:] < 0; #todo make the test is performed correctly
+  # qTru[:,negIdx] = - qTru(:,negIdx);
 
   if benchtype == 'TUM':
     # We need to interpolate pose for TUM dataset
@@ -276,11 +281,8 @@ def load_gt(benchtype, dataDir, benchnum):
     # ftime = str2double( fname(1:end-4) ) # Time at the current frame
     # [q1, t1] = InterpPoseVer1_1(ftime,times, qTru, tTru) # Interpolate data to find the pose of the current camera frame
     pass
-  else:
-    # Initial pose
-    q1 = qTru[:,1]
-    t1 = tTru[:,1]
-  return t1, q1, qTru, tTru
+
+  return T_gt[0], Q_gt[0], T_gt, Q_gt
 
 
 
