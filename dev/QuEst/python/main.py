@@ -3,6 +3,8 @@
 import pandas as pd
 
 ''' private libraries '''
+from quest import QuEst_RANSAC_v01_2 as quest
+from dlm import *
 from dmm import *
 from utils import *
 
@@ -32,7 +34,7 @@ minPts        = 6 # min num of feature points required (6 to est a unique pose f
 def main():
   global fignum; fignum = int(0)
 
-  # init dataset object
+  dlog = dlm()
   dset = dmm(_BENCHTYPE,
              _BENCHNUM
             #  start=_START,
@@ -63,36 +65,32 @@ def main():
   Im_p, kp_p, des_p = GetFeaturePoints(fdetector, 0, dset, surfThresh)
 
   ''' recover Pose using RANSAC and compare with ground truth '''
-
   st()
-  cntr = 0 # keyframe counter
-  for i in len(keyFrames):
-    cntr =+ 1
-
+  for i in range(len(keyFrames)):
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
     matches = matches[:maxPts]
-    matches = MatchFeaturePoints(Im_p, kp_p, Im_n, kp_n, maxPts, dset)
+    # matches = MatchFeaturePoints(Im_p, kp_p, Im_n, kp_n, maxPts, dset)
 
     # get ground truth
-    relPose, posp = RelativeGroundTruth(i, posp, dset)
+    qr, tr = RelativeGroundTruth(i, dset)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
     if matches.numPts < minPts:
       # use current image for the next iteration
-      Im_p = Im_n
-      kp_p = kp_n
+      Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
-
+    # test
+    st()
     eprint(str('algorithm is not supported: '+alg))
     # recover pose and find error by comparing with the ground truth
     for alg in _ALGORITHMS:
       if alg == 'QuEst':
-        M, inliers = QuEst_RANSAC_v01_2(matches.m1, matches.m2, ranThresh)
+        M, inliers = quest(matches.m1, matches.m2, ranThresh)
         q = M.Q
         tOut = M.t
       else:
@@ -104,103 +102,68 @@ def main():
       t = -tOut
 
       # calcualte the estimate error
+      Q_err = get_QuatError(qr, q)
+      T_err = get_TransError(tr, t)
 
-        % Calculate the estimation error
-        rotErr[cntr,alg]  = get_QuatError(relPose.qr, q);
-        tranErr[cntr,alg] = get_TransError(relPose.tr, t);
+      dlog.log_data(i, alg, 'q', q)
+      dlog.log_data(i, alg, 'qr', qr)
+      dlog.log_data(i, alg, 't', t)
+      dlog.log_data(i, alg, 'tr', tr)
+      dlog.log_data(i, alg, 'Q_err', Q_err)
+      dlog.log_data(i, alg, 'T_err', T_err)
 
-    end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    # end of for alg
 
-    % Display images with matched feature points
-    imshow(Im_p);
-    hold on;
-    p1 = matches.p1;
-    p2 = matches.p2;
-    numPts = size(p1,2);
-    plot(p1(:,1), p1(:,2), 'g+');
-    plot(p2(:,1), p2(:,2), 'yo');
-    for j = 1 : numPts
-        if any(j == inliers)
-            plot([p1(j,1) p2(j,1)], [p1(j,2) p2(j,2)], 'g'); % Detected inlier
-        else
-            plot([p1(j,1) p2(j,1)], [p1(j,2) p2(j,2)], 'r'); % Detected outlier
-        end
-    end
-    drawnow;
-    hold off;
-
-    % Store the current image for the next iteration
-    Ip = In;
-    ppoints = npoints;
-    % Print iteration number
-    if mod(cntr,10) == 0
-        display(['Iteration ' num2str(cntr) ' of ' num2str(numKeyFrames)]);
-    end
-
-end
+    # display images with matched feature points
+    plt.imshow(Im_p); plt.show()
+    Im_match = cv.drawMatches(Im_n, kp_n, Im_p, kp_p, matches, None,\
+      flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    plt.imshow(Im_match); plt.show()
+    fignum+=1;
+    write_image(fignum, Im_match, dmm.outDir)
 
 
+    # store the current image for the next iteration
+    Im_p = Im_n
+    kp_p = kp_n
+    # print iteration number
+    if i % 10 == 0:
+      print('    \\ ------->>>>>: '+i+'/'+numKeyFrames)
+  print('end of quest data iterator ----->>')
 
-%% Display results
-
-% Remove NaN entries (corresponding to skipped frames)
-nanIdx = find( sum(isnan(rotErr),2) );
-rotErr(nanIdx,:) = [];
-tranErr(nanIdx,:) = [];
-numKeyFrames = size(rotErr,1);
-
-% Statistics of error for rotation and translation estimates
-rotErrM = mean(rotErr,1);            % Mean
-rotErrS = std(rotErr,1);             % Standard deviation
-rotErrMd = median(rotErr,1);         % Median
-rotErrQ1 = quantile(rotErr,0.25, 1); % 25% quartile
-rotErrQ3 = quantile(rotErr,0.75, 1); % 75% quartile
-tranErrM = mean(tranErr,1);
-tranErrS = std(tranErr,1);
-tranErrMd = median(tranErr,1);
-tranErrQ1 = quantile(tranErr,0.25, 1);
-tranErrQ3 = quantile(tranErr,0.75, 1);
-
-% Table of results
-RowNames = {'Rot err mean'; 'Rot err std'; 'Rot err median'; 'Rot err Q_1'; 'Rot err Q_3';...
-    'Tran err mean'; 'Tran err std'; 'Tran err median'; 'Tran err Q_1'; 'Tran err Q_3'};
-data = [rotErrM; rotErrS; rotErrMd; rotErrQ1; rotErrQ3; ...
-    tranErrM; tranErrS; tranErrMd; tranErrQ1; tranErrQ3;];
-table(data(:,1),'RowNames',RowNames, 'VariableNames', algorithms)
+  ''' end processing '''
 
 
+  # print results
+  # Remove NaN entries (corresponding to skipped frames)
+  # nanIdx = find( sum(isnan(rotErr),2) );
+  # rotErr(nanIdx,:) = [];
+  # tranErr(nanIdx,:) = [];
+  # numKeyFrames = size(rotErr,1);
 
-%%
+  # statistics of error for rotation and translation estimates
+  # rotErrM = mean(rotErr,1);            % Mean
+  # rotErrS = std(rotErr,1);             % Standard deviation
+  # rotErrMd = median(rotErr,1);         % Median
+  # rotErrQ1 = quantile(rotErr,0.25, 1); % 25% quartile
+  # rotErrQ3 = quantile(rotErr,0.75, 1); % 75% quartile
+  # tranErrM = mean(tranErr,1);
+  # tranErrS = std(tranErr,1);
+  # tranErrMd = median(tranErr,1);
+  # tranErrQ1 = quantile(tranErr,0.25, 1);
+  # tranErrQ3 = quantile(tranErr,0.75, 1);
 
-warning('on','all');
+  # Table of results
+  # RowNames = ['Rot err mean', 'Rot err std', 'Rot err median',
+  #             'Rot err Q_1', 'Rot err Q_3',
+              # # 'Tran err mean', 'Tran err std', 'Tran err median',
+  #             # 'Tran err Q_1', 'Tran err Q_3']
+  # # data = [rotErrM, rotErrS, rotErrMd,
+  #         # rotErrQ1, rotErrQ3,
+          # # tranErrM, tranErrS, tranErrMd,
+  #         # tranErrQ1, tranErrQ3]
+  # # table(data(:,1),'RowNames',RowNames, 'VariableNames', algorithms)
 
-
-
-  # init QEKF object
-  # quest = QuEst()
-
-  # x_Txyz = dset.t1  # init state vectors
-  # x_Qxyz = dset.q1  # init state vectors
-  # for i in range(dset.start, dset.end):
-  #   # print('    \\--->>> new state ------->>>>>:  ', i)
-  #   u_Wrpy = dset.u_Wrpy_np[i].reshape(-1,1)
-  #   z_TVQxyz = dset.z_TVQxyzw_np[i,:-1].reshape(-1,1)
-  #   z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for data logging
-  #   # nsprint('x_TVQxyz', x_TVQxyz)
-  #   # nsprint('u_Wrpy', u_Wrpy)
-  #   # nsprint('z_TVQxyz', z_TVQxyz)
-  #   # st()
-  #   x_TVQxyz = qekf.predict(x_TVQxyz, u_Wrpy)
-  #   # nsprint('x_TVQxyz', x_TVQxyz)
-  #   x_TVQxyz = qekf.update(x_TVQxyz, z_TVQxyz)
-  #   # st()
-  #   ''' log z state vector '''
-  #   qekf.log.log_z_state(z_TVQxyzw, i)
-  print('end of qekf data iterator ----->>')
-
-
-  ''' post processing '''
 
   return # end of main
 

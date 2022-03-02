@@ -4,6 +4,7 @@ import numpy as np
 import quaternion
 import matplotlib
 import matplotlib.pyplot as plt
+import cv2 as cv
 # from matplotlib import cm
 import os
 # import csv
@@ -25,7 +26,7 @@ _DTYPE = np.float64
 class dmm:
   ''' data management module '''
   def __init__(self,
-               benchtype,
+               bench,
                benchnum,
                start=0,
                end=None,
@@ -33,18 +34,18 @@ class dmm:
                prt_en=True,
                save_en=True
                ):
-    if benchtype == 'KITTI':
+    if bench == 'KITTI':
       numStr = '{:02d}'.format(benchnum)
       imgpath = DATA_ROOT+'KITTI/sequences/'+numStr+'/image_0/'
       datapath = DATA_ROOT+'KITTI/poses/'
-    elif  benchtype == 'ICL':
+    elif  bench == 'ICL':
       imgpath =  DATA_ROOT+'ICL/kt'+str(benchnum)+'/rgb/'
       datapath = DATA_ROOT+'ICL/kt'+str(benchnum)
-    elif  benchtype == 'NAIST':
+    elif  bench == 'NAIST':
       numStr = '{:03d}'.format(benchnum)
       imgpath =  DATA_ROOT+'NAIST/naist'+numStr
       datapath = DATA_ROOT+'NAIST/'
-    elif  benchtype == 'TUM':
+    elif  bench == 'TUM':
       tum_names = ['rgbd_dataset_freiburg1_360',
                    'rgbd_dataset_freiburg1_desk',
                    'rgbd_dataset_freiburg1_desk2',
@@ -59,18 +60,18 @@ class dmm:
       imgpath =  DATA_ROOT+'TUM/'+tum_names[benchnum]+'/rgb/'
       datapath = DATA_ROOT+'TUM/'+tum_names[benchnum]
     else:
-      eprint(lhead+'Err--->> selected dataset not found: '+benchtype+' '+str(benchnum)+ltail)
+      eprint(lhead+'Err--->> selected dataset not found: '+bench+' '+str(benchnum)+ltail)
 
 
     ''' check '''
     numStr = '{:03d}'.format(benchnum)
-    outDir = OUT_DIR+benchtype+'_'+numStr+'/'
+    outDir = OUT_DIR+bench+'_'+numStr+'/'
     if not os.path.exists(outDir):
       print(lhead+'the following directory DOES NOT EXIST: '+outDir)
       print(shead+"create is it with 'mkdir "+outDir+"'\n\n")
       exit()
     ''' init '''
-    self.bench = benchtype
+    self.bench = bench
     self.imgpath = imgpath
     self.datapath = datapath
     self.outDir = outDir
@@ -80,9 +81,9 @@ class dmm:
     self.prt = prt_en
     self.save = save_en
 
-    fnames = get_images(imgpath, benchtype)
-    camParams, K, dist = get_calib_matrix(benchtype, datapath, benchnum)
-    t0, q0, qTru, tTru = load_gt(benchtype, datapath, benchnum)
+    fnames = get_images(imgpath, bench)
+    camParams, K, dist = get_calib_matrix(bench, datapath, benchnum)
+    t0, q0, qTru, tTru = load_gt(bench, datapath, benchnum)
 
     self.fnames = fnames
     self.camParams = camParams
@@ -207,8 +208,8 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
                 'TangentialDistortion': tp}
   return camParams, K, dist
 
-def load_gt(benchtype, dataDir, benchnum):
-  if benchtype == 'KITTI':
+def load_gt(bench, dataDir, benchnum):
+  if bench == 'KITTI':
     numStr = '{:02d}'.format(benchnum)
     fname = dataDir+numStr+'.txt'
     dat = np.loadtxt(fname, dtype=_DTYPE)
@@ -225,12 +226,12 @@ def load_gt(benchtype, dataDir, benchnum):
       R = R.reshape(3,3)
       Rmats[i,:] = R
     Q_gt = quaternion.from_rotation_matrix(Rmats)
-  elif benchtype == 'ICL':
+  elif bench == 'ICL':
     # rawdata = load([datapath '/traj' num2str(benchnum) '.gt.freiburg']);
     # tTru = rawdata(:,2:4)';
     # qTru = [rawdata(:,8) rawdata(:,5:7)]';
     pass
-  elif benchtype == 'NAIST':
+  elif bench == 'NAIST':
     # datafile = [datapath '/naist' num2str(benchnum, '%03d') '_camerapath.csv'];
     # fileid = fopen(datafile);
     # C = textscan(fileid, '%s %f %f %f %f %f %f %f %f %f %f %f %f', 'Delimiter', ',', 'CommentStyle', '#');
@@ -246,7 +247,7 @@ def load_gt(benchtype, dataDir, benchnum):
     # qTru = R2Q(Rmats);
     # tTru = [tx, ty, tz].';
     pass
-  elif benchtype == 'TUM':
+  elif bench == 'TUM':
     # Using textscan instead of textread to deal with comment lines,
     # instead of editing every groundtruth.txt file
     # datafile = [datapath '/groundtruth.txt'];
@@ -266,7 +267,7 @@ def load_gt(benchtype, dataDir, benchnum):
     # self.times = times;
     pass
   else:
-    assert False, 'unknown benchtype '+benchtype
+    assert False, 'unknown benchtype '+bench
 
 
   # Make sure the first quaternion element is always positive
@@ -274,7 +275,7 @@ def load_gt(benchtype, dataDir, benchnum):
   # negIdx = qTru[1,:] < 0; #todo make the test is performed correctly
   # qTru[:,negIdx] = - qTru(:,negIdx);
 
-  if benchtype == 'TUM':
+  if bench == 'TUM':
     # We need to interpolate pose for TUM dataset
     # Initialize with the first frame
     # fname = fnames{1}
@@ -284,7 +285,22 @@ def load_gt(benchtype, dataDir, benchnum):
 
   return T_gt[0], Q_gt[0], T_gt, Q_gt
 
+def prt_file_save(string, *args):
+  print(shead+(string+' ')); print(*args);
 
+
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum) '''
+  return 'fig_%03i' % fignum
+
+
+def write_image(num:int, image, outDir):
+  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
+  figname = get_fignum_str(num)
+  figname = outDir+'_'+figname+'.png'
+  cv.imwrite(figname, image)
+  prt_file_save(shead+'saving figure: '+figname)
+  return
 
 
 
