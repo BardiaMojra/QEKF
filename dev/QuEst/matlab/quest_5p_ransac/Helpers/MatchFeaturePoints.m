@@ -1,4 +1,4 @@
-function matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset)
+function matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i)
 
 % Extract feature points
 [f1,vp1] = extractFeatures(Ip,ppoints);
@@ -12,8 +12,9 @@ matchedPoints2 = vp2(indexPairs(:,2));
 
 p1 = matchedPoints1.Location;
 p2 = matchedPoints2.Location;     
-%   figure; showMatchedFeatures(Ip,In,p1,p2);
-
+figure; im = showMatchedFeatures(Ip,In,p1,p2);
+% outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png']
+% imwrite(im, outpath);
 % Feature points
 numMatch = size(p1, 1);  % Number of matched feature points
 numPts = min(numMatch, maxPts);
@@ -48,128 +49,4 @@ matches.m2u = m2u;
 matches.numPts = numPts; 
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

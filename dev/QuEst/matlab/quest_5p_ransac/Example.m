@@ -83,7 +83,7 @@ for i = keyFrames
         
     % Feature points matching    
     [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points           
-    matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset); % Match feature points
+    matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
     
     % Relative ground truth 
     [relPose, posp] = RelativeGroundTruth(i, posp, dataset);

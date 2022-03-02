@@ -4,9 +4,9 @@ import numpy as np
 import quaternion
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm
+# from matplotlib import cm
 import os
-import csv
+# import csv
 
 
 ''' matplotlib config '''
@@ -70,7 +70,7 @@ class dmm:
       print(shead+"create is it with 'mkdir "+outDir+"'\n\n")
       exit()
     ''' init '''
-    self.benchtype = benchtype
+    self.bench = benchtype
     self.imgpath = imgpath
     self.datapath = datapath
     self.outDir = outDir
@@ -164,8 +164,8 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
                     0.0,     -480.00,     239.50,
                     0.0,        0.0,        1.0], dtype=_DTYPE)
     K = K.reshape((3,3))
-    # dp = np.zeros((1,3), dtype=_DTYPE)
-    # tp = np.zeros((1,2), dtype=_DTYPE)
+    dp = np.zeros((1,3), dtype=_DTYPE)
+    tp = np.zeros((1,2), dtype=_DTYPE)
     dist = np.zeros((1,5), dtype=_DTYPE) # dist = k[0],k[1],p[0],p[1],k[2]
   elif benchtype == 'NAIST':
     K = np.array([884.9574219,    0.0,        634.0410934,
