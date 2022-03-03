@@ -44,7 +44,7 @@ benchnum = 3;
 %% Set parameters
 
 % Algorithms to run
-algorithms = {'QuEst'};
+algorithms = {'QuEst_v0708'};
 
 % Keyframes
 skipFrame = 0;         % This is the number of frames that are skiped between two key frames
@@ -102,10 +102,15 @@ for i = keyFrames
     % Recover pose and find error by comparing with the ground truth     
     for mthd = 1 : numMethods        
         
-        if strcmp(algorithms{mthd}, 'QuEst') % RANSAC with QuEst algorithm
-            [M, inliers] = QuEst_RANSAC_Ver1_2(matches.m1, matches.m2, ranThresh);    
+        if strcmp(algorithms{mthd}, 'QuEst_RANSAC_v0102') % RANSAC with QuEst algorithm
+            [M, inliers] = QuEst_RANSAC_Ver1_2(matches.m1, matches.m2, ranThresh);   
             q = M.Q;
             tOut = M.t;
+        elseif strcmp(algorithms{mthd}, 'QuEst_v0708') 
+            q = QuEst_5Pt_Ver7_8(matches.m1, matches.m2);
+            tOut = FindTransDepth_Ver1_0(matches.m1, matches.m2, q);
+%             q = M.Q;
+%             tOut = M.t;
         else
             error('Undefined algorithm.')
         end

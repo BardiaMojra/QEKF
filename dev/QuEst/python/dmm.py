@@ -9,19 +9,17 @@ import cv2 as cv
 import os
 # import csv
 
+''' private mods '''
+from quest import *
 
-''' matplotlib config '''
-matplotlib.pyplot.ion()
-plt.style.use('ggplot')
-
+''' NBUG '''
 from pdb import set_trace as st
 from nbug import *
 
 
-''' module configs '''
-OUT_DIR = '../out00/'
-DATA_ROOT = '../Datasets/'
-_DTYPE = np.float64
+''' matplotlib config '''
+matplotlib.pyplot.ion()
+plt.style.use('ggplot')
 
 class dmm:
   ''' data management module '''
@@ -30,7 +28,7 @@ class dmm:
                benchnum,
                start=0,
                end=None,
-               _DTYPE = _DTYPE,
+               _DTYPE=np.float64,
                prt_en=True,
                save_en=True
                ):

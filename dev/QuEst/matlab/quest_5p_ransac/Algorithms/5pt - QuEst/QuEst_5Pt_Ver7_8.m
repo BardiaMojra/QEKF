@@ -84,7 +84,7 @@ B3 = B(:,41:60);
 [V3, ~] = eig(B3);
 
 Ve = [V1, V2, V3];
-
+% #todo for now remove all the imaginary solutions 
 % Remove duplicate complex eigenvectors
 Vy = imag(Ve);
 imagIdx = sum(abs(Vy),1) > 10*eps;
@@ -119,59 +119,3 @@ Q = [w;
 % Normalize s.t. each column of Q has norm 1
 QNrm = sqrt(sum(Q.^2,1));
 Q = bsxfun(@rdivide, Q, QNrm);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

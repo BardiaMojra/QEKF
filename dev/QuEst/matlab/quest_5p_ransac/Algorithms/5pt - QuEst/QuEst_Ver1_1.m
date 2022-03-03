@@ -50,8 +50,8 @@ function sol = QuEst_Ver1_1(m,n)
 %
 %
 % Q = QuEst_5Pt_Ver5_2(m,n);          % The exact implementation of the algorithm in the paper
-% Q = QuEst_5Pt_Ver7_8(m,n);          % For more accuracy use this
-Q = QuEst_5Pt_Ver7_8_spd(m,n);        % For faster execution use this
+Q = QuEst_5Pt_Ver7_8(m,n);          % For more accuracy use this
+% Q = QuEst_5Pt_Ver7_8_spd(m,n);        % For faster execution use this
 % Q = QuEst_5Pt_Ver7_8_spd_mex(m,n);  % For fastest performace run this .mex version
 
 

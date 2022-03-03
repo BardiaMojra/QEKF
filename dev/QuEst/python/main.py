@@ -3,7 +3,7 @@
 import pandas as pd
 
 ''' private libraries '''
-from quest import QuEst_RANSAC_v01_2 as quest
+from quest import *
 from dlm import *
 from dmm import *
 from utils import *
@@ -89,10 +89,13 @@ def main():
     eprint(str('algorithm is not supported: '+alg))
     # recover pose and find error by comparing with the ground truth
     for alg in _ALGORITHMS:
-      if alg == 'QuEst':
-        M, inliers = quest(matches.m1, matches.m2, ranThresh)
+      if alg == 'QuEst_RANSAC_v0102':
+        M, inliers = QRANSAC0102(matches.m1, matches.m2, ranThresh)
         q = M.Q
         tOut = M.t
+      elif alg == 'QuEst_v0708':
+        tOut, q = Q0708(matches.m1, matches.m2)
+
       else:
         eprint(str('algorithm is not supported: '+alg))
 
