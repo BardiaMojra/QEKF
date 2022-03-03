@@ -51,8 +51,8 @@ def main():
   nprint('keyFrames', keyFrames)
   st()
 
-  numKeyFrames = len(keyFrames) # num of key frames
-  numMethods   = len(_ALGORITHMS) # num of algorithms used in the comparison
+  # numKeyFrames = len(keyFrames) # num of key frames
+  # numMethods   = len(_ALGORITHMS) # num of algorithms used in the comparison
   # rotErr      = NaN(numKeyFrames, numMethods) # rotation error for each method
   # tranErr     = NaN(numKeyFrames, numMethods) # translation error for each method
   # Q           = cell(numKeyFrames, numMethods) # recovered quaternions
@@ -128,7 +128,7 @@ def main():
     kp_p = kp_n
     # print iteration number
     if i % 10 == 0:
-      print('    \\ ------->>>>>: '+i+'/'+numKeyFrames)
+      print('    \\ ------->>>>>: '+i+'/'+len(keyFrames))
   print('end of quest data iterator ----->>')
 
   ''' end processing '''

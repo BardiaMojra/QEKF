@@ -114,12 +114,14 @@ if iscell(F)        % We have several solutions each of which must be tested
          (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
         inliers = find(abs(d) < t);     % Indices of inlying points
         if length(inliers) > ninliers   % Record best solution
-          ninliers = length(inliers);
-          bestM.F = F{k};
-          bestInliers = inliers;
+            ninliers = length(inliers);
+        bestM.F = F{k};
+        bestInliers = inliers;
         end
     end
+
 else     % We just have one solution
+
     x2tFx1 = zeros(1,length(x1));
     for n = 1:length(x1)
         x2tFx1(n) = x2(:,n)'*F*x1(:,n);

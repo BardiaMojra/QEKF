@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 import cv2 as cv
 
-
-
-
 ''' private modules '''
 from dmm import *
 from nbug import *
@@ -90,7 +87,7 @@ def RelativeGroundTruth(i, dset):
     # ftime = str2double( fname(1:end-4) ); % Time at the current frame
     # [q2, t2] = InterpPoseVer1_1(ftime,dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame
   else:
-    assert False, 'unknown benchtype '+benc`h
+    assert False, 'unknown benchtype '+bench
 
   if bench == 'KITTI' or  bench == 'ICL' or  bench ==  'TUM':
     # relative rotation between two frames (^2R_1 : rotation of frame 1

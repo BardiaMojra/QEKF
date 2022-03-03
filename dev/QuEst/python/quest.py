@@ -1,112 +1,79 @@
-
-
 import cv2 as cv
 
 
-def QuEst_RANSAC_v01_2(m1, m2, ranThresh):
+''' private modules '''
+from nbug import *
+from pdb import set_trace as st
 
-  return
-
-
-
-% QuEst_RANSAC estimates the pose between two camera views using RANSAC and
-% QuEst algorithm.
-%
-%
-% Input:
-%
-%          x1  - 3xN set of mathced feature point coordinates
-%                (Euclidean coordinates).
-%          x2  - 3xN set of feature point coordinates points such that x1
-%                is matched with x2.
-%          t   - The distance threshold between data point and the model
-%                used to decide whether a point is an inlier or not.
-%                Note that point coordinates are normalised to that their
-%                mean distance from the origin is sqrt(2).  The value of
-%                t should be set relative to this, say in the range
-%                0.001 - 0.01
-%
-% Note that it is assumed that the matching of x1 and x2 are putative and it
-% is expected that a percentage of matches will be wrong.
-%
-% Output:
-%
-%          M       - A structure that contains the best estimated pose.
-%          inliers - An array of indices of the elements of x1, x2 that were
-%                    the inliers for the best pose.
-%
-%
-% This code is based on RANSAC provided by Peter Kovesi.
-%
-% Copyright (c) Kaveh Fathian,  October 2018.
-%
-% Permission is hereby granted, free of charge, to any person obtaining a copy
-% of this software and associated documentation files (the "Software"), to deal
-% in the software without restriction, subject to the following conditions:
-%
-% The above copyright notice and this permission notice shall be included in
-% all copies or substantial portions of the Software.
-%
-% The Software is provided "as is", without warranty of any kind.
-%
-% ------------------------------------------------------------------
-% Ver 1_1:
-%           RANSAC based on Fundamental matrix
-% Ver 1_2:
-%           x1, x2 are Euclidean coordinates
-%
-function [M, inliers] = QuEst_RANSAC_Ver1_2(x1, x2, t, feedback)
-
-% Check input
-if ~all(size(x1)==size(x2))
-    error('Image dataset must have the same dimension.');
-end
-
-if nargin == 3
-    feedback = 0;
-end
-
-% Normalize the points in l^1 norm
-x1n = sum(abs(x1),1);
-x2n = sum(abs(x2),1);
-x1 = bsxfun(@rdivide, x1,x1n);
-x2 = bsxfun(@rdivide, x2,x2n);
-
-s = 6;  % Number of points needed to uniquely fit a fundamental matrix.
-        % Note that only 5 points are needed to estimate the pose, but
-        % with 5 points the solution is not unique.
-
-fittingfn = @PoseEstimator;
-distfn    = @FundDist;
-degenfn   = @IsDegenerate;
-% x1 and x2 are 'stacked' to create a 6xN array for ransac
-[M, inliers] = ransac([x1; x2], fittingfn, distfn, degenfn, s, t, feedback);
-
-% Now do a final fit on the data points considered to be inliers
-% Mb = feval(fittingfn, [x1(:,inliers); x2(:,inliers)]);
-
-end
+''' global routines '''
+def QuEst_RANSAC_v01_2(x1, x2, RANSAC_threshold):
+  ''' QuEst_RANSAC estimates the pose between two camera views using RANSAC
+    and QuEst algorithm.
+    Input:
+          x1  - 3xN set of mathced feature point coordinates
+                (Euclidean coordinates).
+          x2  - 3xN set of feature point coordinates points such that x1
+                is matched with x2.
+          t   - The distance threshold between data point and the model
+                used to decide whether a point is an inlier or not.
+                Note that point coordinates are normalised to that their
+                mean distance from the origin is sqrt(2).  The value of
+                t should be set relative to this, say in the range
+                0.001 - 0.01
+    Note that it is assumed that the matching of x1 and x2 are putative and it
+    is expected that a percentage of matches will be wrong.
+    Output:
+          M       - A structure that contains the best estimated pose.
+          inliers - An array of indices of the elements of x1, x2 that were
+                    the inliers for the best pose.
+    This code is based on RANSAC provided by Peter Kovesi. Copyright (c)
+    Kaveh Fathian,  October 2018. Permission is hereby granted, free of
+    charge, to any person obtaining a copy of this software and associated
+    documentation files (the "Software"), to deal in the software without
+    restriction, subject to the following conditions: The above copyright
+    notice and this permission notice shall be included in all copies or
+    substantial portions of the Software. The software is provided "as is",
+    without warranty of any kind.
+    ------------------------------------------------------------------
+    Ver 1_1: RANSAC based on Fundamental matrix
+    Ver 1_2: x1, x2 are Euclidean coordinates '''
+  assert x1.shape == x2.shape, lhead+'ERR: images have diff dimensions'+stail
+  # normalize the points in l^1 norm
+  x1 = x1 / sum(abs(x1))
+  x2 = x2 / sum(abs(x2))
+  s = 6;  # Number of points needed to uniquely fit a fundamental matrix.
+          # Note that only 5 points are needed to estimate the pose, but
+          # with 5 points the solution is not unique.
+  ptrs = {'fittingfn': PoseEstimator,
+           'distfn': FundDist,
+           'degenfn': IsDegenerate}
+  # x1 and x2 are 'stacked' to create a 6xN array for ransac
+  x = np.concatenate([x1, x2], axis=1)
+  nprint('x[5:,:]', x[5:,:])
+  M, inliers = ransac(x, ptrs['fittingfn'], ptrs['distfn'],\
+                      ptrs['degenfn'], s, RANSAC_threshold)
+  # now do a final fit on the data points considered to be inliers
+  # Mb = feval(fittingfn, [x1(:,inliers); x2(:,inliers)]);
+  return M, inliers
 
 
 
-%% Distance function
-% Function to evaluate the first order approximation of the geometric error
-% (Sampson distance) of the fit of a fundamental matrix with respect to a
-% set of matched points as needed by RANSAC.  See: Hartley and Zisserman,
-% 'Multiple View Geometry in Computer Vision', page 270.
-%
-% Note that this code allows for F being a cell array of fundamental matrices of
-% which we have to pick the best one. (A 7 point solution can return up to 3
-% solutions)
-%
-function [bestInliers, bestM] = FundDist(M, x, t)
+def FundDist(M, x, t):
+  ''' Distance function
+    Function to evaluate the first order approximation of the geometric error
+    (Sampson distance) of the fit of a fundamental matrix with respect to a
+    set of matched points as needed by RANSAC. See: Hartley and Zisserman,
+    'Multiple View Geometry in Computer Vision', page 270. Note that this code
+    is allows for F being a cell array of fundamental matrices of
+    which we have to pick the best one. (A 7 point solution can return up to 3
+    solutions) '''
 
-x1 = x(1:3,:);    % Extract x1 and x2 from x
-x2 = x(4:6,:);
+  x1 = x[0:3,:]
+  x2 = x[3:6,:]
 
-F = M.F;
+  F = M.F;
 
-if iscell(F)        % We have several solutions each of which must be tested
+  if iscell(F)        % We have several solutions each of which must be tested
 
     nF = length(F); % Number of solutions to test
     bestM = M;
@@ -114,28 +81,28 @@ if iscell(F)        % We have several solutions each of which must be tested
     ninliers = 0;   % Number of inliers
 
     for k = 1 : nF
-        x2tFx1 = zeros(1,length(x1));
-        for n = 1:length(x1)
-        x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
-        end
+      x2tFx1 = zeros(1,length(x1));
+      for n = 1:length(x1)
+      x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
+      end
 
-        Fx1  = F{k}*x1;
-        Ftx2 = F{k}'*x2;
+      Fx1  = F{k}*x1;
+      Ftx2 = F{k}'*x2;
 
-        % Evaluate distances
-        d =  x2tFx1.^2 ./ ...
-         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+      % Evaluate distances
+      d =  x2tFx1.^2 ./ ...
+      (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
 
-        inliers = find(abs(d) < t);     % Indices of inlying points
+      inliers = find(abs(d) < t);     % Indices of inlying points
 
-        if length(inliers) > ninliers   % Record best solution
-        ninliers = length(inliers);
-        bestM.F = F{k};
-        bestInliers = inliers;
-        end
+      if length(inliers) > ninliers   % Record best solution
+      ninliers = length(inliers);
+      bestM.F = F{k};
+      bestInliers = inliers;
+      end
     end
 
-else     % We just have one solution
+  else     % We just have one solution
 
     x2tFx1 = zeros(1,length(x1));
     for n = 1:length(x1)
@@ -147,15 +114,12 @@ else     % We just have one solution
 
     % Evaluate distances
     d =  x2tFx1.^2 ./ ...
-         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+        (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
 
     bestInliers = find(abs(d) < t);     % Indices of inlying points
     bestM = M;                          % Copy M directly to bestM
 
-end
-
-end
-
+  return bestInliers, bestM
 
 %% Check degeneracy
 % Function to determine if a set of matched points will result
