@@ -68,30 +68,24 @@ def FundDist(M, x, t):
     which we have to pick the best one. (A 7 point solution can return up to 3
     solutions) '''
 
-  x1 = x[0:3,:]
-  x2 = x[3:6,:]
-
+  x1 = x[:,0:3]
+  x2 = x[:,3:6]
   F = M.F;
 
-  if iscell(F)        % We have several solutions each of which must be tested
+  if len(F) > 1: # we have several solutions each of which must be tested
+    nF = len(F) # Number of solutions to test
+    bestM = M
+    bestM.F = F[0] # initial allocation of best solution
+    ninliers = 0 # number of inliers
 
-    nF = length(F); % Number of solutions to test
-    bestM = M;
-    bestM.F = F{1}; % Initial allocation of best solution
-    ninliers = 0;   % Number of inliers
-
-    for k = 1 : nF
-      x2tFx1 = zeros(1,length(x1));
-      for n = 1:length(x1)
-      x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
-      end
-
-      Fx1  = F{k}*x1;
-      Ftx2 = F{k}'*x2;
-
-      % Evaluate distances
-      d =  x2tFx1.^2 ./ ...
-      (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+    for k in range(1,nF):
+      x2tFx1 = np.zeros(1, len(x1))
+      for n in range(1,len(x1)):
+        x2tFx1[n] = x2[:,n].T * F[k] * x1[:,n]
+      Fx1  = F[k]*x1
+      Ftx2 = F[k].T*x2
+      # evaluate distances
+      d = x2tFx1**2/(Fx1[:,0]**2 + Fx1[1,:]**2 + Ftx2[0,:]**2 + Ftx2[1,:]**2)
 
       inliers = find(abs(d) < t);     % Indices of inlying points
 
