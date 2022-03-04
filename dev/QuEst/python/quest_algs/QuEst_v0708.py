@@ -1,7 +1,11 @@
 
 import numpy as np
+import scipy.linalg.lapack.sgesvd as svd
 # import scipy
-import scipy.linalg.svd as svd
+# import scipy.linalg.svd as svd
+import scipy.linalg.eigh as eigh
+import scipy.linalg.eig as eig
+
 
 ''' coef Alg '''
 from coefs import CoefsVer3_1_1 as COEFS_V0311
@@ -35,10 +39,14 @@ def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
     -  Uses all matrices B1,B2,B3 to find solutions
     -  Slightly slower, but has better accuracy  '''
   # preallocate variables
-  Idx = [[1, 2,  5, 11, 21, 3,  6, 12, 22,  8, 14, 24, 17, 27, 31,  4,  7, 13, 23,  9, 15, 25, 18, 28, 32, 10, 16, 26, 19, 29, 33, 20, 30, 34, 35]
-         [2, 5, 11, 21, 36, 6, 12, 22, 37, 14, 24, 39, 27, 42, 46,  7, 13, 23, 38, 15, 25, 40, 28, 43, 47, 16, 26, 41, 29, 44, 48, 30, 45, 49, 50]
-         [3, 6, 12, 22, 37, 8, 14, 24, 39, 17, 27, 42, 31, 46, 51,  9, 15, 25, 40, 18, 28, 43, 32, 47, 52, 19, 29, 44, 33, 48, 53, 34, 49, 54, 55]
-         [4, 7, 13, 23, 38, 9, 15, 25, 40, 18, 28, 43, 32, 47, 52, 10, 16, 26, 41, 19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55, 56]]
+  Idx = [1, 2, 5, 11, 21, 3, 6, 12, 22, 8, 14, 24, 17, 27, 31, 4, 7, 13, 23, 9,
+         15, 25, 18, 28, 32, 10, 16, 26, 19, 29, 33, 20, 30, 34, 35, 2, 5, 11,
+         21, 36, 6, 12, 22, 37, 14, 24, 39, 27, 42, 46, 7, 13, 23, 38, 15, 25,
+         40, 28, 43, 47, 16, 26, 41, 29, 44, 48, 30, 45, 49, 50, 3, 6, 12, 22,
+         37, 8, 14, 24, 39, 17, 27, 42, 31, 46, 51, 9, 15, 25, 40, 18, 28, 43,
+         32, 47, 52, 19, 29, 44, 33, 48, 53, 34, 49, 54, 55, 4, 7, 13, 23, 38,
+         9, 15, 25, 40, 18, 28, 43, 32, 47, 52, 10, 16, 26, 41, 19, 29, 44, 33,
+         48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55, 56]
   # Construct coefficient matrix
   # coefficient matrix in the linearized system of multinomials (Cf * V = 0)
   Cf = COEFS_V0311(m,n)
@@ -64,51 +72,58 @@ def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
 
   B = A0 / [A1, A2, A3];
 
-  B1 = B(:,1:20);
-  B2 = B(:,21:40);
-  B3 = B(:,41:60);
+  # split B to 3 square matrices
+  # B1 = B[ 0:20,:]
+  # B2 = B[20:40,:]
+  # B3 = B[40:60,:]
+  # compute eigenvectors - initial guess
+  # [V1, ~] = eig(B1)
+  # [V2, ~] = eig(B2)
+  # [V3, ~] = eig(B3)
+  # Ve = np.concatenate([V1, V2, V3], axis=1)
 
+  # Ve = eig()
+  Ve = eigh(B) # generalized hamiltonian eigen values
 
-  %% Find eigenvectors
+  # % #todo for now remove all the imaginary solutions
+  # Remove duplicate complex eigenvectors
+  Vy = Ve[Ve.imag == 0]
+  Vy = Ve[Ve.imag == 0]
+  imagIdx = sum(abs(Vy)) > 10*np.finfo(float).eps
+  Viall = Ve[imagIdx,:]
+  # [~,srtIdx] = sort(real(Viall(1,:)),'ascend');
+  srtIdx = sorted(Viall, key=lambda v : v.imag == 0)
+  # Vi = Viall(:,srtIdx(1:2:end)) # keep only one complex eigenvector
+  Vi = Viall[srtIdx[range(0, len(srtIdx), 2)]] # keep only one complex eigenvector
+  Vr = Ve[~imagIdx,:]
+  V0 = np.concatenate([Vi, Vr], axis=0).real # Use only the real parts
 
-  % Initial guess for the common eigenvectors
-  [V1, ~] = eig(B1);
-  [V2, ~] = eig(B2);
-  [V3, ~] = eig(B3);
+  ''' extract quaternion elements '''
+  # degree 5 monomial solution vectors
+  X5 = N @ V0
 
-  Ve = [V1, V2, V3];
-  % #todo for now remove all the imaginary solutions
-  % Remove duplicate complex eigenvectors
-  Vy = imag(Ve);
-  imagIdx = sum(abs(Vy),1); % > 10*eps;
-  Viall = Ve(:,imagIdx);
-  [~,srtIdx] = sort(real(Viall(1,:)),'ascend');
-  Vi = Viall(:,srtIdx(1:2:end)); % Keep only one complex eigenvector
-  Vr = Ve(:,~imagIdx);
-  V0 = real([Vi, Vr]);           % Use only the real parts
+  # correct the sign of each column s.t. the first element (i.e., w^5) is always positive
+  X5 = np.sign(X5.w) * X5
 
+  # recover quaternion elements
+  # w = nthroot(X5(1,:),5);
+  w = X5.w ** (1/5)
+  w4 = w ** 4
+  x = X5.x / w4
+  y = X5.y / w4
+  z = X5.z / w4
 
-  %% Extract quaternion elements
+  nppshape('w', w)
+  nppshape('x', x)
+  nppshape('y', y)
+  nppshape('z', z)
+  nprint('w', w)
+  nprint('x', x)
+  nprint('y', y)
+  nprint('z', z)
 
-  % Degree 5 monomial solution vectors
-  X5 = N * V0;
+  Q = np.quaternion(w, x, y, z)
+  nppshape('Q', Q)
+  nprint('Q', Q)
 
-  % Correct the sign of each column s.t. the first element (i.e., w^5) is always positive
-  X5 = bsxfun(@times, sign(X5(1,:)), X5);
-
-  % Recover quaternion elements
-  w = nthroot(X5(1,:),5);
-  w4 = w.^4;
-  x = X5(2,:) ./ w4;
-  y = X5(3,:) ./ w4;
-  z = X5(4,:) ./ w4;
-
-  Q = [w;
-      x;
-      y;
-      z];
-
-
-  % Normalize s.t. each column of Q has norm 1
-  QNrm = sqrt(sum(Q.^2,1));
-  Q = bsxfun(@rdivide, Q, QNrm);
+  Q = Q.norm()
