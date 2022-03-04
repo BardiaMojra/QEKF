@@ -13,7 +13,6 @@ from pdb import set_trace as st
 from nbug import *
 
 ''' general config '''
-NBUG          = True
 _show         = True
 _save         = True
 _prt          = True

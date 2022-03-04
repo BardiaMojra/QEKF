@@ -44,8 +44,8 @@ benchnum = 3;
 %% Set parameters
 
 % Algorithms to run
-algorithms = {'QuEst_RANSAC_v0102'};
-% algorithms = {'QuEst_v0708'};
+algorithms = {'
+algorithms = {'QuEst_v0708'};
 
 % Keyframes
 skipFrame = 0;         % This is the number of frames that are skiped between two key frames

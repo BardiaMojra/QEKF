@@ -8,7 +8,7 @@ dependencies:
   - python
   - numpy
   - scipy
-  - lapack # scipy.linalg.svd dep on this
+  # - lapack # scipy.linalg.svd dep on this
   # - mkl #
   - numba
   - quaternion # an extension to the C-based numpy lib

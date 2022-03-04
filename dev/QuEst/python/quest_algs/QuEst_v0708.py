@@ -1,14 +1,10 @@
 
 import numpy as np
-import scipy.linalg.lapack.sgesvd as svd
-# import scipy
-# import scipy.linalg.svd as svd
-import scipy.linalg.eigh as eigh
-import scipy.linalg.eig as eig
+import scipy.linalg as linalg
 
 
 ''' coef Alg '''
-from coefs import CoefsVer3_1_1 as COEFS_V0311
+# from coefs import CoefsVer3_1_1 as COEFS_V0311
 
 ''' NBUG '''
 from pdb import set_trace as st
@@ -62,7 +58,7 @@ def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
       st()
 
   # find bases for the null space of A
-  _,__,V = svd(A,0)
+  _,__,V = linalg.svd(A,0)
   N = V[:,37:56].copy()
 
   idx = Idx[0,:];   A0 = N[idx-1,:]
@@ -83,7 +79,7 @@ def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
   # Ve = np.concatenate([V1, V2, V3], axis=1)
 
   # Ve = eig()
-  Ve = eigh(B) # generalized hamiltonian eigen values
+  Ve = linalg.eigh(B) # generalized hamiltonian eigen values
 
   # % #todo for now remove all the imaginary solutions
   # Remove duplicate complex eigenvectors
