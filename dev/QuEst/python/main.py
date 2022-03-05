@@ -63,9 +63,12 @@ def main():
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
     matches = fmatcher.match(des_p, des_n)
+    st()
+
     matches = sorted(matches, key = lambda x:x.distance)
     matches = matches[:maxPts]
-    # matches = MatchFeaturePoints(Im_p, kp_p, Im_n, kp_n, maxPts, dset)
+    # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
+    # plt.imshow(imageKeys); plt.show(); cv.waitKey(); st(); plt.close()
 
     # get ground truth
     qr, tr = RelativeGroundTruth(i, dset)

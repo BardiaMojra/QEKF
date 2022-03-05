@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 import pandas as pd
 import cv2 as cv
 
@@ -7,12 +8,16 @@ from dmm import *
 from nbug import *
 from pdb import set_trace as st
 
+''' matplotlib config '''
+matplotlib.pyplot.ion()
+plt.style.use('ggplot')
+
 def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
   f = dat.imgpath+dat.fnames[i]
   img = cv.imread(f, 0) # read image in gray scale (0)
   h, w = img.shape[:2] # not sure why
   image = img.copy()
-  plt.imshow(image); plt.show(); cv.waitKey(5); plt.close()
+  # plt.imshow(image); plt.show(); cv.waitKey(); st(); plt.close()
   if dat.bench == 'TUM' or dat.bench == 'ICL' or dat.bench == 'NAIST':
     newcameramtx,roi = cv.getOptimalNewCameraMatrix(dat.K,dat.dist,(w,h),1,(w,h))
     image = cv.undistort(img, dat.K, dat.dist, None, newcameramtx)
@@ -29,8 +34,8 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
       dscs = np.concatenate([dscs, np.zeros(minFeat - dscs.shape[0])], axis=0)
       nprint('dscs.shape', dscs.shape)
       st()
-    imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
-    plt.imshow(image); plt.show(); cv.waitKey(5); plt.close()
+    # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
+    # plt.imshow(imageKeys); plt.show(); cv.waitKey(); st(); plt.close()
   except cv.error as e:
     assert 0, 'Error: '+e
   return image, kps, dscs
@@ -70,15 +75,16 @@ def RelativeGroundTruth(i, dset):
   q1 = dset.q0
   t1 = dset.t0
   bench = dset.bench
-  qTru = dset.qTru
-  tTru = dset.tTru
+  Q_gt = dset.Q_gt
+  T_gt = dset.T_gt
   if bench == 'KITTI' or  bench == 'ICL' or bench == 'NAIST':
-    q2 = qTru[:,i]
-    t2 = tTru[:,i]
+    st()
+    q2 = Q_gt[i,:]
+    t2 = T_gt[i,:]
   elif bench == 'TUM':
     fname = dset.fnames[i]
     # ftime = str2double( fname(1:end-4) ); % Time at the current frame
-    # [q2, t2] = InterpPoseVer1_1(ftime,dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame
+    # [q2, t2] = InterpPoseVer1_1(ftime,dataset.times, Q_gt, T_gt); % Interpolate data to find the pose of the current camera frame
   else:
     assert False, 'unknown benchtype '+bench
 
@@ -162,6 +168,25 @@ def get_TransError(t_ref, t2):
   dotErr = sum(trn * t2n)
   err = (1/np.pi) * np.arccos(dotErr)
   return err
+
+
+def prt_file_save(string, *args):
+  print(shead+(string+' ')); print(*args);
+
+
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum) '''
+  return 'fig_%03i' % fignum
+
+
+def write_image(num:int, image, outDir):
+  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
+  figname = get_fignum_str(num)
+  figname = outDir+'_'+figname+'.png'
+  cv.imwrite(figname, image)
+  prt_file_save(shead+'saving figure: '+figname)
+  return
+
 
 
 

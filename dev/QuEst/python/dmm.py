@@ -81,16 +81,21 @@ class dmm:
 
     fnames = get_images(imgpath, bench)
     camParams, K, dist = get_calib_matrix(bench, datapath, benchnum)
-    t0, q0, qTru, tTru = load_gt(bench, datapath, benchnum)
+    t0, q0, T_gt, Q_gt  = load_gt(bench, datapath, benchnum)
+    nprint('t0', t0)
+    nprint('q0', q0)
+    nprint('Q_gt[:5]', Q_gt[:5])
+    nprint('T_gt[:5]', T_gt[:5])
 
+    st()
     self.fnames = fnames
     self.camParams = camParams
     self.K = K
     self.dist = dist
     self.t0 = t0
     self.q0 = q0
-    self.qTru = qTru
-    self.tTru = tTru
+    self.Q_gt = Q_gt
+    self.T_gt = T_gt
 
     # end of __init__() <<--------------------------------------
 
@@ -222,6 +227,9 @@ def load_gt(bench, dataDir, benchnum, _dtype=np.float64):
       R = R.reshape(3,3)
       Rmats[i,:] = R
     Q_gt = quaternion.from_rotation_matrix(Rmats)
+    # Q_gt = Q_gt.reshape(-1,1)
+    # nsprint('Q_gt', Q_gt)
+    # st()
   elif bench == 'ICL':
     # rawdata = load([datapath '/traj' num2str(benchnum) '.gt.freiburg']);
     # tTru = rawdata(:,2:4)';
@@ -265,11 +273,11 @@ def load_gt(bench, dataDir, benchnum, _dtype=np.float64):
   else:
     assert False, 'unknown benchtype '+bench
 
-
   # Make sure the first quaternion element is always positive
-
-  # negIdx = qTru[1,:] < 0; #todo make the test is performed correctly
-  # qTru[:,negIdx] = - qTru(:,negIdx);
+  nprint('Q_gt[5]', Q_gt[:5])
+  for i, q in enumerate(Q_gt):
+    if q.w < 0: Q_gt[i] = - Q_gt[i]
+  nprint('Q_gt[5]', Q_gt[:5])
 
   if bench == 'TUM':
     # We need to interpolate pose for TUM dataset
@@ -280,25 +288,6 @@ def load_gt(bench, dataDir, benchnum, _dtype=np.float64):
     pass
 
   return T_gt[0], Q_gt[0], T_gt, Q_gt
-
-def prt_file_save(string, *args):
-  print(shead+(string+' ')); print(*args);
-
-
-def get_fignum_str(fignum):
-  ''' usage: fignum+=1;get_fignum_str(fignum) '''
-  return 'fig_%03i' % fignum
-
-
-def write_image(num:int, image, outDir):
-  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
-  figname = get_fignum_str(num)
-  figname = outDir+'_'+figname+'.png'
-  cv.imwrite(figname, image)
-  prt_file_save(shead+'saving figure: '+figname)
-  return
-
-
 
 
 
