@@ -18,7 +18,7 @@ _save         = True
 _prt          = True
 # _START        = 0
 # _END          = 150
-_ALGORITHMS    = ['QuEst']
+_ALGORITHMS    = ['QuEst_v0708','QuEst']
 _BENCHTYPE    = 'KITTI'
 _BENCHNUM     = 3
 
@@ -33,7 +33,7 @@ minPts        = 6 # min num of feature points required (6 to est a unique pose f
 def main():
   global fignum; fignum = int(0)
 
-  dlog = dlm()
+  dlog = dlm(False)
   dset = dmm(_BENCHTYPE,
              _BENCHNUM
             #  start=_START,
@@ -41,14 +41,7 @@ def main():
             )
 
   numImag = len(dset.fnames) # total number of images
-  i = 1+skipFrame
-  keyFrames = list()
-  while i < numImag:
-    keyFrames.append(i)
-    i = i+1+skipFrame
-
-  nprint('keyFrames', keyFrames)
-  st()
+  keyFrames = [i for i in range(skipFrame+1, numImag, skipFrame+1)]
 
   # numKeyFrames = len(keyFrames) # num of key frames
   # numMethods   = len(_ALGORITHMS) # num of algorithms used in the comparison
@@ -64,8 +57,9 @@ def main():
   Im_p, kp_p, des_p = GetFeaturePoints(fdetector, 0, dset, surfThresh)
 
   ''' recover Pose using RANSAC and compare with ground truth '''
-  st()
-  for i in range(len(keyFrames)):
+  for i in range(1, len(keyFrames)):
+    print('    \\ ------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
+
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
     matches = fmatcher.match(des_p, des_n)
@@ -128,9 +122,6 @@ def main():
     # store the current image for the next iteration
     Im_p = Im_n
     kp_p = kp_n
-    # print iteration number
-    if i % 10 == 0:
-      print('    \\ ------->>>>>: '+i+'/'+len(keyFrames))
   print('end of quest data iterator ----->>')
 
   ''' end processing '''

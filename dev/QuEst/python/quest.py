@@ -8,7 +8,7 @@ import numpy as np
 ''' module configs '''
 OUT_DIR = '../out00/'
 DATA_ROOT = '../Datasets/'
-_DTYPE = np.float64
+
 
 
 # EOF

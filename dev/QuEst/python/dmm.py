@@ -28,7 +28,7 @@ class dmm:
                benchnum,
                start=0,
                end=None,
-               _DTYPE=np.float64,
+               _dtype=np.float64,
                prt_en=True,
                save_en=True
                ):
@@ -75,7 +75,7 @@ class dmm:
     self.outDir = outDir
     self.start = start
     self.end = end
-    self.dtype = _DTYPE
+    self.dtype = _dtype
     self.prt = prt_en
     self.save = save_en
 
@@ -129,7 +129,7 @@ def get_images(imgpath, benchtype):
   # st()
   return files
 
-def get_calib_matrix(benchtype, dataDir, benchnum):
+def get_calib_matrix(benchtype, dataDir, benchnum, _dtype=np.float64):
   if benchtype == 'KITTI':
     numStr = '{:02d}'.format(benchnum)
     fname = DATA_ROOT+'KITTI/sequences/'+numStr+'/calib.txt'
@@ -142,59 +142,57 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
     C = np.array([7.215377000000e+02, 0.000000000000e+00, 6.095593000000e+02,
          0.000000000000e+00, 0.000000000000e+00, 7.215377000000e+02,
          1.728540000000e+02, 0.000000000000e+00, 0.000000000000e+00,
-         0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00], dtype=_DTYPE)
+         0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00], dtype=_dtype)
     K = np.array([C[1],  C[2],  C[3],
                   C[5],  C[6],  C[7],
-                  C[9], C[10], C[11]], dtype=_DTYPE)
-
-
+                  C[9], C[10], C[11]], dtype=_dtype)
 
     ''' on radial distortion, tangential distortion, and distortion vector:
     https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga69f2545a8b62a6b0fc2ee060dc30559d
     http://researchspace.csir.co.za/dspace/bitstream/handle/10204/3168/De%20Villiers_2008.pdf;jsessionid=5F6421340C2DB3733478D1A1E00DD050?sequence=1
     '''
-    dp = np.zeros((1,3), dtype=_DTYPE) # radDist k
-    tp = np.zeros((1,2), dtype=_DTYPE) # tanDist p
-    dist = np.zeros((1,5), dtype=_DTYPE) # dist = k[0],k[1],p[0],p[1],k[2]
+    dp = np.zeros((1,3), dtype=_dtype) # radDist k
+    tp = np.zeros((1,2), dtype=_dtype) # tanDist p
+    dist = np.zeros((1,5), dtype=_dtype) # dist = k[0],k[1],p[0],p[1],k[2]
     # nprint('dist', dist)
     # st()
   elif benchtype == 'ICL':
     K = np.array([481.20,	      0.0,      319.50,
                     0.0,     -480.00,     239.50,
-                    0.0,        0.0,        1.0], dtype=_DTYPE)
+                    0.0,        0.0,        1.0], dtype=_dtype)
     K = K.reshape((3,3))
-    dp = np.zeros((1,3), dtype=_DTYPE)
-    tp = np.zeros((1,2), dtype=_DTYPE)
-    dist = np.zeros((1,5), dtype=_DTYPE) # dist = k[0],k[1],p[0],p[1],k[2]
+    dp = np.zeros((1,3), dtype=_dtype)
+    tp = np.zeros((1,2), dtype=_dtype)
+    dist = np.zeros((1,5), dtype=_dtype) # dist = k[0],k[1],p[0],p[1],k[2]
   elif benchtype == 'NAIST':
     K = np.array([884.9574219,    0.0,        634.0410934,
                     0.0,        883.5555857,  367.8930972,
-                    0.0,          0.0,          1.0       ], dtype=_DTYPE)
+                    0.0,          0.0,          1.0       ], dtype=_dtype)
     K = K.reshape((3,3))
-    dp = np.array([-0.2297238599,0.1703723682,-0.09885776185], dtype=_DTYPE)
-    tp = np.array([-0.0002223016917,-0.0003623410498], dtype=_DTYPE)
+    dp = np.array([-0.2297238599,0.1703723682,-0.09885776185], dtype=_dtype)
+    tp = np.array([-0.0002223016917,-0.0003623410498], dtype=_dtype)
 
   elif benchtype == 'TUM':
     if benchnum <= 5:
       K = np.array([517.3,    0.0,   318.6,
                       0.0,  516.5,   255.3,
-                      0.0,    0.0,     1.0], dtype=_DTYPE)
+                      0.0,    0.0,     1.0], dtype=_dtype)
       K = K.reshape((3,3))
-      dp = np.array([0.2624,  -0.9531,  1.1633], dtype=_DTYPE)
-      tp = np.array([-0.0054,  0.0026], dtype=_DTYPE)
+      dp = np.array([0.2624,  -0.9531,  1.1633], dtype=_dtype)
+      tp = np.array([-0.0054,  0.0026], dtype=_dtype)
     elif benchnum == 11:
       K = np.array([535.4,      0.0,     320.1,
                       0.0,    539.2,     247.6,
-                      0.0,      0.0,       1.0,], dtype=_DTYPE)
+                      0.0,      0.0,       1.0,], dtype=_dtype)
       K = K.reshape((3,3))
-      dp = np.array([0.0,   0.0,   0.0], dtype=_DTYPE)
-      tp = np.array([0.0,   0.0], dtype=_DTYPE)
+      dp = np.array([0.0,   0.0,   0.0], dtype=_dtype)
+      tp = np.array([0.0,   0.0], dtype=_dtype)
     else:
       K = np.array([520.9,     0.0,    325.1,
                       0.0,   521.0,    249.7,
-                      0.0,     0.0,      1.0], dtype=_DTYPE)
-      dp = np.array([0.2312,   -0.7849,  0.9172], dtype=_DTYPE)
-      tp = np.array([-0.0033,   0.0001], dtype=_DTYPE)
+                      0.0,     0.0,      1.0], dtype=_dtype)
+      dp = np.array([0.2312,   -0.7849,  0.9172], dtype=_dtype)
+      tp = np.array([-0.0033,   0.0001], dtype=_dtype)
   else:
     assert False, 'unknown benchtype '+benchtype
 
@@ -206,11 +204,11 @@ def get_calib_matrix(benchtype, dataDir, benchnum):
                 'TangentialDistortion': tp}
   return camParams, K, dist
 
-def load_gt(bench, dataDir, benchnum):
+def load_gt(bench, dataDir, benchnum, _dtype=np.float64):
   if bench == 'KITTI':
     numStr = '{:02d}'.format(benchnum)
     fname = dataDir+numStr+'.txt'
-    dat = np.loadtxt(fname, dtype=_DTYPE)
+    dat = np.loadtxt(fname, dtype=_dtype)
     Tx = dat[:,3].copy()
     Ty = dat[:,7].copy()
     Tz = dat[:,11].copy()
@@ -218,7 +216,7 @@ def load_gt(bench, dataDir, benchnum):
     Ty = Ty.reshape(-1,1)
     Tz = Tz.reshape(-1,1)
     T_gt = np.concatenate((Tx,Ty,Tz), axis=1)
-    Rmats = np.zeros((dat.shape[0],3,3), dtype=_DTYPE);
+    Rmats = np.zeros((dat.shape[0],3,3), dtype=_dtype);
     for i in range(dat.shape[0]):
       R = np.concatenate((dat[i,0:3],dat[i,4:7],dat[i,8:11]), axis=0)
       R = R.reshape(3,3)

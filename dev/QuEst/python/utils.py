@@ -7,37 +7,30 @@ from dmm import *
 from nbug import *
 from pdb import set_trace as st
 
-def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, vector_size=32):
+def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
   f = dat.imgpath+dat.fnames[i]
   img = cv.imread(f, 0) # read image in gray scale (0)
   h, w = img.shape[:2] # not sure why
   image = img.copy()
-  plt.imshow(image)
-  plt.show()
-  cv.wait(5)
+  plt.imshow(image); plt.show(); cv.waitKey(5); plt.close()
   if dat.bench == 'TUM' or dat.bench == 'ICL' or dat.bench == 'NAIST':
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(dat.K, dat.dist, (w,h), 1, (w,h))
+    newcameramtx,roi = cv.getOptimalNewCameraMatrix(dat.K,dat.dist,(w,h),1,(w,h))
     image = cv.undistort(img, dat.K, dat.dist, None, newcameramtx)
     x, y, w, h = roi
     image = image[y:y+h, x:x+w]
   try:
     kps = alg.detect(image, None)
-    print(kps)
-    kps = sorted(kps, key=lambda x: -x.response)[:vector_size]
-    print(kps)
-    st()
+    kps = sorted(kps, key=lambda x: -x.response)[:minFeat]
     kps, dscs = alg.compute(image, kps)
-    nprint('kps',kps)
-    nprint('dscs',dscs)
-    st()
-    dscs = dscs.flatten()
-    needed_size = vector_size * 64
-    if dscs.size < needed_size:
-      dscs = np.concatenate([dscs, np.zeros(needed_size - dscs.size)])
-    nprint('len(keypoints)', len(kps))
+    if dscs.shape[0] < minFeat:
+      assert dscs.shape[0] >= minFeat,\
+        lhead+'not enough features for image: {:02}'.format(i)+stail
+      nprint('dscs.shape', dscs.shape)
+      dscs = np.concatenate([dscs, np.zeros(minFeat - dscs.shape[0])], axis=0)
+      nprint('dscs.shape', dscs.shape)
+      st()
     imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
-    plt.imshow(imageKeys)
-    plt.show()
+    plt.imshow(image); plt.show(); cv.waitKey(5); plt.close()
   except cv.error as e:
     assert 0, 'Error: '+e
   return image, kps, dscs
