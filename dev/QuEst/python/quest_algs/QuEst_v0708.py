@@ -10,7 +10,7 @@ from quest_algs.coefs import CoefsVer3_1_1 as COEFS_V0311
 from pdb import set_trace as st
 from nbug import *
 
-def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
+def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   ''' QuEst (Quaternion Estimation) algorithm for 5 feature points
   NOTE: Include the folder "Helpers" in Matlab path before execution.
   Inputs: #todo update the comments -- now input is Nx3 (numpy style instead matlab)
@@ -50,7 +50,7 @@ def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
   nsprint('Cf', Cf)
   st()
   # A is the coefficient matrix such that A * X = 0
-  A = np.zeros((4*numEq,56), dtype=_DTYPE)
+  A = np.zeros((4*numEq,56), dtype=_dtype)
   for i in range(1,5):
       idx = Idx[i-1,:]
       A[(i-1)*numEq+1 : i*numEq, idx] = Cf

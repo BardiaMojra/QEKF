@@ -17,7 +17,7 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
   img = cv.imread(f, 0) # read image in gray scale (0)
   h, w = img.shape[:2] # not sure why
   image = img.copy()
-  # plt.imshow(image); plt.show(); cv.waitKey(); st(); plt.close()
+  # plt.imshow(image); plt.show(); cv.waitKey(0); st(); plt.close()
   if dat.bench == 'TUM' or dat.bench == 'ICL' or dat.bench == 'NAIST':
     newcameramtx,roi = cv.getOptimalNewCameraMatrix(dat.K,dat.dist,(w,h),1,(w,h))
     image = cv.undistort(img, dat.K, dat.dist, None, newcameramtx)
@@ -40,11 +40,12 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
     assert 0, 'Error: '+e
   return image, kps, dscs
 
-def get_best_matches(matches, kp_p, kp_n, minPts=6, _dtype=np.float64):
+def get_best_matches(matches, kp_p, kp_n, minPts=5, _dtype=np.float64):
   matches = sorted(matches, key = lambda x:x.distance)
   matches = matches[:minPts]
   mp_p = list(); mp_n = list() # matched points for previous and now frames
   for m in matches:
+    st()
     p_p = kp_p[m.queryIdx].pt
     p_n = kp_n[m.trainIdx].pt
     mp_p.append([p_p[0], p_p[1], 1])

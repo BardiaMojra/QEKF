@@ -20,22 +20,27 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
     Copyright (C) 2013-2017, by Kaveh Fathian.
     ------------------------------------------------------------------------
     Input:
-      -   3xN array of pure quaternion, N equations
-
+      - 3xN array of pure quaternion, N equations
     ------------------------------------------------------------------------
     Ver 3_1_1:
-              - Based on Ver3_1, without the unit norm coefficient vector
-                appended at the end. '''
+      - Based on Ver3_1, without the unit norm coefficient vector appended at
+      the end. '''
   # number of feature points
   numPts = m1.shape[0]
   nprint('numPts', numPts)
-  st()
-  idxBin1 = np.zeros((sc.special.binom(numPts,2)-1,2),dtype=_dtype)
+  # nprint('sc.special.binom(numPts,2)', sc.special.binom(numPts,2))
+  # st()
+  idxBin1 = np.zeros((int(sc.special.binom(numPts,2))-1,2), dtype=_dtype)
   cntr = 0
   for i in range(numPts-2):
     for j in range(i+1, numPts):
+      idxBin1[cntr] = [i,j]
       cntr += 1
-      idxBin1[cntr,:] = [i,j]
+
+  nprint('idxBin1', idxBin1)
+  st()
+
+  # image size 375, 1242
 
   mx1 = m1[idxBin1[:,0],0].T;    my1 = m1[idxBin1[:,0],1].T;
   nx1 = m2[idxBin1[:,0],0].T;    ny1 = m2[idxBin1[:,0],1].T;

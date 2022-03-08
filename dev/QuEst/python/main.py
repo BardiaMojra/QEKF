@@ -28,7 +28,7 @@ surfThresh    = 200 # SURF feature point detection threshold
 
 # Number of feature points
 maxPts        = 30 # max num of feature points to use for pose est (lower value increases speed)
-minPts        = 6 # min num of feature points required (6 to est a unique pose from RANSAC)
+minPts        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
 
 def main():
   global fignum; fignum = int(0)
@@ -62,14 +62,20 @@ def main():
 
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
+    # imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
+    # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
     matches = matches[:maxPts]
-    # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
-    # plt.imshow(imageKeys); plt.show(); cv.waitKey(); st(); plt.close()
+    # imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
+    # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+    # nprint('Im_n.shape', Im_n.shape)
 
     # get ground truth
     qr, tr = RelativeGroundTruth(i, dset)
+    nprint('qr', qr)
+    nprint('tr', tr)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
