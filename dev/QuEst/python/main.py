@@ -63,8 +63,6 @@ def main():
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
     matches = fmatcher.match(des_p, des_n)
-    st()
-
     matches = sorted(matches, key = lambda x:x.distance)
     matches = matches[:maxPts]
     # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
@@ -75,22 +73,24 @@ def main():
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
-    if matches.numPts < minPts:
-      # use current image for the next iteration
+    if len(matches) < minPts:
       Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
-    # test
-    st()
-    eprint(str('algorithm is not supported: '+alg))
     # recover pose and find error by comparing with the ground truth
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
-        M, inliers = QRANSAC0102(matches.m1, matches.m2, ranThresh)
+        M, inliers = QRANSAC0102(matches, ranThresh)
         q = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
-        tOut, q = Q0708(matches.m1, matches.m2)
+        for m in matches:
+
+          nprint(attn)
+          st()
+          p1 = kp_p[m.queryIdx].pt
+          p2 = kp_n[m.trainIdx].pt
+          tOut, q = Q0708(p1,p2)
 
       else:
         eprint(str('algorithm is not supported: '+alg))

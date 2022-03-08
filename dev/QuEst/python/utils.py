@@ -78,9 +78,8 @@ def RelativeGroundTruth(i, dset):
   Q_gt = dset.Q_gt
   T_gt = dset.T_gt
   if bench == 'KITTI' or  bench == 'ICL' or bench == 'NAIST':
-    st()
-    q2 = Q_gt[i,:]
-    t2 = T_gt[i,:]
+    q2 = Q_gt[i]
+    t2 = T_gt[i]
   elif bench == 'TUM':
     fname = dset.fnames[i]
     # ftime = str2double( fname(1:end-4) ); % Time at the current frame
@@ -91,23 +90,17 @@ def RelativeGroundTruth(i, dset):
   if bench == 'KITTI' or  bench == 'ICL' or  bench ==  'TUM':
     # relative rotation between two frames (^2R_1 : rotation of frame 1
     # given in frame 2)
-    nprint('q1', q1)
-    nprint('q2', q2)
-    st()
-
     qr = np.conj(q2) * q1
-
     # relative trans. vec. in current coord. frame (^2t_21 : relative
     # translation given in frame 2)
-    rot = np.conj(q2).as_rotation_matrix
-    nprint('rot', rot)
+    rot = quaternion.as_rotation_matrix(np.conj(q2))
+    # nprint('rot', rot)
     tr = rot * (t2 - t1)
 
   elif bench == 'NAIST':
     # In this dataset the absolute pose is given in the camera coordinate
     # frame, i.e., c^R_w, c^t_w.(This is opposite of what is claimed in
     # their website, unfortunately!)
-
     # Relative rotation between two frames (^2R_1 : rotation of frame 1
     # given in frame 2)
     # qr = QuatMult(q2,QuatConj(q1));
@@ -121,7 +114,6 @@ def RelativeGroundTruth(i, dset):
   # store the current pose for the next iteration
   dset.q0 = q2;
   dset.t0 = t2;
-
   return qr, tr
 
 def get_QuatError(q_ref:quaternion, Q2):

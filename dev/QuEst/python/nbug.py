@@ -23,7 +23,7 @@ def nprint(string, *args):
   if nprt_en is True:
     if args is not None:
       print(shead+(string+': '))
-      pp(*args); print(stail)
+      pp(args); print(stail)
     else:
       print(shead+(string+stail))
 

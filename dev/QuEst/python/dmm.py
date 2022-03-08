@@ -82,12 +82,13 @@ class dmm:
     fnames = get_images(imgpath, bench)
     camParams, K, dist = get_calib_matrix(bench, datapath, benchnum)
     t0, q0, T_gt, Q_gt  = load_gt(bench, datapath, benchnum)
-    nprint('t0', t0)
-    nprint('q0', q0)
-    nprint('Q_gt[:5]', Q_gt[:5])
-    nprint('T_gt[:5]', T_gt[:5])
 
-    st()
+    # nprint('t0', t0)
+    # nprint('q0', q0)
+    # nprint('Q_gt[:5]', Q_gt[:5])
+    # nprint('T_gt[:5]', T_gt[:5])
+    # st()
+
     self.fnames = fnames
     self.camParams = camParams
     self.K = K
@@ -103,11 +104,6 @@ def get_images(imgpath, benchtype):
   files = os.listdir(imgpath)
   files = sorted(files)
   if benchtype ==  'KITTI':
-    # nprint('files', files)
-    # st()
-    #todo get file names
-    # for f in files:
-      # fnames.append
     pass
   elif benchtype ==  'NAIST':
     nprint('files', files)
@@ -136,8 +132,8 @@ def get_images(imgpath, benchtype):
 
 def get_calib_matrix(benchtype, dataDir, benchnum, _dtype=np.float64):
   if benchtype == 'KITTI':
-    numStr = '{:02d}'.format(benchnum)
-    fname = DATA_ROOT+'KITTI/sequences/'+numStr+'/calib.txt'
+    # numStr = '{:02d}'.format(benchnum)
+    # fname = DATA_ROOT+'KITTI/sequences/'+numStr+'/calib.txt'
     # with open(fname) as f:
     #   C = f.readline()
     #   f.close()
@@ -274,10 +270,8 @@ def load_gt(bench, dataDir, benchnum, _dtype=np.float64):
     assert False, 'unknown benchtype '+bench
 
   # Make sure the first quaternion element is always positive
-  nprint('Q_gt[5]', Q_gt[:5])
   for i, q in enumerate(Q_gt):
     if q.w < 0: Q_gt[i] = - Q_gt[i]
-  nprint('Q_gt[5]', Q_gt[:5])
 
   if bench == 'TUM':
     # We need to interpolate pose for TUM dataset
