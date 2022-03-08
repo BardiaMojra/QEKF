@@ -10,7 +10,7 @@ from nbug import *
 def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   ''' Five Point Pose Estimation using Quaternion
     Fast way of generating the coefficient matrix C from the image points.
-    Inputs:
+    Inputs: #todo update the comments -- now input is Nx3 (numpy style instead matlab)
       m1:   Matrix containing the homogeneous coordinates of feature points in
             the 1st camera frame.
       m2:   Matrix containing the homogeneous coordinates of feature points in
@@ -28,6 +28,8 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
                 appended at the end. '''
   # number of feature points
   numPts = m1.shape[0]
+  nprint('numPts', numPts)
+  st()
   idxBin1 = np.zeros((sc.special.binom(numPts,2)-1,2),dtype=_dtype)
   cntr = 0
   for i in range(numPts-2):

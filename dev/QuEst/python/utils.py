@@ -40,6 +40,21 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
     assert 0, 'Error: '+e
   return image, kps, dscs
 
+def get_best_matches(matches, kp_p, kp_n, minPts=6, _dtype=np.float64):
+  matches = sorted(matches, key = lambda x:x.distance)
+  matches = matches[:minPts]
+  mp_p = list(); mp_n = list() # matched points for previous and now frames
+  for m in matches:
+    p_p = kp_p[m.queryIdx].pt
+    p_n = kp_n[m.trainIdx].pt
+    mp_p.append([p_p[0], p_p[1], 1])
+    mp_n.append([p_n[0], p_n[1], 1])
+  mp_p = np.asarray(mp_p, dtype=_dtype).reshape(-1,3)
+  mp_n = np.asarray(mp_n, dtype=_dtype).reshape(-1,3)
+  # nprint('mp_p', mp_p)
+  # nprint('mp_n', mp_n)
+  # st()
+  return mp_p, mp_n
 
 # def MatchFeaturePoints(Ip, ppoints, In, npoints, dset, maxPts, alg='ORB'):
 #   f1, vp1 = GetFeaturePoints(Ip,ppoints);

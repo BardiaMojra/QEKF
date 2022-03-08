@@ -2,9 +2,9 @@
 import numpy as np
 import scipy.linalg as linalg
 
+from quest_algs.coefs import CoefsVer3_1_1 as COEFS_V0311
 
-''' coef Alg '''
-# from coefs import CoefsVer3_1_1 as COEFS_V0311
+
 
 ''' NBUG '''
 from pdb import set_trace as st
@@ -13,7 +13,7 @@ from nbug import *
 def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
   ''' QuEst (Quaternion Estimation) algorithm for 5 feature points
   NOTE: Include the folder "Helpers" in Matlab path before execution.
-  Inputs:
+  Inputs: #todo update the comments -- now input is Nx3 (numpy style instead matlab)
   m, n:  Homogeneous coordinates of N feature points in the first
          and second coordinate frames. Each column of m or n has the
          format [x, y, 1]^T, where x and y are coordinates of the
@@ -48,6 +48,7 @@ def QuEst_5Pt_Ver7_8(m,n,_DTYPE=np.float64):
   Cf = COEFS_V0311(m,n)
   numEq = Cf.shape[0]
   nsprint('Cf', Cf)
+  st()
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_DTYPE)
   for i in range(1,5):

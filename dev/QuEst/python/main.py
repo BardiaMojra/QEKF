@@ -84,13 +84,8 @@ def main():
         q = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
-        for m in matches:
-
-          nprint(attn)
-          st()
-          p1 = kp_p[m.queryIdx].pt
-          p2 = kp_n[m.trainIdx].pt
-          tOut, q = Q0708(p1,p2)
+        mp_p, mp_n = get_best_matches(matches, kp_p, kp_n, minPts)
+        tOut, q = Q0708(mp_p, mp_n)
 
       else:
         eprint(str('algorithm is not supported: '+alg))
