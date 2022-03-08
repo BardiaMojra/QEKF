@@ -1,6 +1,5 @@
 
 # import numpy as np
-import matplotlib
 import pandas as pd
 import time
 
@@ -25,13 +24,9 @@ _save         = True
 _prt          = True
 # _START        = 0
 # _END          = 150
-_TEST_MODE    = 'all'; _TEST_ID = None
-# _TEST_ID      = 13; _TEST_MODE = 'single'
+# _TEST_MODE    = 'all'; _TEST_ID = None
+_TEST_ID      = 5; _TEST_MODE = 'single'
 
-
-''' matplotlib config '''
-# matplotlib.pyplot.ion()
-# plt.style.use('ggplot')
 
 ''' datasets
  0  'dataset-iphone1_clean'

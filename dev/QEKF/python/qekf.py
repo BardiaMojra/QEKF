@@ -40,9 +40,9 @@ class QEKF(object):
     ''' state vectors'''
     self.x_TVQxyz = np.zeros((dim_x,1), dtype=np.float64) + .0001
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
-    self.F = np.eye(dim_x)     # state transition matrix
-    self.R = np.eye(dim_z)        # state uncertainty
-    self.Q_c = np.eye(dim_x)        # process uncertainty
+    self.F = np.eye(dim_x) # state transition matrix
+    self.R = np.eye(dim_z) # state uncertainty
+    self.Q_c = np.eye(dim_x) # process uncertainty
     # self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
     self.K = np.zeros((dim_x,1)) # kalman gain
@@ -121,8 +121,7 @@ class QEKF(object):
     ''' estimation model
       - eq 16-22 of QEKF2
       - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
-        f(\hat{x}_{k-1|k-1}, u_{k})
-    '''
+        f(\hat{x}_{k-1|k-1}, u_{k}) '''
     # est linPos
     x_TVQxyz[0:3] = x_TVQxyz[0:3]+self.T_*x_TVQxyz[3:6]
     # est linVel
