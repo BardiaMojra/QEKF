@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib
 import pandas as pd
 import cv2 as cv
+import scipy as sc
 
 ''' private modules '''
 from dmm import *
@@ -40,22 +41,42 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
     assert 0, 'Error: '+e
   return image, kps, dscs
 
-def get_best_matches(matches, kp_p, kp_n, minPts=5, _dtype=np.float64):
+def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float64):
   matches = sorted(matches, key = lambda x:x.distance)
   matches = matches[:minPts]
-  mp_p = list(); mp_n = list() # matched points for previous and now frames
+  mat = list()
   for m in matches:
-    st()
+    queryIdx = np.asarray(m.queryIdx, dtype=_dtype).copy().reshape(-1,1)
+    trainIdx = np.asarray(m.trainIdx, dtype=_dtype).copy().reshape(-1,1)
     p_p = kp_p[m.queryIdx].pt
     p_n = kp_n[m.trainIdx].pt
-    mp_p.append([p_p[0], p_p[1], 1])
-    mp_n.append([p_n[0], p_n[1], 1])
-  mp_p = np.asarray(mp_p, dtype=_dtype).reshape(-1,3)
-  mp_n = np.asarray(mp_n, dtype=_dtype).reshape(-1,3)
-  # nprint('mp_p', mp_p)
-  # nprint('mp_n', mp_n)
-  # st()
-  return mp_p, mp_n
+    p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
+    p2 = np.asarray([p_n[0],p_n[1],1], dtype=_dtype).copy().reshape(-1,3)
+    mat.append(np.concatenate((p1,p2,queryIdx,trainIdx), axis=1))
+
+  mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
+  p1 = mat[:,0:3]
+  p2 = mat[:,3:6]
+
+  # nprint('p1', p1)
+  # nprint('p2', p2)
+
+  m1 = sc.linalg.pinv(dat.K) @ p1.T
+  # K_linv = sc.linalg.solve(dat.K.T.dot(dat.K), dat.K)
+  # m1 = K_linv @ p1.T
+  m2 = sc.linalg.pinv(dat.K) @ p2.T
+
+  # nprint('m1', m1)
+  # nprint('m2', m2)
+  m1u = m1/np.sqrt(sum(m1**2))
+  m2u = m2/np.sqrt(sum(m2**2))
+  # nprint('m1u', m1u)
+  # nprint('m2u', m2u)
+
+  mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
+  mats.prt()
+  st()
+  return mats
 
 # def MatchFeaturePoints(Ip, ppoints, In, npoints, dset, maxPts, alg='ORB'):
 #   f1, vp1 = GetFeaturePoints(Ip,ppoints);
@@ -112,7 +133,10 @@ def RelativeGroundTruth(i, dset):
     rot = quaternion.as_rotation_matrix(np.conj(q2))
     # nprint('rot', rot)
     tr = rot * (t2 - t1)
-
+    # nprint('t1', t1)
+    # nprint('t2', t2)
+    # nprint('tr', tr)
+    # st()
   elif bench == 'NAIST':
     # In this dataset the absolute pose is given in the camera coordinate
     # frame, i.e., c^R_w, c^t_w.(This is opposite of what is claimed in
@@ -195,7 +219,23 @@ def write_image(num:int, image, outDir):
   prt_file_save(shead+'saving figure: '+figname)
   return
 
+class Dmatch_obj(object):
+  def __init__(self, p1, p2, m1, m2, m1u, m2u, numPoints):
+    self.p1 = p1
+    self.p2 = p2
+    self.m1 = m1
+    self.m2 = m2
+    self.m1u = m1u
+    self.m2u = m2u
+    self.numPoints = numPoints
 
-
-
+  def prt(self):
+    nprint('p1', self.p1)
+    nprint('p2', self.p2)
+    nprint('m1', self.m1)
+    nprint('m2', self.m2)
+    nprint('m1u', self.m1u)
+    nprint('m2u', self.m2u)
+    nprint('numPoints', self.numPoints)
+    return
 # EOF

@@ -146,7 +146,7 @@ def get_calib_matrix(benchtype, dataDir, benchnum, _dtype=np.float64):
          0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00], dtype=_dtype)
     K = np.array([C[1],  C[2],  C[3],
                   C[5],  C[6],  C[7],
-                  C[9], C[10], C[11]], dtype=_dtype)
+                  C[9], C[10], C[11]], dtype=_dtype).reshape(3,3)
 
     ''' on radial distortion, tangential distortion, and distortion vector:
     https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga69f2545a8b62a6b0fc2ee060dc30559d
@@ -160,8 +160,7 @@ def get_calib_matrix(benchtype, dataDir, benchnum, _dtype=np.float64):
   elif benchtype == 'ICL':
     K = np.array([481.20,	      0.0,      319.50,
                     0.0,     -480.00,     239.50,
-                    0.0,        0.0,        1.0], dtype=_dtype)
-    K = K.reshape((3,3))
+                    0.0,        0.0,        1.0], dtype=_dtype).reshape(3,3)
     dp = np.zeros((1,3), dtype=_dtype)
     tp = np.zeros((1,2), dtype=_dtype)
     dist = np.zeros((1,5), dtype=_dtype) # dist = k[0],k[1],p[0],p[1],k[2]

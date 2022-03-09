@@ -58,7 +58,7 @@ def main():
 
   ''' recover Pose using RANSAC and compare with ground truth '''
   for i in range(1, len(keyFrames)):
-    print('    \\ ------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
+    print('\ ------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
 
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
@@ -67,6 +67,7 @@ def main():
 
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
+    print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
     matches = matches[:maxPts]
     # imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
     # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
@@ -74,12 +75,12 @@ def main():
 
     # get ground truth
     qr, tr = RelativeGroundTruth(i, dset)
-    nprint('qr', qr)
-    nprint('tr', tr)
+    # nprint('qr', qr)
+    # nprint('tr', tr)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
-    if len(matches) < minPts:
+    if len(matches) < minPts: # skip frame
       Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
@@ -90,9 +91,8 @@ def main():
         q = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
-        mp_p, mp_n = get_best_matches(matches, kp_p, kp_n, minPts)
-        tOut, q = Q0708(mp_p, mp_n)
-
+        matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
+        tOut, q = Q0708(matches)
       else:
         eprint(str('algorithm is not supported: '+alg))
 
