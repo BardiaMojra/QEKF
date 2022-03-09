@@ -57,7 +57,7 @@ datasets = ['dataset-iphone1_clean',
             'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6',
             'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6',
             'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off',
-            'test_001_vicon_training_day',
+            # 'test_001_vicon_training_day',
 ]
 
 
@@ -286,8 +286,8 @@ class dmm:
       eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
     ''' common df section '''
-    nprint('self.df.head(5)', self.df.head(5))
-    nprint('self.df.tail(5)', self.df.tail(5))
+    # nprint('self.df.head(5)', self.df.head(5))
+    # nprint('self.df.tail(5)', self.df.tail(5))
     self.len = len(self.df.index)
     if self.end == None:
       self.end = self.len

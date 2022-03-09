@@ -25,7 +25,7 @@ _prt          = True
 # _START        = 0
 # _END          = 150
 # _TEST_MODE    = 'all'; _TEST_ID = None
-_TEST_ID      = 5; _TEST_MODE = 'single'
+_TEST_ID      = 1; _TEST_MODE = 'single'
 
 
 ''' datasets
@@ -56,12 +56,7 @@ def main():
   tmode = _TEST_MODE
   tnum = _TEST_ID
   if len(sys.argv) > 1:
-    st()
-    if isinstance(sys.argv[1], int):
-      input_ID = sys.argv[1]
-      print(shorthead+'user input (int): '+str(input_ID)+' ---> '+datasets[input_ID])
-      run(str(datasets[input_ID]))
-    elif sys.argv[1] == 'all':
+    if sys.argv[1] == 'all':
       print(shorthead+'starting all test sequences:')
       for i in range(len(datasets)):
         print('> '+str(i)+': '+datasets[i])
@@ -69,6 +64,10 @@ def main():
       for i in range(len(datasets)):
         print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
         run(datasets[i])
+    elif isinstance(int(sys.argv[1]), int):
+      input_ID = int(sys.argv[1])
+      print(shorthead+'user input (int): '+str(input_ID)+' ---> '+datasets[input_ID])
+      run(str(datasets[input_ID]))
   else:
     if tmode == 'all':
       print(shorthead+'starting all test sequences:')
@@ -124,9 +123,10 @@ def run(data:str):
               Q_quat_xyz=0.5e-3,
               R_noise=1e-6, # measurement noise covar
               P_est_0=1e-4,
+              IC=dset.z_TVQxyzw_np[0],
               K_scale=1.0)
 
-  x_TVQxyz = qekf.x_TVQxyz # init state vectors
+  x_TVQxyz = qekf.x_TVQxyz # init state vectors #todo add IC from dataset
   for i in range(dset.start, dset.end):
     ''' EKF state machine '''
     # print('    \\--->>> new state ------->>>>>:  ', i)

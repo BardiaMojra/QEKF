@@ -28,6 +28,7 @@ class QEKF(object):
                Q_quat_xyz,
                R_noise,
                P_est_0,
+               IC,
                dim_u=0,
                log=True,
                K_scale=1.0):
@@ -38,7 +39,8 @@ class QEKF(object):
     self.dim_u = dim_u
 
     ''' state vectors'''
-    self.x_TVQxyz = np.zeros((dim_x,1), dtype=np.float64) + .0001
+    self.x_TVQxyz = IC[:dim_x].reshape(-1,1)
+    # nprint('self.x_TVQxyz', self.x_TVQxyz)
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x) # state transition matrix
     self.R = np.eye(dim_z) # state uncertainty
@@ -155,7 +157,7 @@ class QEKF(object):
   def set_H(self):
     # set measurement transition function (H matrix)
     self.H[0:9,0:9] = np.eye(9)
-    self.H[0:3,0:3] = -self.C
+    self.H[0:3,0:3] = self.C
     return
 
   def set_L(self):
