@@ -166,7 +166,7 @@ def get_QuatError(q_ref:quaternion, Q2):
   Q2 = Q2.normalized()
   nprint('q1', q_ref)
   nprint('Q2', Q2)
-  nppshape('Q2', Q2)
+  npprint('Q2', Q2)
   st()
 
   lenQ2 = Q2.shape[0]

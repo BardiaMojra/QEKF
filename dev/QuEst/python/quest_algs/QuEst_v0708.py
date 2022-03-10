@@ -110,17 +110,17 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   y = X5.y / w4
   z = X5.z / w4
 
-  nppshape('w', w)
-  nppshape('x', x)
-  nppshape('y', y)
-  nppshape('z', z)
+  npprint('w', w)
+  npprint('x', x)
+  npprint('y', y)
+  npprint('z', z)
   nprint('w', w)
   nprint('x', x)
   nprint('y', y)
   nprint('z', z)
 
   Q = np.quaternion(w, x, y, z)
-  nppshape('Q', Q)
+  npprint('Q', Q)
   nprint('Q', Q)
 
   Q = Q.norm()

@@ -25,18 +25,20 @@ def nprint(string, *args):
       print(shead+string+': ')
       pp(args); print(stail)
     else:
-      print(shead+(string+stail))
+      pp(shead+(string+stail))
 
 def nsprint(string, ndarr:np.ndarray):
   if nprt_en is True:
     shape = str(ndarr.shape)
     print(shead+(string+': '+shape));
-    pp(ndarr); print(stail)
+    # pp(ndarr); print(stail)
 
-def nppshape(string, ndarr:np.ndarray):
+def npprint(string, ndarr:np.ndarray):
   if nprt_en is True:
     shape = str(ndarr.shape)
     print(shead+(string+': '+shape));
+    pp(ndarr); print(stail)
+
 
 def dfspp(string, df:pd.DataFrame):
   if nprt_en is True:
