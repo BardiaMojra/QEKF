@@ -63,17 +63,16 @@ idxBin2 = zeros(2,numEq);
 counter = 0;
 counter2 = 0;
 for i = numPts-1 : -1 : 2
-  i_ = numPts-1 : -1 : 2
+%   i_ = numPts-1 : -1 : 2
   for j = (1+counter2) : (i-1+counter2)
-    j_ = (1+counter2) : (i-1+counter2)
+%     j_ = (1+counter2) : (i-1+counter2)
     for k = (j+1) : (i+counter2)
-      k_ = (j+1) : (i+counter2)
+%       k_ = (j+1) : (i+counter2)
       counter = counter + 1;
       idxBin2(:,counter) = [j;k]; 
     end
   end
   counter2 = i  + counter2;
- 
 end
 
 % ai = [num1;
