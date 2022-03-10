@@ -251,5 +251,6 @@ def run(data:str):
 
 if __name__ == "__main__":
   main()
+  st()
   print('---------   End   ---------')
 # EOF
