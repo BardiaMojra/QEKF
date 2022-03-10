@@ -92,7 +92,7 @@ def main():
         tOut = M.t
       elif alg == 'QuEst_v0708':
         matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
-        tOut, q = Q0708(matches)
+        tOut, q = Q0708(m=matches.m1, n=matches.m2)
       else:
         eprint(str('algorithm is not supported: '+alg))
 

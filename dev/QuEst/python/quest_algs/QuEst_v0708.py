@@ -46,7 +46,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   # Construct coefficient matrix
   # coefficient matrix in the linearized system of multinomials (Cf * V = 0)
   Cf = COEFS_V0311(m,n)
-  numEq = Cf.shape[0]
+  numEq = Cf.shape
   nsprint('Cf', Cf)
   st()
   # A is the coefficient matrix such that A * X = 0

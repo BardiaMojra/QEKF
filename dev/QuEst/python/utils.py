@@ -58,24 +58,14 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float64):
   p1 = mat[:,0:3]
   p2 = mat[:,3:6]
 
-  # nprint('p1', p1)
-  # nprint('p2', p2)
-
   m1 = sc.linalg.pinv(dat.K) @ p1.T
-  # K_linv = sc.linalg.solve(dat.K.T.dot(dat.K), dat.K)
-  # m1 = K_linv @ p1.T
   m2 = sc.linalg.pinv(dat.K) @ p2.T
 
-  # nprint('m1', m1)
-  # nprint('m2', m2)
   m1u = m1/np.sqrt(sum(m1**2))
   m2u = m2/np.sqrt(sum(m2**2))
-  # nprint('m1u', m1u)
-  # nprint('m2u', m2u)
 
   mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
-  mats.prt()
-  st()
+  # mats.prt()
   return mats
 
 # def MatchFeaturePoints(Ip, ppoints, In, npoints, dset, maxPts, alg='ORB'):

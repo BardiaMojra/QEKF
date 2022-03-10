@@ -140,13 +140,10 @@ def get_calib_matrix(benchtype, dataDir, benchnum, _dtype=np.float64):
     # nprint('C', C)
     # st()
     # C.split(' ')
-    C = np.array([7.215377000000e+02, 0.000000000000e+00, 6.095593000000e+02,
-         0.000000000000e+00, 0.000000000000e+00, 7.215377000000e+02,
-         1.728540000000e+02, 0.000000000000e+00, 0.000000000000e+00,
-         0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00], dtype=_dtype)
-    K = np.array([C[1],  C[2],  C[3],
-                  C[5],  C[6],  C[7],
-                  C[9], C[10], C[11]], dtype=_dtype).reshape(3,3)
+    K = np.array([7.215377000000e+02, 0.000000000000e+00, 6.095593000000e+02,
+                  0.000000000000e+00, 7.215377000000e+02, 1.728540000000e+02,
+                  0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00],
+                  dtype=_dtype).reshape(3,3)
 
     ''' on radial distortion, tangential distortion, and distortion vector:
     https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga69f2545a8b62a6b0fc2ee060dc30559d

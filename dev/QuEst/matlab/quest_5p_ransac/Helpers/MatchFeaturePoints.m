@@ -20,10 +20,11 @@ numMatch = size(p1, 1);  % Number of matched feature points
 numPts = min(numMatch, maxPts);
 p1 = p1(1:numPts, :);
 p2 = p2(1:numPts, :);
-
+p11 = double( [p1 ones(numPts, 1)].' );
+p21 = double( [p2 ones(numPts, 1)].' );
 % Point coordinates on image plane
-m1 = dataset.K \ double( [p1 ones(numPts, 1)].' );
-m2 = dataset.K \ double( [p2 ones(numPts, 1)].' );
+m1 = dataset.K \ p11;
+m2 = dataset.K \ p21 ;
 
 % Unit norm coordinates
 m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1))); 

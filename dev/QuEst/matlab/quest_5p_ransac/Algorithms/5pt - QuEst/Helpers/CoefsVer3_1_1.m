@@ -39,6 +39,7 @@ for i = 1 : numPts-2
 end
 
 
+
 mx1 = m1(1,idxBin1(1,:)).';    my1 = m1(2,idxBin1(1,:)).';
 nx1 = m2(1,idxBin1(1,:)).';    ny1 = m2(2,idxBin1(1,:)).';
 mx2 = m1(1,idxBin1(2,:)).';    my2 = m1(2,idxBin1(2,:)).';

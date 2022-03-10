@@ -26,11 +26,15 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
       - Based on Ver3_1, without the unit norm coefficient vector appended at
       the end. '''
   # number of feature points
-  numPts = m1.shape[0]
-  nprint('numPts', numPts)
-  # nprint('sc.special.binom(numPts,2)', sc.special.binom(numPts,2))
+
+  #todo working here
+  nprint('m1', m1)
+  nprint('m2', m2)
+  nsprint('m1', m1)
+  numPts = m1.shape[1]
+  nprint('sc.special.binom(numPts,2)', sc.special.binom(numPts,2))
   # st()
-  idxBin1 = np.zeros((int(sc.special.binom(numPts,2))-1,2), dtype=_dtype)
+  idxBin1 = np.zeros((2, int(sc.special.binom(numPts,2))-1), dtype=_dtype)
   cntr = 0
   for i in range(numPts-2):
     for j in range(i+1, numPts):
