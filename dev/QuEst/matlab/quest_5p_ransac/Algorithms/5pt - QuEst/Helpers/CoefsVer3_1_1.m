@@ -72,7 +72,7 @@ for i = numPts-1 : -1 : 2
       idxBin2(:,counter) = [j;k]; 
     end
   end
-    counter2 = i  + counter2;
+  counter2 = i  + counter2;
  
 end
 

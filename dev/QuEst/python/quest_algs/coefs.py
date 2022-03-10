@@ -50,6 +50,9 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   # total number of equations
   numEq = int(sc.special.binom(numPts,3))
   idxBin2 = np.zeros((numEq, 2), dtype=int)
+  idxBin2 = np.asarray()
+  [1,1,1,2,2,3,5,5,
+   2,3,4,3,4,4,6,7]
   npprint('idxBin2', idxBin2)
   cntr = 0
   cntr2 = 0
@@ -67,7 +70,7 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
         st()
         cntr = cntr + 1;
         idxBin2[cntr,:] = [j,k]
-    cntr2 += i
+    cntr2 += i+1
   idxBin2 = idxBin2.T
   npprint('idxBin2', idxBin2)
   st()
