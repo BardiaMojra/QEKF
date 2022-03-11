@@ -65,8 +65,8 @@ class dmm:
     numStr = '{:03d}'.format(benchnum)
     outDir = OUT_DIR+bench+'_'+numStr+'/'
     if not os.path.exists(outDir):
-      print(lhead+'the following directory DOES NOT EXIST: '+outDir)
-      print(shead+"create is it with 'mkdir "+outDir+"'\n\n")
+      print(lhead+'DOES NOT EXIST: '+outDir)
+      print(shead+"create it with 'mkdir -p "+outDir+"'\n\n")
       exit()
     ''' init '''
     self.bench = bench

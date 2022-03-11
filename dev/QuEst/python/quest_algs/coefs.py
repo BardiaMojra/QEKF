@@ -50,28 +50,30 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   # total number of equations
   numEq = int(sc.special.binom(numPts,3))
   # idxBin2 = np.zeros((numEq, 2), dtype=int)
-  idxBin2 = np.asarray([1,1,1,2,2,3,5,5,\
-                        2,3,4,3,4,4,6,7], dtype=int).reshape(2,-1)
+  idxBin2 = np.asarray([1,1,1,2,2,3,5,5,6,8,\
+                        2,3,4,3,4,4,6,7,7,9], dtype=int).reshape(2,-1)
+
+  idxBin2 = idxBin2 - 1
   npprint('idxBin2', idxBin2)
-  cntr = 0
-  cntr2 = 0
 
 
-  for i in range(numPts-2,0,-1):
-    temp = [i for i in range(numPts-2,0,-1)]
-    nprint('i', temp)
-    for j in range(cntr2, i+cntr2-1):
-      temp = [i for i in range(cntr2, i+cntr2)]
-      nprint('j', temp)
-      for k in range(j+1, i+cntr2+1):
-        temp = [i for i in range(j+1, i+cntr2+1)]
-        nprint('k', temp)
-        st()
-        cntr = cntr + 1;
-        idxBin2[cntr,:] = [j,k]
-    cntr2 += i+1
-  idxBin2 = idxBin2.T
-  npprint('idxBin2', idxBin2)
+  # cntr = 0
+  # cntr2 = 0
+  # for i in range(numPts-2,0,-1):
+  #   temp = [i for i in range(numPts-2,0,-1)]
+  #   nprint('i', temp)
+  #   for j in range(cntr2, i+cntr2-1):
+  #     temp = [i for i in range(cntr2, i+cntr2)]
+  #     nprint('j', temp)
+  #     for k in range(j+1, i+cntr2+1):
+  #       temp = [i for i in range(j+1, i+cntr2+1)]
+  #       nprint('k', temp)
+  #       st()
+  #       cntr = cntr + 1;
+  #       idxBin2[cntr,:] = [j,k]
+  #   cntr2 += i+1
+  # idxBin2 = idxBin2.T
+  # npprint('idxBin2', idxBin2)
   st()
   #todo working here
 
