@@ -26,23 +26,24 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
       - Based on Ver3_1, without the unit norm coefficient vector appended at
       the end. '''
   numPts = m1.shape[1]
-  idxBin1 = np.zeros((int(sc.special.binom(numPts,2))-1, 2), dtype=int)
+  idx1 = np.zeros((int(sc.special.binom(numPts,2))-1, 2), dtype=int)
   cntr = 0
   for i in range(numPts-2):
     for j in range(i+1, numPts):
-      idxBin1[cntr] = [i,j]
+      idx1[cntr] = [i,j]
       cntr += 1
-  idxBin1 = idxBin1.T
+  idx1 = idx1.T
 
-  mx1 = m1[0,idxBin1[0,:]].reshape(-1,1); my1 = m1[1,idxBin1[0,:]].reshape(-1,1);
-  nx1 = m2[0,idxBin1[0,:]].reshape(-1,1); ny1 = m2[1,idxBin1[0,:]].reshape(-1,1);
-  mx2 = m1[0,idxBin1[1,:]].reshape(-1,1); my2 = m1[1,idxBin1[1,:]].reshape(-1,1);
-  nx2 = m2[0,idxBin1[1,:]].reshape(-1,1); ny2 = m2[1,idxBin1[1,:]].reshape(-1,1);
-  s1  = m1[2,idxBin1[0,:]].reshape(-1,1); r1  = m2[2,idxBin1[0,:]].reshape(-1,1);
-  s2  = m1[2,idxBin1[1,:]].reshape(-1,1); r2  = m2[2,idxBin1[1,:]].reshape(-1,1);
+  mx1 = m1[0,idx1[0,:]].reshape(-1,1); my1 = m1[1,idx1[0,:]].reshape(-1,1);
+  nx1 = m2[0,idx1[0,:]].reshape(-1,1); ny1 = m2[1,idx1[0,:]].reshape(-1,1);
+  mx2 = m1[0,idx1[1,:]].reshape(-1,1); my2 = m1[1,idx1[1,:]].reshape(-1,1);
+  nx2 = m2[0,idx1[1,:]].reshape(-1,1); ny2 = m2[1,idx1[1,:]].reshape(-1,1);
+  s1  = m1[2,idx1[0,:]].reshape(-1,1); r1  = m2[2,idx1[0,:]].reshape(-1,1);
+  s2  = m1[2,idx1[1,:]].reshape(-1,1); r2  = m2[2,idx1[1,:]].reshape(-1,1);
 
-  coefsN = coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2,_dtype=_dtype)
-  coefsD = coefsDenVer2_0(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2,_dtype=_dtype)
+  # get coefficients for numerator (cN) and denominator (cD)
+  cN = coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2,_dtype=_dtype)
+  cD = coefsDenVer2_0(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2,_dtype=_dtype)
 
   # npprint('coefsN', coefsN)
   # npprint('coefsD', coefsD)
@@ -50,65 +51,58 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   # total number of equations
   numEq = int(sc.special.binom(numPts,3))
   # idxBin2 = np.zeros((numEq, 2), dtype=int)
-  idxBin2 = np.asarray([1,1,1,2,2,3,5,5,6,8,\
+  idx2 = np.asarray([1,1,1,2,2,3,5,5,6,8,\
                         2,3,4,3,4,4,6,7,7,9], dtype=int).reshape(2,-1)
 
-  idxBin2 = idxBin2 - 1
-  npprint('idxBin2', idxBin2)
+  idx2 = idx2 - 1
+  # npprint('idxBin2', idx2)
+  # npprint('coefsN', coefsN)
+  # npprint('coefsD', cD)
+  # npprint('coefsD[idxBin2[0,:], 0]', cD[idx2[0,:], 0])
 
 
-  # cntr = 0
-  # cntr2 = 0
-  # for i in range(numPts-2,0,-1):
-  #   temp = [i for i in range(numPts-2,0,-1)]
-  #   nprint('i', temp)
-  #   for j in range(cntr2, i+cntr2-1):
-  #     temp = [i for i in range(cntr2, i+cntr2)]
-  #     nprint('j', temp)
-  #     for k in range(j+1, i+cntr2+1):
-  #       temp = [i for i in range(j+1, i+cntr2+1)]
-  #       nprint('k', temp)
-  #       st()
-  #       cntr = cntr + 1;
-  #       idxBin2[cntr,:] = [j,k]
-  #   cntr2 += i+1
-  # idxBin2 = idxBin2.T
-  # npprint('idxBin2', idxBin2)
-  st()
-  #todo working here
 
-  a1  = [coefsN[idxBin2[:,1], 1], coefsD[idxBin2[:,1], 1]]
-  a2  = [coefsN[idxBin2[:,1], 2], coefsD[idxBin2[:,1], 2]]
-  a3  = [coefsN[idxBin2[:,1], 3], coefsD[idxBin2[:,1], 3]]
-  a4  = [coefsN[idxBin2[:,1], 4], coefsD[idxBin2[:,1], 4]]
-  a5  = [coefsN[idxBin2[:,1], 5], coefsD[idxBin2[:,1], 5]]
-  a6  = [coefsN[idxBin2[:,1], 6], coefsD[idxBin2[:,1], 6]]
-  a7  = [coefsN[idxBin2[:,1], 7], coefsD[idxBin2[:,1], 7]]
-  a8  = [coefsN[idxBin2[:,1], 8], coefsD[idxBin2[:,1], 8]]
-  a9  = [coefsN[idxBin2[:,1], 9], coefsD[idxBin2[:,1], 9]]
-  a10 = [coefsN[idxBin2[:,1],10], coefsD[idxBin2[:,1],10]]
+  a1  = np.concatenate((cN[idx2[0,:],0],cD[idx2[0,:],0]),axis=0).reshape(-1,1)
+  a2  = np.concatenate((cN[idx2[0,:],1],cD[idx2[0,:],1]),axis=0).reshape(-1,1)
+  a3  = np.concatenate((cN[idx2[0,:],2],cD[idx2[0,:],2]),axis=0).reshape(-1,1)
+  a4  = np.concatenate((cN[idx2[0,:],3],cD[idx2[0,:],3]),axis=0).reshape(-1,1)
+  a5  = np.concatenate((cN[idx2[0,:],4],cD[idx2[0,:],4]),axis=0).reshape(-1,1)
+  a6  = np.concatenate((cN[idx2[0,:],5],cD[idx2[0,:],5]),axis=0).reshape(-1,1)
+  a7  = np.concatenate((cN[idx2[0,:],6],cD[idx2[0,:],6]),axis=0).reshape(-1,1)
+  a8  = np.concatenate((cN[idx2[0,:],7],cD[idx2[0,:],7]),axis=0).reshape(-1,1)
+  a9  = np.concatenate((cN[idx2[0,:],8],cD[idx2[0,:],8]),axis=0).reshape(-1,1)
+  a10 = np.concatenate((cN[idx2[0,:],9],cD[idx2[0,:],9]),axis=0).reshape(-1,1)
 
-  # bi = [num2;
-  #       den2];
-  b1  = [coefsD[idxBin2[:,2], 1], coefsN[idxBin2[:,2], 1]]
-  b2  = [coefsD[idxBin2[:,2], 2], coefsN[idxBin2[:,2], 2]]
-  b3  = [coefsD[idxBin2[:,2], 3], coefsN[idxBin2[:,2], 3]]
-  b4  = [coefsD[idxBin2[:,2], 4], coefsN[idxBin2[:,2], 4]]
-  b5  = [coefsD[idxBin2[:,2], 5], coefsN[idxBin2[:,2], 5]]
-  b6  = [coefsD[idxBin2[:,2], 6], coefsN[idxBin2[:,2], 6]]
-  b7  = [coefsD[idxBin2[:,2], 7], coefsN[idxBin2[:,2], 7]]
-  b8  = [coefsD[idxBin2[:,2], 8], coefsN[idxBin2[:,2], 8]]
-  b9  = [coefsD[idxBin2[:,2], 9], coefsN[idxBin2[:,2], 9]]
-  b10 = [coefsD[idxBin2[:,2],10], coefsN[idxBin2[:,2],10]]
+  b1  = np.concatenate((cD[idx2[1,:],0],cN[idx2[1,:],0]),axis=0).reshape(-1,1)
+  b2  = np.concatenate((cD[idx2[1,:],1],cN[idx2[1,:],1]),axis=0).reshape(-1,1)
+  b3  = np.concatenate((cD[idx2[1,:],2],cN[idx2[1,:],2]),axis=0).reshape(-1,1)
+  b4  = np.concatenate((cD[idx2[1,:],3],cN[idx2[1,:],3]),axis=0).reshape(-1,1)
+  b5  = np.concatenate((cD[idx2[1,:],4],cN[idx2[1,:],4]),axis=0).reshape(-1,1)
+  b6  = np.concatenate((cD[idx2[1,:],5],cN[idx2[1,:],5]),axis=0).reshape(-1,1)
+  b7  = np.concatenate((cD[idx2[1,:],6],cN[idx2[1,:],6]),axis=0).reshape(-1,1)
+  b8  = np.concatenate((cD[idx2[1,:],7],cN[idx2[1,:],7]),axis=0).reshape(-1,1)
+  b9  = np.concatenate((cD[idx2[1,:],8],cN[idx2[1,:],8]),axis=0).reshape(-1,1)
+  b10 = np.concatenate((cD[idx2[1,:],9],cN[idx2[1,:],9]),axis=0).reshape(-1,1)
+
+  # npprint('b2', b2)
+  # npprint('b1', b1)
+
+  # st()
 
   # coefsND = [num1 * den2;
   #            den1 * num2];
   coefsND = coefsNumDen(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,\
-                        b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,dtype=_dtype);
+                        b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,\
+                        _dtype=_dtype);
 
+  # nprint('numEq', numEq)
+  # npprint('coefsND[:numEq,:]', coefsND[:numEq,:])
+  # st()
   # matrix of all coefficients
   # coefs = (num1 * den2)  -  (den1 * num2)
-  C = coefsND[:numEq-1,:] - coefsND[numEq:2*numEq-1,:]
+  C = coefsND[:numEq,:] - coefsND[numEq:2*numEq,:]
+  # npprint('C', C)
+  # st()
   return C
 
 def coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2, _dtype=np.float64):
@@ -209,6 +203,6 @@ def coefsNumDen(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,\
                             A20,A21,A22,A23,A24,A25,A26,A27,A28,A29,\
                             A30,A31,A32,A33,A34), axis=1, dtype=_dtype)
 
-  npprint('coefsND', coefsND)
-  st()
+  # npprint('coefsND', coefsND)
+  # st()
   return coefsND

@@ -35,37 +35,46 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
     -  Uses all matrices B1,B2,B3 to find solutions
     -  Slightly slower, but has better accuracy  '''
   # preallocate variables
-  Idx = [1, 2, 5, 11, 21, 3, 6, 12, 22, 8, 14, 24, 17, 27, 31, 4, 7, 13, 23, 9,
-         15, 25, 18, 28, 32, 10, 16, 26, 19, 29, 33, 20, 30, 34, 35, 2, 5, 11,
-         21, 36, 6, 12, 22, 37, 14, 24, 39, 27, 42, 46, 7, 13, 23, 38, 15, 25,
-         40, 28, 43, 47, 16, 26, 41, 29, 44, 48, 30, 45, 49, 50, 3, 6, 12, 22,
-         37, 8, 14, 24, 39, 17, 27, 42, 31, 46, 51, 9, 15, 25, 40, 18, 28, 43,
-         32, 47, 52, 19, 29, 44, 33, 48, 53, 34, 49, 54, 55, 4, 7, 13, 23, 38,
-         9, 15, 25, 40, 18, 28, 43, 32, 47, 52, 10, 16, 26, 41, 19, 29, 44, 33,
-         48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55, 56]
+  Idx = np.asarray([1, 2, 5, 11, 21, 3, 6, 12, 22, 8, 14, 24, 17, 27, 31, 4, 7,
+                    13, 23, 9, 15, 25, 18, 28, 32, 10, 16, 26, 19, 29, 33, 20,
+                    30, 34, 35, 2, 5, 11, 21, 36, 6, 12, 22, 37, 14, 24, 39, 27,
+                    42, 46, 7, 13, 23, 38, 15, 25, 40, 28, 43, 47, 16, 26, 41,
+                    29, 44, 48, 30, 45, 49, 50, 3, 6, 12, 22, 37, 8, 14, 24, 39,
+                    17, 27, 42, 31, 46, 51, 9, 15, 25, 40, 18, 28, 43, 32, 47,
+                    52, 19, 29, 44, 33, 48, 53, 34, 49, 54, 55, 4, 7, 13, 23,
+                    38, 9, 15, 25, 40, 18, 28, 43, 32, 47, 52, 10, 16, 26, 41,
+                    19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
+                    56], dtype=int).reshape(4,-1) - 1
+
+  npprint('Idx', Idx)
+
+
   # Construct coefficient matrix
   # coefficient matrix in the linearized system of multinomials (Cf * V = 0)
   Cf = COEFS_V0311(m,n)
-  numEq = Cf.shape
-  nsprint('Cf', Cf)
-  st()
+  # st()
+
+  numEq = Cf.shape[0]
+  # nsprint('Cf', Cf)
+  # st()
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_dtype)
+  # npprint('A',A)
   for i in range(1,5):
-      idx = Idx[i-1,:]
-      A[(i-1)*numEq+1 : i*numEq, idx] = Cf
-      nprint('idx', idx)
-      nprint('A', A)
-      st()
+    idx = Idx[i-1,:]
+    A[(i-1)*numEq : i*numEq, idx] = Cf
+    # nprint('idx', idx)
+    # nprint('A', A)
 
   # find bases for the null space of A
   _,__,V = linalg.svd(A,0)
   N = V[:,37:56].copy()
-
-  idx = Idx[0,:];   A0 = N[idx-1,:]
-  idx = Idx[1,:];   A1 = N[idx-1,:]
-  idx = Idx[2,:];   A2 = N[idx-1,:]
-  idx = Idx[3,:];   A3 = N[idx-1,:]
+  npprint('N', N)
+  st()
+  idx = Idx[0,:];   A0 = N[idx,:]
+  idx = Idx[1,:];   A1 = N[idx,:]
+  idx = Idx[2,:];   A2 = N[idx,:]
+  idx = Idx[3,:];   A3 = N[idx,:]
 
   B = A0 / [A1, A2, A3];
 
