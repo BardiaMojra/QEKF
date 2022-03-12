@@ -11,6 +11,7 @@ from utils import *
 ''' NBUG libraries '''
 from pdb import set_trace as st
 from nbug import *
+matlab_coefs_outPath = '../matlab/quest_5p_ransac/out/KITTI/keypoints/'
 
 ''' general config '''
 _show         = True
@@ -27,8 +28,8 @@ ranThresh     = 1e-6 # RANSAC outlier threshold
 surfThresh    = 200 # SURF feature point detection threshold
 
 # Number of feature points
-maxPts        = 30 # max num of feature points to use for pose est (lower value increases speed)
-minPts        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
+maxPts = 30 # max num of feature points to use for pose est (lower value increases speed)
+minPts = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
 
 def main():
   global fignum; fignum = int(0)
@@ -91,8 +92,10 @@ def main():
         q = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
-        matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
-        tOut, q = Q0708(m=matches.m1, n=matches.m2)
+        # matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
+        # tOut, q = Q0708(m=matches.m1, n=matches.m2)
+        kp1, kp2 = load_matlab_kps(i, matlab_coefs_outPath)
+        tOut, q = Q0708(m=kp1, n=kp2)
       else:
         eprint(str('algorithm is not supported: '+alg))
 

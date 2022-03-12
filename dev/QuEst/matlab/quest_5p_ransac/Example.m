@@ -44,8 +44,8 @@ benchnum = 3;
 %% Set parameters
 
 % Algorithms to run
-algorithms = {'QuEst_RANSAC_v0102'};
-% algorithms = {'QuEst_v0708'};
+% algorithms = {'QuEst_RANSAC_v0102'};
+algorithms = {'QuEst_v0708'};
 
 % Keyframes
 skipFrame = 0;         % This is the number of frames that are skiped between two key frames
@@ -108,7 +108,7 @@ for i = keyFrames
             q = M.Q;
             tOut = M.t;
         elseif strcmp(algorithms{mthd}, 'QuEst_v0708') 
-            q = QuEst_5Pt_Ver7_8(matches.m1, matches.m2);
+            q = QuEst_5Pt_Ver7_8(matches.m1, matches.m2, cntr);
             tOut = FindTransDepth_Ver1_0(matches.m1, matches.m2, q);
 %             q = M.Q;
 %             tOut = M.t;

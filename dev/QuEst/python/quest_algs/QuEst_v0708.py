@@ -52,22 +52,21 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   # Construct coefficient matrix
   # coefficient matrix in the linearized system of multinomials (Cf * V = 0)
   Cf = COEFS_V0311(m,n)
-  # st()
 
   numEq = Cf.shape[0]
-  # nsprint('Cf', Cf)
-  # st()
+
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_dtype)
-  # npprint('A',A)
+
   for i in range(1,5):
     idx = Idx[i-1,:]
     A[(i-1)*numEq : i*numEq, idx] = Cf
-    # nprint('idx', idx)
-    # nprint('A', A)
 
   # find bases for the null space of A
-  _,__,V = linalg.svd(A,0)
+  npprint('A', A)
+  V = linalg.svd(A, compute_uv=False)
+  npprint('V', V)
+  st()
   N = V[:,37:56].copy()
   npprint('N', N)
   st()

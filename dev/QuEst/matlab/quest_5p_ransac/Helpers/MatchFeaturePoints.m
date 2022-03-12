@@ -13,7 +13,7 @@ matchedPoints2 = vp2(indexPairs(:,2));
 p1 = matchedPoints1.Location;
 p2 = matchedPoints2.Location;     
 % figure; im = showMatchedFeatures(Ip,In,p1,p2);
-% outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png']
+% outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png'];
 % imwrite(im, outpath);
 % Feature points
 numMatch = size(p1, 1);  % Number of matched feature points

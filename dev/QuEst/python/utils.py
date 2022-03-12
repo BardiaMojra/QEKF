@@ -209,6 +209,21 @@ def write_image(num:int, image, outDir):
   prt_file_save(shead+'saving figure: '+figname)
   return
 
+def load_matlab_kps(i, matlab_coefs_outPath):
+
+  fname_01 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp01.txt'
+  fname_02 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp02.txt'
+  nprint('fname_01', fname_01)
+  nprint('fname_02', fname_02)
+  kp1 = np.loadtxt(fname_01, delimiter=',')
+  kp2 = np.loadtxt(fname_02, delimiter=',')
+  npprint('kp1', kp1)
+  npprint('kp2', kp2)
+  st()
+
+
+  return kp1, kp2
+
 class Dmatch_obj(object):
   def __init__(self, p1, p2, m1, m2, m1u, m2u, numPoints):
     self.p1 = p1
@@ -228,4 +243,8 @@ class Dmatch_obj(object):
     nprint('m2u', self.m2u)
     nprint('numPoints', self.numPoints)
     return
+
+
+
+
 # EOF

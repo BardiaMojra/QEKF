@@ -19,7 +19,7 @@ attn = 'here ----------- <<<<<\n\n'
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-def nprint(string, *args):
+def nprint(string, args=None):
   if nprt_en is True:
     if args is not None:
       print(shead+string+': ')

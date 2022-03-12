@@ -37,7 +37,7 @@
 %           -  Slightly slower, but has better accuracy 
 %
 %%
-function [Q] = QuEst_5Pt_Ver7_8(m,n)
+function [Q] = QuEst_5Pt_Ver7_8(m,n,i)
 %% Preallocate variables
 
 Idx = [ 1     2     5    11    21     3     6    12    22     8    14    24    17    27    31     4     7    13    23     9    15    25    18    28    32    10    16    26    19    29    33    20    30    34    35;
@@ -48,17 +48,38 @@ Idx = [ 1     2     5    11    21     3     6    12    22     8    14    24    1
 
 %% Construct coefficient matrix
 
+
+% outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png']
+% imwrite(im, outpath);
+precision = 32;
+nbugOut_root = './out/KITTI/keypoints/keypoints_epoch';
+kp1_path = [nbugOut_root num2str(i,'%03d') '_kp01.txt'];
+kp2_path = [nbugOut_root num2str(i,'%03d') '_kp02.txt'];
+A_path = [nbugOut_root num2str(i,'%03d') '_A.txt'];
+
+kp1 = m(:,1:5);
+kp2 = n(:,1:5);
+
+% store keypoints with full precision to be compared python implimintation 
+dlmwrite(kp1_path, kp1, 'delimiter', ',', 'precision', precision);
+dlmwrite(kp2_path, kp2, 'delimiter', ',', 'precision', precision);
+
+
+
 % Coefficinet matrix in the linearized system of multinomials (Cf * V = 0)
-Cf = CoefsVer3_1_1(m,n);
+Cf = CoefsVer3_1_1(kp1, kp2);
 % Cf = CoefsVer3_1_1_mex(m,n);
 
 numEq = size(Cf,1);
 % A is the coefficient matrix such that A * X = 0
 A = zeros(4*numEq,56);
 for i = 1 : 4
-    idx = Idx(i,:);
+    idx = Idx(i,:)    
     A((i-1)*numEq+1 : i*numEq, idx) = Cf;
 end
+
+% write matrix A for debugging purposes 
+dlmwrite(A_path, A, 'delimiter', ',', 'precision', precision);
 
 % Find bases for the null space of A
 [~,~,V] = svd(A,0);
