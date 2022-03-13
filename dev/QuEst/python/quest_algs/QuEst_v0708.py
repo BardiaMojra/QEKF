@@ -63,11 +63,13 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
     A[(i-1)*numEq : i*numEq, idx] = Cf
 
   # find bases for the null space of A
-  npprint('A', A)
-  V = linalg.svd(A, compute_uv=False)
-  npprint('V', V)
-  st()
-  N = V[:,37:56].copy()
+  # npprint('A', A)
+  U,S,V = linalg.svd(A) #, compute_uv=False)
+  # npprint('V', V)
+  # npprint('U', U)
+  # npprint('S', S)
+  # st()
+  N = V.T[:,36:56].copy()
   npprint('N', N)
   st()
   idx = Idx[0,:];   A0 = N[idx,:]

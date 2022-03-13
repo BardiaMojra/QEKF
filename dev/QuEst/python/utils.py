@@ -219,7 +219,7 @@ def load_matlab_kps(i, matlab_coefs_outPath):
   kp2 = np.loadtxt(fname_02, delimiter=',')
   npprint('kp1', kp1)
   npprint('kp2', kp2)
-  st()
+  # st()
 
 
   return kp1, kp2
