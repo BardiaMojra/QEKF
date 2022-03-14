@@ -63,34 +63,40 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
     A[(i-1)*numEq : i*numEq, idx] = Cf
 
   # find bases for the null space of A
-  # npprint('A', A)
   U,S,V = linalg.svd(A) #, compute_uv=False)
-  # npprint('V', V)
-  # npprint('U', U)
-  # npprint('S', S)
-  # st()
+
   N = V.T[:,36:56].copy()
-  npprint('N', N)
-  st()
+
   idx = Idx[0,:];   A0 = N[idx,:]
   idx = Idx[1,:];   A1 = N[idx,:]
   idx = Idx[2,:];   A2 = N[idx,:]
   idx = Idx[3,:];   A3 = N[idx,:]
 
-  B = A0 / [A1, A2, A3];
-
+  A_ = np.concatenate((A1, A2, A3), axis=1)
+  B = linalg.solve(A0.T.dot(A0), A0.T.dot(A_))
+  # npprint('A_', A_)
+  # npprint('A0', A0)
+  npprint('B', B)
   # split B to 3 square matrices
-  # B1 = B[ 0:20,:]
-  # B2 = B[20:40,:]
-  # B3 = B[40:60,:]
+  B1 = B[:, 0:20].copy()
+  B2 = B[:,20:40].copy()
+  B3 = B[:,40:60].copy()
+  # nsprint('B1', B1)
+  # nsprint('B2', B2)
+  # nsprint('B3', B3)
   # compute eigenvectors - initial guess
-  # [V1, ~] = eig(B1)
-  # [V2, ~] = eig(B2)
-  # [V3, ~] = eig(B3)
-  # Ve = np.concatenate([V1, V2, V3], axis=1)
+  e, V1 = linalg.eig(B1, right=True) #todo: check with Dr. Gans and show him the difference between matlab and scipy doc on eig().
+  e, V2 = linalg.eig(B2, right=True)
+  e, V3 = linalg.eig(B3, right=True)
+  # nsprint('V1', V1)
+  # nsprint('V2', V2)
+  # nsprint('V3', V3)
+  Ve = np.hstack((V1,V2,V3))
+  nsprint('Ve', Ve)
+  st()
 
   # Ve = eig()
-  Ve = linalg.eigh(B) # generalized hamiltonian eigen values
+  # Ve = linalg.eig(B) # generalized hamiltonian eigen values
 
   # % #todo for now remove all the imaginary solutions
   # Remove duplicate complex eigenvectors
