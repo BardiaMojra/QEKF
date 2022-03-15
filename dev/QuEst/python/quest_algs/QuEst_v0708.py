@@ -2,15 +2,15 @@
 import numpy as np
 import scipy.linalg as la
 
-from quest_algs.coefs import CoefsVer3_1_1 as COEFS_V0311
-
+from quest_algs.coefs import CoefsVer3_1_1 as get_COEFS
+# from quest_algs.QuEst_getTransDepth_v0100 import get_Txyz_v0100 as get_Txyz
 
 
 ''' NBUG '''
 from pdb import set_trace as st
 from nbug import *
 
-def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
+def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   ''' QuEst (Quaternion Estimation) algorithm for 5 feature points
   NOTE: Include the folder "Helpers" in Matlab path before execution.
   Inputs: #todo update the comments -- now input is Nx3 (numpy style instead matlab)
@@ -51,7 +51,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
                     56], dtype=int).reshape(4,-1) - 1
 
   # coefficient matrix in the linearized system of multinomials (Cf * V = 0)
-  Cf = COEFS_V0311(m,n)
+  Cf = get_COEFS(m,n)
 
   numEq = Cf.shape[0]
 
@@ -119,7 +119,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   Vi_all = Ve[:,Vi_idx] # extract all imaginary roots
 
   Vi_idx = sorted(range(Vi_all.shape[1]), key= lambda x: Vi_all[0,:].real[x])
-  # nprint('Ve_img_all', Ve_img_all)
+  # nprint('Ve_img_all', Vi_all)
   # nprint('Ve_img_idx',Vi_idx)
   Vi_idx_keep = [Vi_idx[x] for x in range(0, len(Vi_idx), 2)]
   # nprint('Vi_idx_keep', Vi_idx_keep)
@@ -128,7 +128,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   # nsprint('Vi', Vi)
   # nsprint('Vr', Vr)
 
-  if not NO_IMAGINARY_ROOTS:
+  if NO_IMAGINARY_ROOTS:
     V0 = np.concatenate((Vi,Vr), axis=1).real
     nprint('using imaginary roots', Vi_idx_keep)
   else:
@@ -161,14 +161,18 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   # nprint('y', y)
   # nprint('z', z)
 
-  Q = np.concatenate((w,x,y,z), axis=0, dtype=_dtype)
+  Q = np.concatenate((w,x,y,z), axis=0, dtype=np.complex128)
+  Q = np.float128(Q)
   # nsprint('Q', Q)
   # npprint('np.sum(Q**2, axis=0)', np.sum(Q**2, axis=0))
   # st()
   Qnorm = np.sqrt(np.sum(Q**2, axis=0)).reshape(1,-1)
   # npprint('Qnorm', Qnorm)
 
-  Q = Q/Qnorm
+  Q = Q/Qnorm # match matlab format
+
+  # convert to python numerical format by transposing
+  Q = Q.T
   # npprint('Q', Q)
   # st()
-  return Q
+  return Q # Nx4 float array of quaternions - float128

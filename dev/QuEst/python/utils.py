@@ -146,38 +146,22 @@ def RelativeGroundTruth(i, dset):
   dset.t0 = t2;
   return qr, tr
 
-def get_QuatError(q_ref:quaternion, Q2):
-  # # metric for 3D rotation error in quaternions
-  # # err = 1 - abs(q1.' * q2);
-  # # normalize s.t. each column of Q has norm 1
-  # Q2_sq = Q2 * Q2
-  # QNrm = np.sqrt(sum(Q2_sq,1));
-  # Q2 = bsxfun(@rdivide, Q2, QNrm);
-  # # Normalize s.t. each column of Q has norm 1
-  # QNrm = sqrt(sum(q1.^2,1));
-  # q1 = bsxfun(@rdivide, q1, QNrm);
-  # numSols = size(Q2,2);
-  # err = zeros(1,numSols);
-  # for i = 1 : numSols
-  #     q2 = Q2(:,i);
-  #     err(i) = (1/pi) * acos(min([abs(q1.' * q2),1]));
-  # end
+def get_QuatError(q_ref:quaternion, Q):
+  assert q_ref == quaternion, shead+'q_ref is not a quaternion!'+ltail
+  st()
   q_ref = q_ref.normalized()
-  Q2 = Q2.normalized()
-  nprint('q1', q_ref)
-  nprint('Q2', Q2)
-  npprint('Q2', Q2)
+  Q = Q.normalized()
+  nprint('q_ref', q_ref)
+  nprint('Q', Q)
+  npprint('Q', Q)
   st()
 
-  lenQ2 = Q2.shape[0]
-  err = list()
-  for q2 in Q2:
-    q_err = q_ref * q2.inverse()
-    err.append(q_err)
-
-  nprint('err', err)
+  Q_err = q_ref @ Q[:].inverse() # get quaternion error
+  npprint('Q_err', Q_err)
   st()
-  return np.asarray(err)
+  return Q_err
+
+
 
 def get_TransError(t_ref, t2):
 
