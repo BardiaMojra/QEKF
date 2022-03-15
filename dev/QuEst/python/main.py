@@ -95,7 +95,8 @@ def main():
         # matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
         # tOut, q = Q0708(m=matches.m1, n=matches.m2)
         kp1, kp2 = load_matlab_kps(i, matlab_coefs_outPath)
-        tOut, q = Q0708(m=kp1, n=kp2)
+        q = Q0708(m=kp1, n=kp2)
+        tOut = FindTransDepth_Ver1_0(matches.m1, matches.m2, q);
       else:
         eprint(str('algorithm is not supported: '+alg))
 

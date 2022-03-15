@@ -34,7 +34,11 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   Ver 7_8:
     -  Uses all matrices B1,B2,B3 to find solutions
     -  Slightly slower, but has better accuracy  '''
-  # preallocate variables
+
+  ''' config '''
+  ZERO_ROOT_THRESHOLD = _dtype(2.220446049250313080847263336181640625e-15)
+  NO_IMAGINARY_ROOTS = False
+  # constants
   Idx = np.asarray([1, 2, 5, 11, 21, 3, 6, 12, 22, 8, 14, 24, 17, 27, 31, 4, 7,
                     13, 23, 9, 15, 25, 18, 28, 32, 10, 16, 26, 19, 29, 33, 20,
                     30, 34, 35, 2, 5, 11, 21, 36, 6, 12, 22, 37, 14, 24, 39, 27,
@@ -46,10 +50,6 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
                     19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
                     56], dtype=int).reshape(4,-1) - 1
 
-  # npprint('Idx', Idx)
-
-
-  # Construct coefficient matrix
   # coefficient matrix in the linearized system of multinomials (Cf * V = 0)
   Cf = COEFS_V0311(m,n)
 
@@ -73,75 +73,102 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   idx = Idx[3,:];   A3 = N[idx,:]
 
   A_ = np.concatenate((A1, A2, A3), axis=1)
-  # B1 = la.inv(A0) @ A_
   B = la.solve(A0.T.dot(A0), A0.T.dot(A_))
-  # npprint('A_', A_)
-  # npprint('A0', A0)
-  # nprint('(B1==B2).all()', (B1==B2).all())
-  # npprint('B', B)
-  # st()
-  # split B to 3 square matrices
+
   B1 = B[:, 0:20].copy()
   B2 = B[:,20:40].copy()
   B3 = B[:,40:60].copy()
   # nsprint('B1', B1)
   # nsprint('B2', B2)
   # nsprint('B3', B3)
+
   # compute eigenvectors - initial guess
   evals, evecs1 = la.eig(B1)
   evals, evecs2 = la.eig(B2)
   evals, evecs3 = la.eig(B3)
-  nsprint('evecs1', evecs1)
-  npprint('evecs1', evecs1)
-  nsprint('evecs2', evecs2)
-  nsprint('evecs3', evecs3)
-  Ve = np.hstack((evecs1,evecs2,evecs3))
+  # nsprint('evecs1', evecs1)
+  # nsprint('evecs2', evecs2)
+  # nsprint('evecs3', evecs3)
 
-  roots = Ve.T.dot(B)
-  nsprint('Ve', Ve)
-  st()
-  # Ve = eig()
-  # Ve = linalg.eig(B) # generalized hamiltonian eigen values
+  Ve = np.concatenate((evecs1,evecs2,evecs3), axis=1)
+  # nsprint('Ve', Ve)
 
-  # % #todo for now remove all the imaginary solutions
-  # Remove duplicate complex eigenvectors
-  Vy = Ve[Ve.imag == 0]
-  Vy = Ve[Ve.imag == 0]
-  imagIdx = sum(abs(Vy)) > 10*np.finfo(float).eps
-  Viall = Ve[imagIdx,:]
-  # [~,srtIdx] = sort(real(Viall(1,:)),'ascend');
-  srtIdx = sorted(Viall, key=lambda v : v.imag == 0)
-  # Vi = Viall(:,srtIdx(1:2:end)) # keep only one complex eigenvector
-  Vi = Viall[srtIdx[range(0, len(srtIdx), 2)]] # keep only one complex eigenvector
-  Vr = Ve[~imagIdx,:]
-  V0 = np.concatenate([Vi, Vr], axis=0).real # Use only the real parts
+  # get top 5 for dev
+  # VeT = Ve[:3,:10]
+  # VeT = Ve
+  # npprint('VeT', VeT)
+  # nsprint('VeT', VeT)
+  Ve_img = Ve.imag
 
-  ''' extract quaternion elements '''
-  # degree 5 monomial solution vectors
-  X5 = N @ V0
+  # get idx of img roots w magnitude greater than ZERO_ROOT_THRESHOLD
+  Vi_idx = list()
+  Vr_idx = list()
+  for i in range(Ve_img.shape[1]):
+    if (sum(abs(Ve_img[:,i]))) > ZERO_ROOT_THRESHOLD:
+      Vi_idx.append(i)
+    else:
+      Vr_idx.append(i)
+  Vi_idx = np.asarray(Vi_idx)
+  Vr_idx = np.asarray(Vr_idx)
+
+  # indices should be a complement
+  # npprint('Vi_idx', Vi_idx)
+  # npprint('Vr_idx', Vr_idx)
+
+
+  Vi_all = Ve[:,Vi_idx] # extract all imaginary roots
+
+  Vi_idx = sorted(range(Vi_all.shape[1]), key= lambda x: Vi_all[0,:].real[x])
+  # nprint('Ve_img_all', Ve_img_all)
+  # nprint('Ve_img_idx',Vi_idx)
+  Vi_idx_keep = [Vi_idx[x] for x in range(0, len(Vi_idx), 2)]
+  # nprint('Vi_idx_keep', Vi_idx_keep)
+  Vi = Vi_all[:, Vi_idx_keep]
+  Vr = Ve[:, Vr_idx]
+  # nsprint('Vi', Vi)
+  # nsprint('Vr', Vr)
+
+  if not NO_IMAGINARY_ROOTS:
+    V0 = np.concatenate((Vi,Vr), axis=1).real
+    nprint('using imaginary roots', Vi_idx_keep)
+  else:
+    V0 = Vr
+  # nsprint('V0', V0)
+
+
+  ''' extract quaternion elements in order to obtained relative rotation '''
+  X5 = N @ V0 # degree 5 monomial solution vectors
 
   # correct the sign of each column s.t. the first element (i.e., w^5) is always positive
-  X5 = np.sign(X5.w) * X5
+  for i, q in enumerate(X5[0,:]):
+    if X5[0,i] < 0: X5[:,i] = -X5[:,i]
+
 
   # recover quaternion elements
   # w = nthroot(X5(1,:),5);
-  w = X5.w ** (1/5)
+  w = (X5[0,:] ** (1/5)).reshape(1,-1)
   w4 = w ** 4
-  x = X5.x / w4
-  y = X5.y / w4
-  z = X5.z / w4
+  x = X5[1,:] / w4
+  y = X5[2,:] / w4
+  z = X5[3,:] / w4
 
-  npprint('w', w)
-  npprint('x', x)
-  npprint('y', y)
-  npprint('z', z)
-  nprint('w', w)
-  nprint('x', x)
-  nprint('y', y)
-  nprint('z', z)
+  # nsprint('w', w)
+  # nsprint('x', x)
+  # nsprint('y', y)
+  # nsprint('z', z)
+  # nprint('w', w)
+  # nprint('x', x)
+  # nprint('y', y)
+  # nprint('z', z)
 
-  Q = np.quaternion(w, x, y, z)
-  npprint('Q', Q)
-  nprint('Q', Q)
+  Q = np.concatenate((w,x,y,z), axis=0, dtype=_dtype)
+  # nsprint('Q', Q)
+  # npprint('np.sum(Q**2, axis=0)', np.sum(Q**2, axis=0))
+  # st()
+  Qnorm = np.sqrt(np.sum(Q**2, axis=0)).reshape(1,-1)
+  # npprint('Qnorm', Qnorm)
 
-  Q = Q.norm()
+  Q = Q/Qnorm
+  # npprint('Q', Q)
+  # st()
+  return Q

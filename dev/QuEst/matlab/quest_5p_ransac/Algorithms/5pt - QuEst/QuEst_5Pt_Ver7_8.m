@@ -100,7 +100,7 @@ B3 = B(:,41:60);
 %% Find eigenvectors
 
 % Initial guess for the common eigenvectors
-[V1, ~] = eig(B1);
+[V1, ~] = eig(B1); 
 [V2, ~] = eig(B2);
 [V3, ~] = eig(B3);
 
@@ -140,3 +140,5 @@ Q = [w;
 % Normalize s.t. each column of Q has norm 1
 QNrm = sqrt(sum(Q.^2,1));
 Q = bsxfun(@rdivide, Q, QNrm);
+
+
