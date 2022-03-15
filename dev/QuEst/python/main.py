@@ -103,7 +103,7 @@ def main():
       # [q, matchIdx] = FindClosetQVer2_2(relPose.qr, q);
       # t = FindClosetTrans(relPose.tr, [tOut,-tOut]);
       t = -tOut
-
+      st()
       # calcualte the estimate error
       Q_err = get_QuatError(qr, q)
       T_err = get_TransError(tr, t)

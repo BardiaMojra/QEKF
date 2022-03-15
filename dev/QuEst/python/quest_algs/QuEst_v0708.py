@@ -1,6 +1,6 @@
 
 import numpy as np
-import scipy.linalg as linalg
+import scipy.linalg as la
 
 from quest_algs.coefs import CoefsVer3_1_1 as COEFS_V0311
 
@@ -46,7 +46,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
                     19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
                     56], dtype=int).reshape(4,-1) - 1
 
-  npprint('Idx', Idx)
+  # npprint('Idx', Idx)
 
 
   # Construct coefficient matrix
@@ -63,7 +63,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
     A[(i-1)*numEq : i*numEq, idx] = Cf
 
   # find bases for the null space of A
-  U,S,V = linalg.svd(A) #, compute_uv=False)
+  U,S,V = la.svd(A) #, compute_uv=False)
 
   N = V.T[:,36:56].copy()
 
@@ -73,10 +73,13 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   idx = Idx[3,:];   A3 = N[idx,:]
 
   A_ = np.concatenate((A1, A2, A3), axis=1)
-  B = linalg.solve(A0.T.dot(A0), A0.T.dot(A_))
+  # B1 = la.inv(A0) @ A_
+  B = la.solve(A0.T.dot(A0), A0.T.dot(A_))
   # npprint('A_', A_)
   # npprint('A0', A0)
-  npprint('B', B)
+  # nprint('(B1==B2).all()', (B1==B2).all())
+  # npprint('B', B)
+  # st()
   # split B to 3 square matrices
   B1 = B[:, 0:20].copy()
   B2 = B[:,20:40].copy()
@@ -85,16 +88,18 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float64):
   # nsprint('B2', B2)
   # nsprint('B3', B3)
   # compute eigenvectors - initial guess
-  e, V1 = linalg.eig(B1, right=True) #todo: check with Dr. Gans and show him the difference between matlab and scipy doc on eig().
-  e, V2 = linalg.eig(B2, right=True)
-  e, V3 = linalg.eig(B3, right=True)
-  # nsprint('V1', V1)
-  # nsprint('V2', V2)
-  # nsprint('V3', V3)
-  Ve = np.hstack((V1,V2,V3))
+  evals, evecs1 = la.eig(B1)
+  evals, evecs2 = la.eig(B2)
+  evals, evecs3 = la.eig(B3)
+  nsprint('evecs1', evecs1)
+  npprint('evecs1', evecs1)
+  nsprint('evecs2', evecs2)
+  nsprint('evecs3', evecs3)
+  Ve = np.hstack((evecs1,evecs2,evecs3))
+
+  roots = Ve.T.dot(B)
   nsprint('Ve', Ve)
   st()
-
   # Ve = eig()
   # Ve = linalg.eig(B) # generalized hamiltonian eigen values
 
