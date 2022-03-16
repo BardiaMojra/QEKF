@@ -1,8 +1,9 @@
 import numpy as np
-import matplotlib
-import pandas as pd
+# import matplotlib
+# import pandas as pd
 import cv2 as cv
 import scipy as sc
+from scipy.spatial.transform import Rotation as sc_R
 
 ''' private modules '''
 from dmm import *
@@ -10,8 +11,8 @@ from nbug import *
 from pdb import set_trace as st
 
 ''' matplotlib config '''
-matplotlib.pyplot.ion()
-plt.style.use('ggplot')
+# matplotlib.pyplot.ion()
+# plt.style.use('ggplot')
 
 
 
@@ -20,10 +21,15 @@ def get_closestQuat(q_ref:quaternion, Qs):
   ''' sort by error magnitude and return smallest '''
   Qs_err = get_QuatError(q_ref, Qs) # compute error for quat solutions
   QsErr_idx = sorted(range(Qs_err.shape[0]),key=lambda i:get_quatMag(Qs_err[i][0]))
-  return Qs_err[QsErr_idx[0]], QsErr_idx[0]
+  return Qs_err[QsErr_idx[0]][0], QsErr_idx[0]
 
 def get_quatMag(q:np.quaternion):
-  return np.float(np.sqrt(q.w**2+q.x**2+q.y**2+q.z**2))
+  ''' get magnitude of a quaternion by first normalizing it (unit quat), then
+  compute the magnitude of its "pure quat" form or "vectors" or "real parts" '''
+  q = q.normalized() # todo: show to dr Gans and explain
+  mag = np.sqrt(q.x**2+q.y**2+q.z**2)
+  nqmagprint(
+             return
 
 def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
   assert isinstance(q_ref,np.quaternion), shead+'q_ref is not a quaternion!'+ltail

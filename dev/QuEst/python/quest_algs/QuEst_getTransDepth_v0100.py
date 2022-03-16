@@ -1,8 +1,9 @@
 
 
 import numpy as np
+import quaternion
 import scipy.linalg as la
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation as sc_R
 
 
 
@@ -10,7 +11,7 @@ from scipy.spatial.transform import Rotation as R
 from pdb import set_trace as st
 from nbug import *
 
-def get_Txyz_v0100(m,n, Q):
+def get_Txyz_v0100(m,n,q):
   ''' recover translation and depths given the rotation and feature point
   coordinates
   Inputs:
@@ -29,19 +30,16 @@ def get_Txyz_v0100(m,n, Q):
   R   :  Rotation matrix representation.
   NOTE: T, Z1, and Z2 are recovered up to a common scale factor.
   Copyright (C) 2017, by Kaveh Fathian.'''
-
-
-
-  npprint('Q', Q)
-  st()
-  Q = np.random.rand((3,3))
-  npprint('Q', Q)
-  st()
   # if input is quaternion transform it into the rotation matrix
-  if Q.shape == (3,3):
-    R = Q
-  else:
-    R = R.from_quat(Q)
+  nprint('q', q)
+  if isinstance(q, np.quaternion):
+    R = sc_R.from_quat([q.w,q.x,q.y,q.z]).as_matrix()
+  npprint('R', R)
+  npprint('m', m)
+  npprint('n', n)
+
+
+  st()
 
 
 
