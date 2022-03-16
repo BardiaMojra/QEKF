@@ -1,12 +1,11 @@
 
-# from pyquaternion import Quaternion
 import quaternion
 import numpy as np
 import scipy.linalg as linalg
 from pdb import set_trace as st
-from pprint import pprint as pp
-from numpy import dot, dtype, zeros, eye
-from scipy.linalg import norm
+# from pprint import pprint as pp
+# from numpy import dot, dtype, zeros, eye
+# from scipy.linalg import norm
 from scipy.spatial.transform import Rotation as R
 
 
@@ -89,10 +88,10 @@ class QEKF(object):
     self.K = PHT.dot(linalg.inv(self.S))
     self.K = self.K * self.K_scale
     ''' lin part '''
-    hx = np.dot(self.H, x_TVQxyz)
+    hx = self.H @ x_TVQxyz
     y_TVQ = np.subtract(z_TVQxyz, hx) # TVWQxyz
     x_TVQ_post = np.zeros((self.dim_x,1))
-    Ky = dot(self.K, y_TVQ)
+    Ky = self.K @ y_TVQ
     x_TVQ_post[0:6] = x_TVQxyz[0:6] + Ky[0:6]
     ''' quat part '''
     x_q = get_npQ(x_TVQxyz[6:9,0])
@@ -109,8 +108,8 @@ class QEKF(object):
     ''' at last update x '''
     x_TVQxyz[0:6] = x_TVQ_post[0:6]
     x_TVQxyz[6:9,0] = x_q_post.imag # load quat xyz to x_post
-    I_KH = self._I - dot(self.K, self.H)
-    self.P = dot(I_KH, self.P).dot(I_KH.T) + dot(self.K, self.R).dot(self.K.T)
+    I_KH = self._I -  (self.K @ self.H)
+    self.P = (I_KH @ self.P) @ I_KH.T + (self.K @ self.R) @ self.K.T
     ''' log state vector '''
     x_TVQxyzw = np.ndarray((self.dim_x+1,1))
     x_TVQxyzw[:-4,0] = x_TVQxyz[:-3,0]
@@ -145,7 +144,7 @@ class QEKF(object):
     self.set_F(u_Wrpy) #
     x_TVQxyz = self.predict_x(x_TVQxyz, u_Wrpy)
     Q_k = self.T_ * self.F @ self.L @ self.Q_c @ self.L.T @ self.F.T
-    self.P = dot(self.F, self.P).dot(self.F.T) + Q_k
+    self.P = (self.F @ self.P) @ self.F.T + Q_k
     return x_TVQxyz
 
   def set_F(self, u_Wrpy:np.ndarray):

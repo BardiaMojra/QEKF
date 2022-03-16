@@ -30,6 +30,8 @@ def get_Txyz_v0100(m,n, Q):
   NOTE: T, Z1, and Z2 are recovered up to a common scale factor.
   Copyright (C) 2017, by Kaveh Fathian.'''
 
+
+
   npprint('Q', Q)
   st()
   Q = np.random.rand((3,3))

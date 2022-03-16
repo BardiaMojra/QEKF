@@ -1,3 +1,4 @@
+''' main - QuEst'''
 # import numpy as np
 # import matplotlib
 import pandas as pd
@@ -89,19 +90,17 @@ def main():
         Qs = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
-        # matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
-        # tOut, q = Q0708(m=matches.m1, n=matches.m2)
-        kp1, kp2 = load_matlab_kps(i, matlab_coefs_outPath)
-        Qs = QuEst(m=kp1, n=kp2)
-        st()
-
+        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, minPts)
+        Qs = QuEst(m=m1, n=m2)
+        m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
+        Qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr, Qs)
-        tOut = get_Txyz(matches.m1, matches.m2, q)
+        tOut = get_Txyz(m1,m2,q)
       else:
         eprint(str('algorithm is not supported: '+alg))
 
       # find the closet quaternion and translation to the ground truth
-      t = FindClosetTrans(tr, [tOut,-tOut]);
+      # t = FindClosetTrans(tr, [tOut,-tOut]);
       t = -tOut
       st()
       # calcualte the estimate error

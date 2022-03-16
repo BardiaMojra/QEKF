@@ -13,6 +13,87 @@ from pdb import set_trace as st
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
+
+
+
+def get_closestQuat(q_ref:quaternion, Qs):
+  ''' sort by error magnitude and return smallest '''
+  Qs_err = get_QuatError(q_ref, Qs) # compute error for quat solutions
+  QsErr_idx = sorted(range(Qs_err.shape[0]),key=lambda i:get_quatMag(Qs_err[i][0]))
+  return Qs_err[QsErr_idx[0]], QsErr_idx[0]
+
+def get_quatMag(q:np.quaternion):
+  return np.float(np.sqrt(q.w**2+q.x**2+q.y**2+q.z**2))
+
+def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
+  assert isinstance(q_ref,np.quaternion), shead+'q_ref is not a quaternion!'+ltail
+  assert isinstance(Qs,np.ndarray), shead+'Qs is not a ndarray!'+ltail
+  # should be already normalized, but normalize again before computing error
+  q_ref = q_ref.normalized()
+  Qs_err = np.ndarray(Qs.shape, dtype=np.quaternion)
+  for i in range(Qs.shape[0]):
+    Qs[i][0] = Qs[i][0].normalized()
+    Qs_err[i][0] = q_ref * Qs[i][0].inverse() # get quaternion error
+    Qs_err[i][0] = Qs_err[i][0].normalized() # normalize the error once again
+  return Qs_err
+
+def get_TransError(t_ref, t2):
+  nprint('t_ref', t_ref)
+  nprint('t_ref**2', t_ref**2)
+  st()
+  trn = t_ref / np.sqrt(sum(t_ref**2))
+  t2n = t2 / np.sqrt(sum(t2**2))
+  dotErr = sum(trn * t2n)
+  err = (1/np.pi) * np.arccos(dotErr)
+  return err
+
+def prt_file_save(string, *args):
+  print(shead+(string+' ')); print(*args);
+
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum) '''
+  return 'fig_%03i' % fignum
+
+def write_image(num:int, image, outDir):
+  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
+  figname = get_fignum_str(num)
+  figname = outDir+'_'+figname+'.png'
+  cv.imwrite(figname, image)
+  prt_file_save(shead+'saving figure: '+figname)
+  return
+
+def load_matlab_kps(i, matlab_coefs_outPath):
+  fname_01 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp01.txt'
+  fname_02 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp02.txt'
+  nprint('fname_01', fname_01)
+  nprint('fname_02', fname_02)
+  kp1 = np.loadtxt(fname_01, delimiter=',')
+  kp2 = np.loadtxt(fname_02, delimiter=',')
+  npprint('kp1', kp1)
+  npprint('kp2', kp2)
+  return kp1, kp2
+
+class Dmatch_obj(object):
+  def __init__(self, p1, p2, m1, m2, m1u, m2u, numPoints):
+    self.p1 = p1
+    self.p2 = p2
+    self.m1 = m1
+    self.m2 = m2
+    self.m1u = m1u
+    self.m2u = m2u
+    self.numPoints = numPoints
+
+  def prt(self):
+    nprint('p1', self.p1)
+    nprint('p2', self.p2)
+    nprint('m1', self.m1)
+    nprint('m2', self.m2)
+    nprint('m1u', self.m1u)
+    nprint('m2u', self.m2u)
+    nprint('numPoints', self.numPoints)
+    return
+  # end of class Dmatch_obj(object): ------------------->> //
+
 def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
   f = dat.imgpath+dat.fnames[i]
   img = cv.imread(f, 0) # read image in gray scale (0)
@@ -53,20 +134,16 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float64):
     p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
     p2 = np.asarray([p_n[0],p_n[1],1], dtype=_dtype).copy().reshape(-1,3)
     mat.append(np.concatenate((p1,p2,queryIdx,trainIdx), axis=1))
-
   mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
   p1 = mat[:,0:3]
   p2 = mat[:,3:6]
-
   m1 = sc.linalg.pinv(dat.K) @ p1.T
   m2 = sc.linalg.pinv(dat.K) @ p2.T
-
   m1u = m1/np.sqrt(sum(m1**2))
   m2u = m2/np.sqrt(sum(m2**2))
-
   mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
-  # mats.prt()
-  return mats
+  # mats.prt() # keep
+  return mats, m1, m2
 
 # def MatchFeaturePoints(Ip, ppoints, In, npoints, dset, maxPts, alg='ORB'):
 #   f1, vp1 = GetFeaturePoints(Ip,ppoints);
@@ -145,99 +222,6 @@ def RelativeGroundTruth(i, dset):
   dset.q0 = q2;
   dset.t0 = t2;
   return qr, tr
-
-
-def get_closestQuat(q_ref:quaternion, Qs:np.array|np.ndarray):
-
-  # compute the errors
-  Q_err = get_QuatError(q_ref, Qs)
-  npprint('Q_err', Q_err)
-  st()
-#  return q, q_idx
-
-
-def get_QuatError(q_ref:quaternion, Q):
-  assert q_ref == quaternion, shead+'q_ref is not a quaternion!'+ltail
-  st()
-  q_ref = q_ref.normalized()
-  Q = Q.normalized()
-  nprint('q_ref', q_ref)
-  nprint('Q', Q)
-  npprint('Q', Q)
-  st()
-
-  Q_err = q_ref @ Q[:].inverse() # get quaternion error
-  npprint('Q_err', Q_err)
-  st()
-  return Q_err
-
-
-
-def get_TransError(t_ref, t2):
-
-  nprint('t_ref', t_ref)
-  nprint('t_ref**2', t_ref**2)
-
-  st()
-  trn = t_ref / np.sqrt(sum(t_ref**2))
-  t2n = t2 / np.sqrt(sum(t2**2))
-  dotErr = sum(trn * t2n)
-  err = (1/np.pi) * np.arccos(dotErr)
-  return err
-
-
-def prt_file_save(string, *args):
-  print(shead+(string+' ')); print(*args);
-
-
-def get_fignum_str(fignum):
-  ''' usage: fignum+=1;get_fignum_str(fignum) '''
-  return 'fig_%03i' % fignum
-
-
-def write_image(num:int, image, outDir):
-  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
-  figname = get_fignum_str(num)
-  figname = outDir+'_'+figname+'.png'
-  cv.imwrite(figname, image)
-  prt_file_save(shead+'saving figure: '+figname)
-  return
-
-def load_matlab_kps(i, matlab_coefs_outPath):
-
-  fname_01 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp01.txt'
-  fname_02 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp02.txt'
-  nprint('fname_01', fname_01)
-  nprint('fname_02', fname_02)
-  kp1 = np.loadtxt(fname_01, delimiter=',')
-  kp2 = np.loadtxt(fname_02, delimiter=',')
-  npprint('kp1', kp1)
-  npprint('kp2', kp2)
-  # st()
-
-
-  return kp1, kp2
-
-class Dmatch_obj(object):
-  def __init__(self, p1, p2, m1, m2, m1u, m2u, numPoints):
-    self.p1 = p1
-    self.p2 = p2
-    self.m1 = m1
-    self.m2 = m2
-    self.m1u = m1u
-    self.m2u = m2u
-    self.numPoints = numPoints
-
-  def prt(self):
-    nprint('p1', self.p1)
-    nprint('p2', self.p2)
-    nprint('m1', self.m1)
-    nprint('m2', self.m2)
-    nprint('m1u', self.m1u)
-    nprint('m2u', self.m2u)
-    nprint('numPoints', self.numPoints)
-    return
-
 
 
 

@@ -5,6 +5,7 @@
     "iloc",
     "isscalar",
     "kalman",
+    "nomials",
     "pyquaternion",
     "qekf",
     "QEKF",
