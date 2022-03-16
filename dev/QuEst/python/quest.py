@@ -1,7 +1,14 @@
-''' global QuEst config '''
-# from quest_algs.QuEst_v0708_spd import QuEst_5Pt_Ver7_8_spd as Q0708spd
-from quest_algs.QuEst_v0708 import QuEst_5Pt_Ver7_8 as Q0708
-# from quest_algs import QuEst_RANSAC_v0102 as QRANSAC0102
+''' global QuEst config
+'''
+
+''' select QuEst '''
+# from quest_algs.QuEst_v0708_spd import QuEst_5Pt_Ver7_8_spd as QuEst
+from quest_algs.QuEst_v0708 import QuEst_5Pt_Ver7_8 as QuEst
+# from quest_algs import QuEst_RANSAC_v0102 as RQuEst
+
+''' select get Trans Depth '''
+from quest_algs.QuEst_getTransDepth_v0100 import get_Txyz_v0100 as get_Txyz
+
 # Coefs Alg
 
 import numpy as np

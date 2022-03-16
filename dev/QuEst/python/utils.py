@@ -146,6 +146,16 @@ def RelativeGroundTruth(i, dset):
   dset.t0 = t2;
   return qr, tr
 
+
+def get_closestQuat(q_ref:quaternion, Qs:np.array|np.ndarray):
+
+  # compute the errors
+  Q_err = get_QuatError(q_ref, Qs)
+  npprint('Q_err', Q_err)
+  st()
+#  return q, q_idx
+
+
 def get_QuatError(q_ref:quaternion, Q):
   assert q_ref == quaternion, shead+'q_ref is not a quaternion!'+ltail
   st()

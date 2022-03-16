@@ -3,7 +3,7 @@ import numpy as np
 import scipy.linalg as la
 
 from quest_algs.coefs import CoefsVer3_1_1 as get_COEFS
-# from quest_algs.QuEst_getTransDepth_v0100 import get_Txyz_v0100 as get_Txyz
+
 
 
 ''' NBUG '''
@@ -63,7 +63,7 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
     A[(i-1)*numEq : i*numEq, idx] = Cf
 
   # find bases for the null space of A
-  U,S,V = la.svd(A) #, compute_uv=False)
+  U,S,V = la.svd(A)
 
   N = V.T[:,36:56].copy()
 

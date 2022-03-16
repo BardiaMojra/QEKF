@@ -43,50 +43,59 @@ def get_Txyz_v0100(m,n, Q):
 
 
 
-  # I       = eye(3);           % Identity matrix
   # numPts  = size(m,2);        % Number of feature points
   # # numInp  = size(R,3);        % Number of rotation matrices in input
   # # T       = zeros(3,numInp);       % Translation vector
   # # Z1      = zeros(numPts,numInp);  % Depth of points in the 1st camera frame
   # # Z2      = zeros(numPts,numInp);  % Depth of points in the 2nd camera frame
   # Res     = zeros(1,numInp);       % Residue from SVD
-
   numKP = m.shape[1]
+
   for k in range(numKP):
     # stack rigid motion constraints into matrix-vector form C * Y = 0
     C = np.zeros(3*numKP, 2*numKP+3)
 
-    for i = 1 : numPts
-      C((i-1)*3+1:i*3, 1:3) = I;
-      C((i-1)*3+1:i*3, (i-1)*2+4:(i-1)*2+5) = [R(:,:,k)*m(:,i), -n(:,i)];
+    for i in range(numKP):
+      C[i*3:(i+1)*3, 0:3] = np.eye(3)
+      C[i*3:(i+1)*3, i*2+4:i*2+6] = np.asarray([R[:,:,k] @ m[:,i], -n[:,i]])
+      npprint('i', i)
+      npprint('C', C)
+      st()
 
-    # use SVD to find singular vectors
-    [~,S,N] = svd(C,0);
+    # obtain singular vectors via svd (solve standard form equation)
+    U,S,V = la.svd(C)
+
+    npprint('U', U)
+    npprint('S', S)
+    npprint('V', V)
+    st()
 
     # singular values
-    Sd = diag(S);
+    Sd = np.diag(S)
+    npprint('Sd', Sd)
+    st()
 
     # the right singular vector corresponding to the zero singular value of C.
-    Y = N(:,end);
+    Y = V[:,-1]
 
-    t = Y(1:3)   # translation vector
-    z = Y(4:end) # depths in both camera frames
+    t = Y[0:3]  # translation vector
+    z = Y[3:-1] # depths in both camera frames
 
     # adjust the sign s.t. the recovered depths are positive
-    numPos = sum(z > 0);
-    numNeg = sum(z < 0);
-    if numPos < numNeg
-        t = -t;
-        z = -z;
+    numPos = sum(z > 0)
+    numNeg = sum(z < 0)
+    if numPos < numNeg:
+        t = -t
+        z = -z
 
-    z1 =  z(1 : 2 : end-1) # depths in camera frame 1
-    z2 =  z(2 : 2 : end) # depths in camera frame 2
+    z1 =  z[0 : 2 : -2] # depths in camera frame 1
+    z2 =  z[1 : 2 : -1] # depths in camera frame 2
 
     # store the results
-    T(:,k) = t;
-    Z1(:,k) = z1;
-    Z2(:,k) = z2;
-    Res(:,k) = Sd(end);
+    T  [:,k] = t
+    Z1 [:,k] = z1
+    Z2 [:,k] = z2
+    Res[:,k] = Sd[-1]
   return T, Z1, Z2, R, Res
 
   # EOF

@@ -9,8 +9,8 @@ from dmm import *
 from utils import *
 
 ''' NBUG libraries '''
-from pdb import set_trace as st
 from nbug import *
+from pdb import set_trace as st
 matlab_coefs_outPath = '../matlab/quest_5p_ransac/out/KITTI/keypoints/'
 
 ''' general config '''
@@ -19,17 +19,14 @@ _save         = True
 _prt          = True
 # _START        = 0
 # _END          = 150
-_ALGORITHMS    = ['QuEst_v0708','QuEst']
+_ALGORITHMS   = ['QuEst_v0708','QuEst']
 _BENCHTYPE    = 'KITTI'
 _BENCHNUM     = 3
-
 skipFrame     = 0 # num of frames that are skiped between two key frames
 ranThresh     = 1e-6 # RANSAC outlier threshold
 surfThresh    = 200 # SURF feature point detection threshold
-
-# Number of feature points
-maxPts = 30 # max num of feature points to use for pose est (lower value increases speed)
-minPts = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
+maxPts        = 30 # max num of feature points to use for pose est (lower value increases speed)
+minPts        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
 
 def main():
   global fignum; fignum = int(0)
@@ -89,27 +86,29 @@ def main():
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
         M, inliers = QRANSAC0102(matches, ranThresh)
-        q = M.Q
+        Qs = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
         # matches = prep_matches(dset, matches, kp_p, kp_n, minPts)
         # tOut, q = Q0708(m=matches.m1, n=matches.m2)
         kp1, kp2 = load_matlab_kps(i, matlab_coefs_outPath)
-        q = Q0708(m=kp1, n=kp2)
-        # tOut = FindTransDepth_Ver1_0(matches.m1, matches.m2, q);
+        Qs = QuEst(m=kp1, n=kp2)
+        st()
+
+        q, q_idx = get_closestQuat(qr, Qs)
+        tOut = get_Txyz(matches.m1, matches.m2, q)
       else:
         eprint(str('algorithm is not supported: '+alg))
 
       # find the closet quaternion and translation to the ground truth
-      # [q, matchIdx] = FindClosetQVer2_2(relPose.qr, q);
-      # t = FindClosetTrans(relPose.tr, [tOut,-tOut]);
+      t = FindClosetTrans(tr, [tOut,-tOut]);
       t = -tOut
       st()
       # calcualte the estimate error
       Q_err = get_QuatError(qr, q)
       T_err = get_TransError(tr, t)
 
-      dlog.log_data(i, alg, 'q', q)
+      dlog.log_data(i, alg, 'q', Qs)
       dlog.log_data(i, alg, 'qr', qr)
       dlog.log_data(i, alg, 't', t)
       dlog.log_data(i, alg, 'tr', tr)
