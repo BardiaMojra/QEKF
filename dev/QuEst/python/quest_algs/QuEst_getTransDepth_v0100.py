@@ -51,16 +51,17 @@ def get_Txyz_v0100(m,n,q):
   # Res     = zeros(1,numInp);       % Residue from SVD
   numKP = m.shape[1]
 
-  for k in range(numKP):
-    # stack rigid motion constraints into matrix-vector form C * Y = 0
-    C = np.zeros(3*numKP, 2*numKP+3)
+  # for k in range(numKP):
+  # stack rigid motion constraints into matrix-vector form C * Y = 0
+  C = np.zeros((3*numKP, 2*numKP+3))
 
-    for i in range(numKP):
-      C[i*3:(i+1)*3, 0:3] = np.eye(3)
-      C[i*3:(i+1)*3, i*2+4:i*2+6] = np.asarray([R[:,:,k] @ m[:,i], -n[:,i]])
-      npprint('i', i)
-      npprint('C', C)
-      st()
+  for i in range(numKP):
+
+    C[i*3:(i+1)*3, 0:3] = np.eye(3)
+    C[i*3:(i+1)*3, i*2+4:i*2+6] = np.asarray([R @ m[:,i], -n[:,i]])
+    npprint('i', i)
+    npprint('C', C)
+    st()
 
     # obtain singular vectors via svd (solve standard form equation)
     U,S,V = la.svd(C)

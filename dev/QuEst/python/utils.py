@@ -16,19 +16,30 @@ from pdb import set_trace as st
 
 def get_closestQuat(q_ref:quaternion, Qs):
   ''' sort by error magnitude and return smallest '''
-  Qs_err = get_QuatError(q_ref, Qs) # compute error for quat solutions
-  QsErr_idx = sorted(range(Qs_err.shape[0]),key=lambda i:get_quatMag(Qs_err[i][0]))
-  return Qs_err[QsErr_idx[0]][0], QsErr_idx[0]
+  # st()
+  QErrs = get_QuatError(q_ref, Qs) # compute error for quat solutions
+  mags = QMags(QErrs)
+  # Qdf = pd.DataFrame([Qs,QErrs,QErr_mags], columns=['q','q_err', 'err_mag'])
+  ranks = sorted(range(QErrs.shape[0]), key=lambda i:mags[i])
+  # nprint('Qdf', Qdf)
+  # npprint('QErrs', QErrs)
+  # npprint('mags', mags)
+  # nprint('ranks', ranks)
+  # st()
+  return Qs[ranks[0]][0], ranks[0]
 
-def get_quatMag(q:np.quaternion):
+def QMags(Qs):
+  qMags = np.ndarray(Qs.shape, dtype=np.float128)
+  for i, q in enumerate(Qs):
+    qMags[i] =  quatMag(q[0])
+  return qMags
+
+def quatMag(q:np.quaternion):
   ''' get magnitude of a quaternion by first normalizing it (unit quat), then
   compute the magnitude of its "pure quat" form or "vectors" or "real parts" '''
   q = q.normalized() # todo: show to dr Gans and explain
   mag = np.sqrt(q.x**2+q.y**2+q.z**2)
-  nprint('mag', mag)
-  st()
-  # nqmagprint(
-  return
+  return mag
 
 def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
   assert isinstance(q_ref,np.quaternion), shead+'q_ref is not a quaternion!'+ltail
@@ -70,12 +81,12 @@ def write_image(num:int, image, outDir):
 def load_matlab_kps(i, matlab_coefs_outPath):
   fname_01 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp01.txt'
   fname_02 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp02.txt'
-  nprint('fname_01', fname_01)
-  nprint('fname_02', fname_02)
+  # nprint('fname_01', fname_01)
+  # nprint('fname_02', fname_02)
   kp1 = np.loadtxt(fname_01, delimiter=',')
   kp2 = np.loadtxt(fname_02, delimiter=',')
-  npprint('kp1', kp1)
-  npprint('kp2', kp2)
+  # npprint('kp1', kp1)
+  # npprint('kp2', kp2)
   return kp1, kp2
 
 class Dmatch_obj(object):
