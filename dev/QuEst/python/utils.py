@@ -14,9 +14,6 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
-
-
-
 def get_closestQuat(q_ref:quaternion, Qs):
   ''' sort by error magnitude and return smallest '''
   Qs_err = get_QuatError(q_ref, Qs) # compute error for quat solutions
@@ -28,8 +25,10 @@ def get_quatMag(q:np.quaternion):
   compute the magnitude of its "pure quat" form or "vectors" or "real parts" '''
   q = q.normalized() # todo: show to dr Gans and explain
   mag = np.sqrt(q.x**2+q.y**2+q.z**2)
-  nqmagprint(
-             return
+  nprint('mag', mag)
+  st()
+  # nqmagprint(
+  return
 
 def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
   assert isinstance(q_ref,np.quaternion), shead+'q_ref is not a quaternion!'+ltail
