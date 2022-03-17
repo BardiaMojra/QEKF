@@ -108,8 +108,10 @@ for i = keyFrames
             q = M.Q;
             tOut = M.t;
         elseif strcmp(algorithms{mthd}, 'QuEst_v0708') 
-            q = QuEst_5Pt_Ver7_8(matches.m1, matches.m2, cntr);
-            tOut = FindTransDepth_Ver1_0(matches.m1, matches.m2, q);
+          kp1 = matches.m1(:,1:5);
+          kp2 = matches.m2(:,1:5);
+          q = QuEst_5Pt_Ver7_8(kp1, kp2, cntr);
+          tOut = FindTransDepth_Ver1_0(kp1, kp2, q);
 %             q = M.Q;
 %             tOut = M.t;
         else

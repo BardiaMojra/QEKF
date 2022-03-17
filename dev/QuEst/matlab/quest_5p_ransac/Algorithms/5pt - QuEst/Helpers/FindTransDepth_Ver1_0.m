@@ -54,8 +54,16 @@ for k = 1 : numInp
     % Stack rigid motion constraints into matrix-vector form C * Y = 0
     C = zeros(3*numPts, 2*numPts+3);
     for i = 1 : numPts
-        C((i-1)*3+1:i*3, 1:3) = I;
-        C((i-1)*3+1:i*3, (i-1)*2+4:(i-1)*2+5) = [R(:,:,k)*m(:,i), -n(:,i)];
+      a1 = (i-1)*3+1;
+      a2 = i*3;
+      C(a1:a2, 1:3) = I;
+      a1 = (i-1)*3+1;
+      a2 = i*3;
+      b1 = (i-1)*2+4;
+      b2 = (i-1)*2+5;
+      A = R(:,:,k)*m(:,i);
+      B = -n(:,i);
+      C(a1:a2,b1:b2) = [A,B];
     end
 
     % Use SVD to find singular vectors

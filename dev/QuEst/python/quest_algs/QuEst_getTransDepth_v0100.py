@@ -11,7 +11,7 @@ from scipy.spatial.transform import Rotation as sc_R
 from pdb import set_trace as st
 from nbug import *
 
-def get_Txyz_v0100(m,n,q):
+def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
   ''' recover translation and depths given the rotation and feature point
   coordinates
   Inputs:
@@ -33,15 +33,9 @@ def get_Txyz_v0100(m,n,q):
   # if input is quaternion transform it into the rotation matrix
   nprint('q', q)
   if isinstance(q, np.quaternion):
-    R = sc_R.from_quat([q.w,q.x,q.y,q.z]).as_matrix()
-  npprint('R', R)
-  npprint('m', m)
-  npprint('n', n)
-
-
-  st()
-
-
+    q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
+    R = sc_R.from_quat(q_arr).as_matrix()
+  # npprint('R', R)
 
   # numPts  = size(m,2);        % Number of feature points
   # # numInp  = size(R,3);        % Number of rotation matrices in input
@@ -49,54 +43,56 @@ def get_Txyz_v0100(m,n,q):
   # # Z1      = zeros(numPts,numInp);  % Depth of points in the 1st camera frame
   # # Z2      = zeros(numPts,numInp);  % Depth of points in the 2nd camera frame
   # Res     = zeros(1,numInp);       % Residue from SVD
-  numKP = m.shape[1]
+  numKP = kps1.shape[1]
 
   # for k in range(numKP):
   # stack rigid motion constraints into matrix-vector form C * Y = 0
-  C = np.zeros((3*numKP, 2*numKP+3))
-
+  C = np.zeros((3*numKP,2*numKP+3), dtype=_dtype)
+  # npprint('C', C)
+  # npprint('m', kps1)
+  # npprint('n', kps2)
   for i in range(numKP):
+    C[i*3:(i+1)*3, 0:3] = np.eye(3, dtype=_dtype)
+    # a1,a2,b1,b2 = i*3,(i+1)*3,0,3
+    # npprint(f'1 C[{a1}:{a2},{b1}:{b2}]', C[a1:a2,b1:b2])
+    # npprint('C', C)
+    # npprint('m', m)
+    # npprint('n', n)
+    A = R @ kps1[:,i].reshape(-1,1)
+    B = -kps2[:,i].reshape(-1,1)
+    # npprint('A', A)
+    # npprint('B', B)
+    # a1,a2,b1,b2 = i*3,(i+1)*3,i*2+3,i*2+5
+    # npprint(f'2 C[{a1}:{a2},{b1}:{b2}]', C[a1:a2,b1:b2])
+    C[i*3:(i+1)*3, i*2+3:i*2+5] = np.concatenate((A,B), axis=1)
+    # st()
+    # npprint('C', C)
+    # st()
+    # end of for i in range(numKP):
+  # npprint('C', C)
 
-    C[i*3:(i+1)*3, 0:3] = np.eye(3)
-    C[i*3:(i+1)*3, i*2+4:i*2+6] = np.asarray([R @ m[:,i], -n[:,i]])
-    npprint('i', i)
-    npprint('C', C)
-    st()
+  # obtain singular vectors via svd (solve standard form equation)
+  U,S,V = la.svd(C)
+  S = S.reshape(-1,1)
 
-    # obtain singular vectors via svd (solve standard form equation)
-    U,S,V = la.svd(C)
+  # the right singular vector corresponding to the zero singular value of C.
+  Y = V[:,-1]
+  t = Y[0:3]  # translation vector
+  z = Y[3:] # depths in both camera frames
 
-    npprint('U', U)
-    npprint('S', S)
-    npprint('V', V)
-    st()
+  # adjust the sign s.t. the recovered depths are positive
+  numPos = [n for n, c in enumerate(z) if c > 0]
+  numNeg = [n for n, c in enumerate(z) if c < 0]
+  if len(numPos) < len(numNeg):
+    t=-t; z=-z;
 
-    # singular values
-    Sd = np.diag(S)
-    npprint('Sd', Sd)
-    st()
-
-    # the right singular vector corresponding to the zero singular value of C.
-    Y = V[:,-1]
-
-    t = Y[0:3]  # translation vector
-    z = Y[3:-1] # depths in both camera frames
-
-    # adjust the sign s.t. the recovered depths are positive
-    numPos = sum(z > 0)
-    numNeg = sum(z < 0)
-    if numPos < numNeg:
-        t = -t
-        z = -z
-
-    z1 =  z[0 : 2 : -2] # depths in camera frame 1
-    z2 =  z[1 : 2 : -1] # depths in camera frame 2
-
-    # store the results
-    T  [:,k] = t
-    Z1 [:,k] = z1
-    Z2 [:,k] = z2
-    Res[:,k] = Sd[-1]
-  return T, Z1, Z2, R, Res
+  z1 = z[0:-2:2] # depths in camera frame 1
+  z2 = z[1::2] # depths in camera frame 2
+  # npprint('t', t)
+  # npprint('z1', z1)
+  # npprint('z2', z2)
+  # npprint('S[-1]', S[-1])
+  # st()
+  return t, z1, z2, S[-1]
 
   # EOF

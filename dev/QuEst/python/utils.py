@@ -78,13 +78,13 @@ def write_image(num:int, image, outDir):
   prt_file_save(shead+'saving figure: '+figname)
   return
 
-def load_matlab_kps(i, matlab_coefs_outPath):
+def load_matlab_kps(i, matlab_coefs_outPath,_dtype=np.float128):
   fname_01 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp01.txt'
   fname_02 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp02.txt'
   # nprint('fname_01', fname_01)
   # nprint('fname_02', fname_02)
-  kp1 = np.loadtxt(fname_01, delimiter=',')
-  kp2 = np.loadtxt(fname_02, delimiter=',')
+  kp1 = np.loadtxt(fname_01, delimiter=',', dtype=_dtype)
+  kp2 = np.loadtxt(fname_02, delimiter=',', dtype=_dtype)
   # npprint('kp1', kp1)
   # npprint('kp2', kp2)
   return kp1, kp2
@@ -138,7 +138,7 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
     assert 0, 'Error: '+e
   return image, kps, dscs
 
-def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float64):
+def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
   matches = sorted(matches, key = lambda x:x.distance)
   matches = matches[:minPts]
   mat = list()

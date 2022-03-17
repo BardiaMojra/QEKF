@@ -74,7 +74,7 @@ numEq = size(Cf,1);
 % A is the coefficient matrix such that A * X = 0
 A = zeros(4*numEq,56);
 for i = 1 : 4
-    idx = Idx(i,:)    
+    idx = Idx(i,:);
     A((i-1)*numEq+1 : i*numEq, idx) = Cf;
 end
 

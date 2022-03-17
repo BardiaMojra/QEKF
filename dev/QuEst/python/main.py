@@ -1,4 +1,4 @@
-''' main - QuEst'''
+''' main - QuEst '''
 # import numpy as np
 # import matplotlib
 import pandas as pd
@@ -96,6 +96,7 @@ def main():
         Qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr, Qs)
         tOut = get_Txyz(m1,m2,q)
+
       else:
         eprint(str('algorithm is not supported: '+alg))
 

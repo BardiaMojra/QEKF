@@ -5,16 +5,24 @@ from pprint import pprint as pp
 import numpy as np
 import pandas as pd
 
-# enable nbug print
-nprt_en = True #False
-nprt_en2 = True
+''' NBUG config '''
+_prec       = 3 # nprt precision
+nprt_en     = True #False
+nprt_en2    = True
 
-llhead = '\n\n  \--->> '
-lhead = '\n\-->> '
-shead = '\-->> '
-ltail = '\n\n'
-stail = '\n'
-attn = 'here ----------- <<<<<\n\n'
+# print aliases
+llhead      = '\n\n  \--->> '
+lhead       = '\n\-->> '
+shead       = '\-->> '
+lltail      = '\n\n\n'
+ltail       = '\n\n'
+stail       = '\n'
+attn        = 'here ----------- <<<<<\n\n'
+
+np.set_printoptions(precision=_prec)
+pd.set_option('display.float_format', lambda x: f'%.{_prec}f' % x)
+
+
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -33,12 +41,13 @@ def nsprint(string, ndarr:np.ndarray):
     print(shead+(string+': '+shape));
     # pp(ndarr); print(stail)
 
-def npprint(string, ndarr:np.ndarray):
+def npprint(string:str, ndarr:np.ndarray, N=None, labels=None):
   if nprt_en is True:
     shape = str(ndarr.shape)
-    print(shead+(string+': '+shape));
-    pp(ndarr); print(stail)
-
+    print(shead+string+': '+shape)
+    df = pd.DataFrame(ndarr, columns=labels)
+    if isinstance(N,int): pp(df.head(N)); print(stail)
+    else: pp(df); print(stail)
 
 def dfspp(string, df:pd.DataFrame):
   if nprt_en is True:
