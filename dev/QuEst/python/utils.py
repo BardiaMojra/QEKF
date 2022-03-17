@@ -17,15 +17,16 @@ from pdb import set_trace as st
 def get_closestQuat(q_ref:quaternion, Qs):
   ''' sort by error magnitude and return smallest '''
   # st()
-  QErrs = get_QuatError(q_ref, Qs) # compute error for quat solutions
+  QErrs = get_QuatError(q_ref, Qs, method:str='default') # compute error for quat solutions
   mags = QMags(QErrs)
   # Qdf = pd.DataFrame([Qs,QErrs,QErr_mags], columns=['q','q_err', 'err_mag'])
   ranks = sorted(range(QErrs.shape[0]), key=lambda i:mags[i])
   # nprint('Qdf', Qdf)
-  # npprint('QErrs', QErrs)
-  # npprint('mags', mags)
-  # nprint('ranks', ranks)
-  # st()
+  nprint('q_ref', q_ref)
+  nprint('QErrs', QErrs)
+  npprint('mags', mags)
+  nprint('ranks', ranks)
+  st()
   return Qs[ranks[0]][0], ranks[0]
 
 def QMags(Qs):
@@ -41,17 +42,24 @@ def quatMag(q:np.quaternion):
   mag = np.sqrt(q.x**2+q.y**2+q.z**2)
   return mag
 
-def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
+def get_QuatError(q_ref:quaternion, Qs:np.ndarray, method:str='default'):
   assert isinstance(q_ref,np.quaternion), shead+'q_ref is not a quaternion!'+ltail
   assert isinstance(Qs,np.ndarray), shead+'Qs is not a ndarray!'+ltail
   # should be already normalized, but normalize again before computing error
   q_ref = q_ref.normalized()
   Qs_err = np.ndarray(Qs.shape, dtype=np.quaternion)
   for i in range(Qs.shape[0]):
-    Qs[i][0] = Qs[i][0].normalized()
-    Qs_err[i][0] = q_ref * Qs[i][0].inverse() # get quaternion error
-    Qs_err[i][0] = Qs_err[i][0].normalized() # normalize the error once again
+    if method == 'default':
+      Qs_err[i][0] = get_qErr(q_ref, Qs[i][0].normalized())
+    elif method == 'default':
+        Qs_err[i][0] = get_qErr(q_ref, Qs[i][0].normalized())
+    else:
+      assert False, shead+f'UNKNOWN method for calculating quat_err'+ltail
   return Qs_err
+
+def get_qErr(q_ref, q):
+  q_err = q_ref * q.inverse() # get quaternion error
+  return q_err.normalized() # normalize the error once again
 
 def get_TransError(t_ref, t2):
   nprint('t_ref', t_ref)
@@ -215,10 +223,10 @@ def RelativeGroundTruth(i, dset):
     # translation given in frame 2)
     rot = quaternion.as_rotation_matrix(np.conj(q2))
     # nprint('rot', rot)
-    tr = rot * (t2 - t1)
-    # nprint('t1', t1)
-    # nprint('t2', t2)
-    # nprint('tr', tr)
+    tr = rot @ (t2 - t1)
+    npprint('t1', t1)
+    npprint('t2', t2)
+    npprint('tr', tr)
     # st()
   elif bench == 'NAIST':
     # In this dataset the absolute pose is given in the camera coordinate

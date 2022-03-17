@@ -8,7 +8,7 @@ def main():
   for i, file in enumerate(os.listdir(srcDir)):
     #print(i, file)
     newfile = file
-    newfile = newfile.replace(' ', '_')
+    newfile = newfile.replace(' ', '_').lower()
     newfile = newfile.replace('&', 'n')
     newfile = newfile.replace(',', '')
     newfile = newfile.replace('and', 'n')

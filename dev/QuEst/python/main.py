@@ -14,6 +14,13 @@ from nbug import *
 from pdb import set_trace as st
 matlab_coefs_outPath = '../matlab/quest_5p_ransac/out/KITTI/keypoints/'
 
+
+''' #todo
+# replace error metric with one from paper
+# test against gt -- make sure residual is small
+# get translations,
+'''
+
 ''' general config '''
 _show         = True
 _save         = True
@@ -74,8 +81,8 @@ def main():
 
     # get ground truth
     qr, tr = RelativeGroundTruth(i, dset)
-    # nprint('qr', qr)
-    # nprint('tr', tr)
+    nprint('qr', qr)
+    nprint('tr', tr)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
@@ -95,7 +102,7 @@ def main():
         m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
         Qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr, Qs)
-        tOut = get_Txyz(m1,m2,q)
+        tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
 
       else:
         eprint(str('algorithm is not supported: '+alg))
@@ -105,15 +112,16 @@ def main():
       t = -tOut
       st()
       # calcualte the estimate error
-      Q_err = get_QuatError(qr, q)
+      Q_err = get_qErr(qr, q)
       T_err = get_TransError(tr, t)
-
+      st()
       dlog.log_data(i, alg, 'q', Qs)
       dlog.log_data(i, alg, 'qr', qr)
       dlog.log_data(i, alg, 't', t)
       dlog.log_data(i, alg, 'tr', tr)
       dlog.log_data(i, alg, 'Q_err', Q_err)
       dlog.log_data(i, alg, 'T_err', T_err)
+      st()
 
     # end of for alg
 
