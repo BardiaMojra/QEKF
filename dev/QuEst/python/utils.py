@@ -14,55 +14,56 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
-def get_closestQuat(q_ref:quaternion, Qs, metric:str='quest'):
+def get_closestQuat(qr:quaternion, Qs, metric:str='quest'):
   ''' compute quaternion error and rank using designated metric.
       more on the metrics could be found in [1].
       [1]: 'Metrics for 3D Rotations: Comparison and Analysis'
       '''
   # st()
-  QErrs = get_QuatError(q_ref, Qs) # compute error for quat solutions
 
 
   if metric == 'pureQ':
+    QErrs = get_QuatError(qr, Qs) # compute error for quat solutions
     ranks = rank_qErr_pureQ(QErrs)
-  elif metric == 'quest':
-    ranks = rank_qErr_quest(QErrs)
-  elif metric == 'phi01':
-    ranks = rank_qErr_phi01(QErrs)
+  elif metric == 'phi03':
+    ranks = rank_qErr_phi03(qr,Qs)
+  elif metric == 'QuEst':
+    ranks = rank_qErr_phi03_prime(qr,Qs)
   else:
     assert False, shead+f'UNKNOWN method for calculating quat_err'+ltail
 
   # Qdf = pd.DataFrame([Qs,QErrs,QErr_mags], columns=['q','q_err', 'err_mag'])
   # nprint('Qdf', Qdf)
-  nprint('q_ref', q_ref)
+  nprint('q_ref', qr)
   nprint('QErrs', QErrs)
   nprint('ranks', ranks)
   st()
   return Qs[ranks[0]][0], ranks[0]
 
+def rank_qErr_phi03(qr:np.quaternion, Qs:np.ndarray):
+  dists = np.ndarray(Qs.shape, dtype=np.float128)
+  for i, q in enumerate(Qs):
+    dists[i] = phi03_dist(qr,q)
+  npprint('qr', qr)
+  npprint('q', q)
+  npprint('dists', dists)
+  return sorted(range(dists.shape[0]), key=lambda i:dists[i])
+
+def phi03_dist(qr:np.quaternion,q:np.quaternion):
+  #todo working here
+  q1 = np.asarray(qr.imag, dtype=np.float128)
+  q2 = np.asarray(q.imag, dtype=np.float128)
+  d = (1/np.pi) * np.acos(abs(q1 @ q2))
+  nprint('q1',q1)
+  nprint('q2',q2)
+  nprint('d',d)
+  st()
+  return d
+
+
 def rank_qErr_pureQ(QErrs:np.ndarray):
   mags = QMags(QErrs)
   return sorted(range(QErrs.shape[0]), key=lambda i:mags[i])
-
-def rank_qErr_quest(QErrs:np.ndarray):
-  errs = np.ndarray(QErrs.shape, dtype=np.float128)
-  npprint('QErrs', QErrs)
-  npprint('QErrs.w', QErrs.w)
-  for i in len(errs):
-    #todo working here
-    st()
-    errs[i] = (1/np.pi) * np.acos(min([abs(QErrs.w),1]))
-  return
-
-def rank_qErr_phi01(QErrs:np.ndarray):
-  errs = np.ndarray(QErrs.shape, dtype=np.float128)
-  npprint('QErrs', QErrs)
-  npprint('QErrs.w', QErrs.w)
-  for i in len(errs):
-    #todo working here
-    st()
-    errs[i] =
-  return
 
 def QMags(Qs):
   qMags = np.ndarray(Qs.shape, dtype=np.float128)
