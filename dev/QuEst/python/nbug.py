@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 ''' NBUG config '''
-_prec       = 3 # nprt precision
+_prec       = 6 # nprt precision
 nprt_en     = True #False
 nprt_en2    = True
 

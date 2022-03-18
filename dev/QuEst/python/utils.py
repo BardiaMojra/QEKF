@@ -14,7 +14,7 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
-def get_closestQuat(qr:quaternion, Qs, metric:str='quest'):
+def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   ''' compute quaternion error and rank using designated metric.
       more on the metrics could be found in [1].
       [1]: 'Metrics for 3D Rotations: Comparison and Analysis'
@@ -30,7 +30,7 @@ def get_closestQuat(qr:quaternion, Qs, metric:str='quest'):
   elif metric == 'QuEst':
     ranks = rank_qErr_phi03_prime(qr,Qs)
   else:
-    assert False, shead+f'UNKNOWN method for calculating quat_err'+ltail
+    assert False, llhead+f'UNKNOWN method for calculating quat_err: '+metric+ltail
 
   # Qdf = pd.DataFrame([Qs,QErrs,QErr_mags], columns=['q','q_err', 'err_mag'])
   # nprint('Qdf', Qdf)
@@ -51,14 +51,14 @@ def rank_qErr_phi03(qr:np.quaternion, Qs:np.ndarray):
 
 def phi03_dist(qr:np.quaternion,q:np.quaternion):
   #todo working here
-  q1 = np.asarray(qr.imag, dtype=np.float128)
-  q2 = np.asarray(q.imag, dtype=np.float128)
-  d = (1/np.pi) * np.acos(abs(q1 @ q2))
-  nprint('q1',q1)
-  nprint('q2',q2)
-  nprint('d',d)
+  qr = np.asarray(qr.imag)#, dtype=np.float128)
+  q = np.asarray(q.imag)#, dtype=np.float128)
+  # d = (1/np.pi) * np.acos(abs(q1 @ q2))
+  nprint('qr',qr)
+  nprint('q',q)
+  # nprint('d',d)
   st()
-  return d
+  # return d
 
 
 def rank_qErr_pureQ(QErrs:np.ndarray):
@@ -88,9 +88,34 @@ def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
     Qs_err[i][0] = get_qErr(q_ref, Qs[i][0].normalized())
   return Qs_err
 
-def get_qErr(q_ref, q):
-  q_err = q_ref * q.inverse() # get quaternion error
+def get_qErr(qr:quaternion, q:quaternion):
+  q_err = qr * q.inverse() # get quaternion error
   return q_err.normalized() # normalize the error once again
+
+def get_qDiff(qr:np.quaternion, q:np.quaternion):
+  r''' computes the quaternion representation of v1 using v0 as the origin.'''
+  v0 = np.float128(qr.normalized())
+  v1 = np.float128(q.normalized())
+  npprint('v0',v0)
+  npprint('v1',v1)
+  st()
+
+  v0 = v0 / np.linalg.norm(v0)
+  v1 = v1 / np.linalg.norm(v1)
+  c = v0.dot(v1)
+  # Epsilon prevents issues at poles.
+  if c < (-1 + EPSILON):
+    c = max(c, -1)
+    m = np.stack([v0, v1], 0)
+    _, _, vh = np.linalg.svd(m, full_matrices=True)
+    axis = vh.T[:, 2]
+    w2 = (1 + c) * 0.5
+    w = np.sqrt(w2)
+    axis = axis * np.sqrt(1 - w2)
+    return np.quaternion(w, *axis)
+  axis = np.cross(v0, v1)
+  s = np.sqrt((1 + c) * 2)
+  return np.quaternion(s * 0.5, *(axis / s))
 
 def get_TransError(t_ref, t2):
   nprint('t_ref', t_ref)
