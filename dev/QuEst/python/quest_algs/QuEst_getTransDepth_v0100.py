@@ -31,43 +31,31 @@ def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
   NOTE: T, Z1, and Z2 are recovered up to a common scale factor.
   Copyright (C) 2017, by Kaveh Fathian.'''
   # if input is quaternion transform it into the rotation matrix
-  nprint('q', q)
   if isinstance(q, np.quaternion):
     q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
     R = sc_R.from_quat(q_arr).as_matrix()
   # npprint('R', R)
 
-  # numPts  = size(m,2);        % Number of feature points
-  # # numInp  = size(R,3);        % Number of rotation matrices in input
-  # # T       = zeros(3,numInp);       % Translation vector
-  # # Z1      = zeros(numPts,numInp);  % Depth of points in the 1st camera frame
-  # # Z2      = zeros(numPts,numInp);  % Depth of points in the 2nd camera frame
-  # Res     = zeros(1,numInp);       % Residue from SVD
   numKP = kps1.shape[1]
 
-  # for k in range(numKP):
-  # stack rigid motion constraints into matrix-vector form C * Y = 0
   C = np.zeros((3*numKP,2*numKP+3), dtype=_dtype)
-  # npprint('C', C)
-  # npprint('m', kps1)
-  # npprint('n', kps2)
   for i in range(numKP):
     C[i*3:(i+1)*3, 0:3] = np.eye(3, dtype=_dtype)
     a1,a2,b1,b2 = i*3,(i+1)*3,0,3
-    npprint(f'1 C[{a1}:{a2},{b1}:{b2}]', C[a1:a2,b1:b2])
-    npprint('C', C)
-    npprint('kps1', kps1)
-    npprint('kps2', kps2)
+    # npprint(f'1 C[{a1}:{a2},{b1}:{b2}]', C[a1:a2,b1:b2])
+    # npprint('C', C)
+    # npprint('kps1', kps1)
+    # npprint('kps2', kps2)
     A = R @ kps1[:,i].reshape(-1,1)
     B = -kps2[:,i].reshape(-1,1)
-    npprint('A', A)
-    npprint('B', B)
+    # npprint('A', A)
+    # npprint('B', B)
     a1,a2,b1,b2 = i*3,(i+1)*3,i*2+3,i*2+5
-    npprint(f'2 C[{a1}:{a2},{b1}:{b2}]', C[a1:a2,b1:b2])
+    # npprint(f'2 C[{a1}:{a2},{b1}:{b2}]', C[a1:a2,b1:b2])
     C[i*3:(i+1)*3, i*2+3:i*2+5] = np.concatenate((A,B), axis=1)
     # st()
-    npprint('C', C)
-    st()
+    # npprint('C', C)
+    # st()
     # end of for i in range(numKP):
   # npprint('C', C)
 
@@ -88,11 +76,11 @@ def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
 
   z1 = z[0:-2:2] # depths in camera frame 1
   z2 = z[1::2] # depths in camera frame 2
-  npprint('t', t)
-  npprint('z1', z1)
-  npprint('z2', z2)
-  npprint('S[-1]', S[-1])
-  st()
-  return t, z1, z2, S[-1]
+  # npprint('t', t)
+  # npprint('z1', z1)
+  # npprint('z2', z2)
+  # npprint('S[-1]', S[-1])
+  # st()
+  return t,z1,z2,S[-1]
 
   # EOF

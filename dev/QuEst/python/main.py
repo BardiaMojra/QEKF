@@ -101,7 +101,7 @@ def main():
         Qs = QuEst(m=m1, n=m2)
         m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
         Qs = QuEst(m=m1, n=m2)
-        q, q_idx = get_closestQuat(qr, Qs)
+        q, q_idx = get_closestQuat(qr,Qs)
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
 
       else:
@@ -110,11 +110,11 @@ def main():
       # find the closet quaternion and translation to the ground truth
       # t = FindClosetTrans(tr, [tOut,-tOut]);
       t = -tOut
-      st()
+      # st()
       # calcualte the estimate error
-      Q_err = get_qErr(qr, q)
+      Q_err = get_qDiff_simpQ(qr, q)
       T_err = get_TransError(tr, t)
-      st()
+      # st()
       dlog.log_data(i, alg, 'q', Qs)
       dlog.log_data(i, alg, 'qr', qr)
       dlog.log_data(i, alg, 't', t)
@@ -126,10 +126,11 @@ def main():
     # end of for alg
 
     # display images with matched feature points
-    plt.imshow(Im_p); plt.show()
-    Im_match = cv.drawMatches(Im_n, kp_n, Im_p, kp_p, matches, None,\
-      flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    plt.imshow(Im_match); plt.show()
+    # plt.imshow(Im_p); plt.show()
+    imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
+    plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+    # Im_match = cv.drawMatches(Im_n, kp_n, Im_p, kp_p, matches, None,\
+      # flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     fignum+=1;
     write_image(fignum, Im_match, dmm.outDir)
 

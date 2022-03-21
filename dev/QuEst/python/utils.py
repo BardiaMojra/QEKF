@@ -10,56 +10,55 @@ from dmm import *
 from nbug import *
 from pdb import set_trace as st
 
+
 ''' matplotlib config '''
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
+
+def get_quat_error()
 
 def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   ''' compute quaternion error and rank using designated metric.
       more on the metrics could be found in [1].
       [1]: 'Metrics for 3D Rotations: Comparison and Analysis'
       '''
-  # st()
-
-
   if metric == 'pureQ':
-    QErrs = get_QuatError(qr, Qs) # compute error for quat solutions
-    ranks = rank_qErr_pureQ(QErrs)
-  elif metric == 'phi03':
-    ranks = rank_qErr_phi03(qr,Qs)
-  elif metric == 'QuEst':
-    ranks = rank_qErr_phi03_prime(qr,Qs)
+    dists = get_QuatError(qr, Qs) # compute error for quat solutions
+    ranks = rank_qErr_pureQ(dists)
+  elif metric == 'phi03' or metric == 'phi04':
+    dists = get_qErr_phi0X(qr,Qs,metric)
+    ranks = get_ranks(dists)
   else:
-    assert False, llhead+f'UNKNOWN method for calculating quat_err: '+metric+ltail
+    assert False, lhead+f'UNKNOWN method for calculating quat_err: '+metric+ltail
 
-  # Qdf = pd.DataFrame([Qs,QErrs,QErr_mags], columns=['q','q_err', 'err_mag'])
-  # nprint('Qdf', Qdf)
-  nprint('q_ref', qr)
-  nprint('QErrs', QErrs)
-  nprint('ranks', ranks)
-  st()
+  #todo: make a df that gets passed in and returned and would be used to
+  # concatenate other metric results
+  # npprint('dists', dists)
+  # nprint('ranks', ranks)
+  # st()
   return Qs[ranks[0]][0], ranks[0]
 
-def rank_qErr_phi03(qr:np.quaternion, Qs:np.ndarray):
+def get_qErr_phi0X(qr:np.quaternion, Qs:np.ndarray, metric='phi03'):
   dists = np.ndarray(Qs.shape, dtype=np.float128)
   for i, q in enumerate(Qs):
-    dists[i] = phi03_dist(qr,q)
-  npprint('qr', qr)
-  npprint('q', q)
-  npprint('dists', dists)
+    if metric == 'phi03':   dists[i] = phi03_dist(qr,q[0])
+    elif metric == 'phi04': dists[i] = phi04_dist(qr,q[0])
+    else: assert False, lhead+f'UNKNOWN metric for error evaluation: '+metric+ltail
+  return dists
+
+def get_ranks(dists:np.ndarray):
   return sorted(range(dists.shape[0]), key=lambda i:dists[i])
 
-def phi03_dist(qr:np.quaternion,q:np.quaternion):
-  #todo working here
-  qr = np.asarray(qr.imag)#, dtype=np.float128)
-  q = np.asarray(q.imag)#, dtype=np.float128)
-  # d = (1/np.pi) * np.acos(abs(q1 @ q2))
-  nprint('qr',qr)
-  nprint('q',q)
-  # nprint('d',d)
-  st()
-  # return d
+def phi03_dist(qr:np.quaternion, q:np.quaternion):
+  qr = quaternion.as_float_array(qr.normalized())
+  q = quaternion.as_float_array(q.normalized())
+  return (1/np.pi)*np.arccos(abs(qr @ q)) # divide by 1/pi to make range 0-1.
 
+def phi04_dist(qr:np.quaternion, q:np.quaternion):
+  ''' estimates phi03_dist by replacing arccos and estimating it '''
+  qr = quaternion.as_float_array(qr.normalized())
+  q = quaternion.as_float_array(q.normalized())
+  return (1/np.pi)*(1 - abs(qr @ q)) # divide by 1/pi to make range 0-1.
 
 def rank_qErr_pureQ(QErrs:np.ndarray):
   mags = QMags(QErrs)
@@ -85,17 +84,22 @@ def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
   q_ref = q_ref.normalized()
   Qs_err = np.ndarray(Qs.shape, dtype=np.quaternion)
   for i in range(Qs.shape[0]):
-    Qs_err[i][0] = get_qErr(q_ref, Qs[i][0].normalized())
+    Qs_err[i][0] = get_qDiff_simpQ(q_ref, Qs[i][0].normalized())
   return Qs_err
 
-def get_qErr(qr:quaternion, q:quaternion):
+def get_qDiff_simpQ(qr:quaternion, q:quaternion):
   q_err = qr * q.inverse() # get quaternion error
   return q_err.normalized() # normalize the error once again
 
-def get_qDiff(qr:np.quaternion, q:np.quaternion):
+def get_qDiff_advQ(qr:np.quaternion, q:np.quaternion, _dtype=np.float128):
   r''' computes the quaternion representation of v1 using v0 as the origin.'''
-  v0 = np.float128(qr.normalized())
-  v1 = np.float128(q.normalized())
+  v0 = quaternion.as_float_array(qr.normalized())
+  v1 = quaternion.as_float_array(q.normalized())
+  npprint('v0',v0)
+  npprint('v1',v1)
+  st()
+  v0 = np.float128(v0)
+  v1 = np.float128(v1)
   npprint('v0',v0)
   npprint('v1',v1)
   st()
@@ -103,6 +107,8 @@ def get_qDiff(qr:np.quaternion, q:np.quaternion):
   v0 = v0 / np.linalg.norm(v0)
   v1 = v1 / np.linalg.norm(v1)
   c = v0.dot(v1)
+  EPSILON = np.finfo(_dtype).eps
+
   # Epsilon prevents issues at poles.
   if c < (-1 + EPSILON):
     c = max(c, -1)
