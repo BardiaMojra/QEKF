@@ -37,10 +37,9 @@ class dlm:
 
   def log_state(self,i,q,qs,qr,t,tr,Qerr,Terr,alg):
     assert self.enabled, '\n\ndata logger DISABLES\n\n'
-    #todo: format the data to be logged.
     #i,q,qs,qr,t,tr,Qerr,Terr,alg
     st()
-
+    #todo: format the data to be logged.
 
     if(self.i_hist is None) or\
       (self.q_hist is None) or\
@@ -60,8 +59,6 @@ class dlm:
         self.Qerr_hist = np.copy(Qerr.flatten())
         self.Terr_hist = np.copy(Terr.flatten())
         self.alg_hist = np.copy(alg)
-
-        st()
     else:
       self.i_hist = np.concatenate((self.i_hist, i), axis=0)
       self.q_hist = np.concatenate((self.q_hist, q.flatten()), axis=0)
@@ -72,9 +69,6 @@ class dlm:
       self.Qerr_hist = np.concatenate((self.Qerr_hist, Qerr.flatten()), axis=0)
       self.Terr_hist = np.concatenate((self.Terr_hist, Terr.flatten()), axis=0)
       self.alg_hist = np.concatenate((self.alg_hist, alg.flatten()), axis=0)
-    st()
-
-    self.prt()
     return
 
 
@@ -92,7 +86,6 @@ class dlm:
     nprint('self.Qerr_hist', self.Qerr_hist)
     nprint('self.Terr_hist', self.Terr_hist)
     nprint('self.alg_hist', self.alg_hist)
-    st()
     return
 
 

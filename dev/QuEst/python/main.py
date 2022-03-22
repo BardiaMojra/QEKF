@@ -109,7 +109,7 @@ def main():
       T_err = get_TransError(tr, t)
       # st()
       dlog.log_state(i,q,qs,qr,t,tr,Q_err,T_err,alg)
-      dlog.prt_info()
+      dlog.prt()
       st()
 
     # end of for alg
