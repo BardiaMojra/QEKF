@@ -15,7 +15,7 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
-def get_quat_error()
+# def get_quat_error()
 
 def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   ''' compute quaternion error and rank using designated metric.
@@ -23,11 +23,11 @@ def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
       [1]: 'Metrics for 3D Rotations: Comparison and Analysis'
       '''
   if metric == 'pureQ':
-    dists = get_QuatError(qr, Qs) # compute error for quat solutions
-    ranks = rank_qErr_pureQ(dists)
+    dists = get_qErr_simpDiff_np(qr, Qs) # compute error for quat solutions
+    ranks = get_ranks_pureQuats(dists)
   elif metric == 'phi03' or metric == 'phi04':
-    dists = get_qErr_phi0X(qr,Qs,metric)
-    ranks = get_ranks(dists)
+    dists = get_qErr_phi0X_np(qr,Qs,metric)
+    ranks = get_ranks_dists(dists)
   else:
     assert False, lhead+f'UNKNOWN method for calculating quat_err: '+metric+ltail
 
@@ -38,7 +38,7 @@ def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   # st()
   return Qs[ranks[0]][0], ranks[0]
 
-def get_qErr_phi0X(qr:np.quaternion, Qs:np.ndarray, metric='phi03'):
+def get_qErr_phi0X_np(qr:np.quaternion, Qs:np.ndarray, metric='phi03'):
   dists = np.ndarray(Qs.shape, dtype=np.float128)
   for i, q in enumerate(Qs):
     if metric == 'phi03':   dists[i] = phi03_dist(qr,q[0])
@@ -46,7 +46,7 @@ def get_qErr_phi0X(qr:np.quaternion, Qs:np.ndarray, metric='phi03'):
     else: assert False, lhead+f'UNKNOWN metric for error evaluation: '+metric+ltail
   return dists
 
-def get_ranks(dists:np.ndarray):
+def get_ranks_dists(dists:np.ndarray):
   return sorted(range(dists.shape[0]), key=lambda i:dists[i])
 
 def phi03_dist(qr:np.quaternion, q:np.quaternion):
@@ -60,7 +60,7 @@ def phi04_dist(qr:np.quaternion, q:np.quaternion):
   q = quaternion.as_float_array(q.normalized())
   return (1/np.pi)*(1 - abs(qr @ q)) # divide by 1/pi to make range 0-1.
 
-def rank_qErr_pureQ(QErrs:np.ndarray):
+def get_ranks_pureQuats(QErrs:np.ndarray):
   mags = QMags(QErrs)
   return sorted(range(QErrs.shape[0]), key=lambda i:mags[i])
 
@@ -77,7 +77,7 @@ def quatMag(q:np.quaternion):
   mag = np.sqrt(q.x**2+q.y**2+q.z**2)
   return mag
 
-def get_QuatError(q_ref:quaternion, Qs:np.ndarray):
+def get_qErr_simpDiff_np(q_ref:quaternion, Qs:np.ndarray):
   assert isinstance(q_ref,np.quaternion), shead+'q_ref is not a quaternion!'+ltail
   assert isinstance(Qs,np.ndarray), shead+'Qs is not a ndarray!'+ltail
   # should be already normalized, but normalize again before computing error
@@ -92,7 +92,19 @@ def get_qDiff_simpQ(qr:quaternion, q:quaternion):
   return q_err.normalized() # normalize the error once again
 
 def get_qDiff_advQ(qr:np.quaternion, q:np.quaternion, _dtype=np.float128):
-  r''' computes the quaternion representation of v1 using v0 as the origin.'''
+  r''' computes the quaternion representation of v1 using v0 as the origin.
+  #todo: understand this.
+  Dr. Gans:
+  if c < (-1 + EPSILON):
+  it seems this is a special case if the two quaternions are pointing in
+  opposite directions, i.e. maximum rotation different.
+  The rotations are maximally different, there is not a unique solution. In a
+  sense, you could rotation about any axis by 180 degrees and get the maximal
+  rotation difference. computationsally, the cross product will return a 0
+  vector if they are pointing in opposite directions. so that special case
+  assigns the axis in a different way. I don't totally understand what they do,
+  but you can see it involves SVD, which always returns orthogonal vectors so it
+  won't return a 0 vector like a cross product. '''
   v0 = quaternion.as_float_array(qr.normalized())
   v1 = quaternion.as_float_array(q.normalized())
   npprint('v0',v0)
@@ -103,12 +115,10 @@ def get_qDiff_advQ(qr:np.quaternion, q:np.quaternion, _dtype=np.float128):
   npprint('v0',v0)
   npprint('v1',v1)
   st()
-
   v0 = v0 / np.linalg.norm(v0)
   v1 = v1 / np.linalg.norm(v1)
   c = v0.dot(v1)
   EPSILON = np.finfo(_dtype).eps
-
   # Epsilon prevents issues at poles.
   if c < (-1 + EPSILON):
     c = max(c, -1)
@@ -123,15 +133,10 @@ def get_qDiff_advQ(qr:np.quaternion, q:np.quaternion, _dtype=np.float128):
   s = np.sqrt((1 + c) * 2)
   return np.quaternion(s * 0.5, *(axis / s))
 
-def get_TransError(t_ref, t2):
-  nprint('t_ref', t_ref)
-  nprint('t_ref**2', t_ref**2)
-  st()
-  trn = t_ref / np.sqrt(sum(t_ref**2))
-  t2n = t2 / np.sqrt(sum(t2**2))
-  dotErr = sum(trn * t2n)
-  err = (1/np.pi) * np.arccos(dotErr)
-  return err
+def get_TransError(tr:np.ndarray,t:np.ndarray):
+  trn = tr/np.sqrt(sum(tr**2))
+  tn = t/np.sqrt(sum(t**2))
+  return (1/np.pi) * np.arccos(trn @ tn)
 
 def prt_file_save(string, *args):
   print(shead+(string+' ')); print(*args);

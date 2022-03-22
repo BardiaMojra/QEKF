@@ -39,7 +39,7 @@ minPts        = 5 # min num of feature points required (6 to est a unique pose f
 def main():
   global fignum; fignum = int(0)
 
-  dlog = dlm(False)
+  dlog = dlm()
   dset = dmm(_BENCHTYPE,
              _BENCHNUM
             #  start=_START,
@@ -48,13 +48,6 @@ def main():
 
   numImag = len(dset.fnames) # total number of images
   keyFrames = [i for i in range(skipFrame+1, numImag, skipFrame+1)]
-
-  # numKeyFrames = len(keyFrames) # num of key frames
-  # numMethods   = len(_ALGORITHMS) # num of algorithms used in the comparison
-  # rotErr      = NaN(numKeyFrames, numMethods) # rotation error for each method
-  # tranErr     = NaN(numKeyFrames, numMethods) # translation error for each method
-  # Q           = cell(numKeyFrames, numMethods) # recovered quaternions
-  # T           = cell(numKeyFrames, numMethods) # recovered translations
 
   fdetector = cv.ORB_create()
   fmatcher = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
@@ -112,15 +105,11 @@ def main():
       t = -tOut
       # st()
       # calcualte the estimate error
-      Q_err = get_qDiff_simpQ(qr, q)
+      Q_err = phi03_dist(qr, q)
       T_err = get_TransError(tr, t)
       # st()
-      dlog.log_data(i, alg, 'q', Qs)
-      dlog.log_data(i, alg, 'qr', qr)
-      dlog.log_data(i, alg, 't', t)
-      dlog.log_data(i, alg, 'tr', tr)
-      dlog.log_data(i, alg, 'Q_err', Q_err)
-      dlog.log_data(i, alg, 'T_err', T_err)
+      dlog.log_state(i,q,qr,t,tr,Q_err,T_err,alg)
+      dlog.prt_info()
       st()
 
     # end of for alg
@@ -131,9 +120,8 @@ def main():
     plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
     # Im_match = cv.drawMatches(Im_n, kp_n, Im_p, kp_p, matches, None,\
       # flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    fignum+=1;
-    write_image(fignum, Im_match, dmm.outDir)
-
+    fignum+=1; write_image(fignum, imageKeys, dmm.outDir)
+    st()
 
     # store the current image for the next iteration
     Im_p = Im_n

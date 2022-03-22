@@ -52,7 +52,7 @@ def npprint(string:str, ndarr:np.ndarray, N=None, labels=None):
 def dfspp(string, df:pd.DataFrame):
   if nprt_en is True:
     shape = str(df.shape)
-    print(shead+(string+': '+shape));
+    print(shead+(string+': '+shape))
 
 def nlprint(string, list_like:list):
   if nprt_en is True:
