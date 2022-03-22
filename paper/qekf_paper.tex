@@ -42,12 +42,15 @@
 
 \title{\LARGE \bf Quaternion EKF }
 
-\author{Albert Author$^{1}$ and Bernard D. Researcher$^{2}$% <-this % stops a space
-\thanks{*This work was not supported by any organization}% <-this % stops a space
+\author{Bardia Mojra$^{1}$, Nicolas Gans$^{2}$, and William Beksi$^{3}$% <-this % stops a space
+% \thanks{*This work was not supported by any organization}% <-this % stops a space
 \thanks{$^{1}$Albert Author is with Faculty of Electrical Engineering, Mathematics and Computer Science,
         University of Twente, 7500 AE Enschede, The Netherlands
         {\tt\small albert.author@papercept.net}}%
 \thanks{$^{2}$Bernard D. Researcheris with the Department of Electrical Engineering, Wright State University,
+        Dayton, OH 45435, USA
+        {\tt\small b.d.researcher@ieee.org}}%
+\thanks{$^{3}$Bernard D. Researcheris with the Department of Electrical Engineering, Wright State University,
         Dayton, OH 45435, USA
         {\tt\small b.d.researcher@ieee.org}}%
 }
@@ -67,7 +70,7 @@
 
 Pose estimation has long been a subject of interest to researchers\\
 
-This paper presents an EKF based pose estimation and tracking for situations where direct sensing is not feasible. We expand on the work of Fathian and Dani, \cite{quest} and \cite{vest}, by using their vision based pose and velocity estimation as remote sensing measurements to our EKF model.
+This paper presents an EKF based pose estimation and tracking for situations where direct sensing is not feasible. We expand on the work of Fathian and Dani, \cite{quest} and \cite{vest}, by using their vision-based pose and velocity estimation as remote sensing measurements to our EKF model.
 
 
 Short sentences on what we will present
@@ -598,8 +601,38 @@ where H is a \(12 \times 9\) matrix. x is a \(9 \times 1\) matrix.
 
 
 
-\subsection{Abbreviations and Acronyms}
-Defib
+\subsection{On QuEst Python Implementation}
+The new source code has been compared against the original implementation line by line
+and so far everything has matched and with few improvements. There are
+three notable improvements thus far, 1) better feature matching and ranking
+of best-matched features between frames, 2) and more fine-tuned control
+over of variable data type in Python with Numpy Quaternion module. 3) Also,
+the Python implementation has resulted in fewer nonzero Quaternion solutions
+for equation 20 in \cite{quest}.\\
+In the new Python implementation, I took advantage of highly the developed
+OpenCV modules and used ORB feature detector instead of SIFT. The initial
+results have been very promising and ORB is supposed to have a shorter
+detection time than SIFT. I still need to time my implementation and
+compare it against what is presented in \cite{quest}. Moreover, for this
+implementation, I used Numpy Quaternion module that provides a fast and
+reliable Quaternion algebra library. By default, it declares all
+floating-point variables as \emph{float64} and it has a dedicated Quaternion data
+type, i.e. \emph{Quaternion}. In Numpy, a Quaternion is declared as a set
+of four \emph{float128} variables. In order to preserve full numerical
+accuracy, all data handlers are declared \emph{float128} at initialization
+instead of default data type, \emph{float64}. Additionally, the
+implementation repeatedly produces a smaller set of solutions compared to
+it Matlab implementation, 24 instead 32. This is beneficial since it shrinks
+the pool of possible solutions. The root cause of this is under
+investigation but it might be related to numerical accuracy and the
+computational rounding effect.
+For the evaluation part, we followed \cite{huynh2009metrics}
+where the author presented six functions for measuring the distance between 3D
+rotations. This is particularly trickly for Quaternions as they are
+normalized when representing rotation from the previous frame or relative
+orientation. The paper presents 5 metrics that are suitable for operation
+on \emph{SO(3)}, three of which I am currently implementing.\\
+
 
 \subsection{Units}
 
