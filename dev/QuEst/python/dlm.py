@@ -35,10 +35,12 @@ class dlm:
     self.log_dat(i, col+'_w', np.float128(q.w), alg)
     return
 
-  def log_state_exec(self,i,q,qs,qr,t,tr,Qerr,Terr,alg):
+  def log_state(self,i,q,qs,qr,t,tr,Qerr,Terr,alg):
     assert self.enabled, '\n\ndata logger DISABLES\n\n'
     #todo: format the data to be logged.
     #i,q,qs,qr,t,tr,Qerr,Terr,alg
+    st()
+
 
     if(self.i_hist is None) or\
       (self.q_hist is None) or\
@@ -49,7 +51,7 @@ class dlm:
       (self.Qerr_hist is None) or\
       (self.Terr_hist is None) or\
       (self.alg_hist is None):
-        self.i_hist = np.copy(i.flatten())
+        self.i_hist = np.copy(i)
         self.q_hist = np.copy(q.flatten())
         self.qs_hist = np.copy(q.flatten())
         self.qr_hist = np.copy(qr.flatten())
@@ -57,9 +59,11 @@ class dlm:
         self.tr_hist = np.copy(tr.flatten())
         self.Qerr_hist = np.copy(Qerr.flatten())
         self.Terr_hist = np.copy(Terr.flatten())
-        self.alg_hist = np.copy(alg.flatten())
+        self.alg_hist = np.copy(alg)
+
+        st()
     else:
-      self.i_hist = np.concatenate((self.i_hist, i.flatten()), axis=0)
+      self.i_hist = np.concatenate((self.i_hist, i), axis=0)
       self.q_hist = np.concatenate((self.q_hist, q.flatten()), axis=0)
       self.qs_hist = np.concatenate((self.qs_hist, qs.flatten()), axis=0)
       self.qr_hist = np.concatenate((self.qr_hist, qr.flatten()), axis=0)
@@ -68,17 +72,26 @@ class dlm:
       self.Qerr_hist = np.concatenate((self.Qerr_hist, Qerr.flatten()), axis=0)
       self.Terr_hist = np.concatenate((self.Terr_hist, Terr.flatten()), axis=0)
       self.alg_hist = np.concatenate((self.alg_hist, alg.flatten()), axis=0)
+    st()
+
+    self.prt()
     return
 
 
 
 
 
-  def prt_info(self, N=5):
-    if self.enabled == True:
-      print(self.df.info())
-      print(self.df.head(N))
-    else: assert self.enabled, '\n\ndata logger is DISABLED!\n\n'
+  def prt(self):
+    assert self.enabled, '\n\ndata logger is DISABLED!\n\n'
+    nprint('self.i_hist', self.i_hist)
+    nprint('self.q_hist', self.q_hist)
+    nprint('self.qs_hist', self.qs_hist)
+    nprint('self.qr_hist', self.qr_hist)
+    nprint('self.t_hist', self.t_hist)
+    nprint('self.tr_hist', self.tr_hist)
+    nprint('self.Qerr_hist', self.Qerr_hist)
+    nprint('self.Terr_hist', self.Terr_hist)
+    nprint('self.alg_hist', self.alg_hist)
     st()
     return
 

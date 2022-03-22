@@ -87,14 +87,14 @@ def main():
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
         M, inliers = QRANSAC0102(matches, ranThresh)
-        Qs = M.Q
+        qs = M.Q
         tOut = M.t
       elif alg == 'QuEst_v0708':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, minPts)
-        Qs = QuEst(m=m1, n=m2)
+        qs = QuEst(m=m1, n=m2)
         m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
-        Qs = QuEst(m=m1, n=m2)
-        q, q_idx = get_closestQuat(qr,Qs)
+        qs = QuEst(m=m1, n=m2)
+        q, q_idx = get_closestQuat(qr,qs)
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
 
       else:
@@ -108,7 +108,7 @@ def main():
       Q_err = phi03_dist(qr, q)
       T_err = get_TransError(tr, t)
       # st()
-      dlog.log_state(i,q,qr,t,tr,Q_err,T_err,alg)
+      dlog.log_state(i,q,qs,qr,t,tr,Q_err,T_err,alg)
       dlog.prt_info()
       st()
 
