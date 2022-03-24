@@ -16,13 +16,11 @@ lhead       = '\n\-->> '
 shead       = '\-->> '
 lltail      = '\n\n\n'
 ltail       = '\n\n'
-stail       = '\n'
+stail       = ''
 attn        = 'here ----------- <<<<<\n\n'
 
 np.set_printoptions(precision=_prec)
 pd.set_option('display.float_format', lambda x: f'%.{_prec}f' % x)
-
-
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)

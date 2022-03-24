@@ -15,7 +15,32 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
-# def get_quat_error()
+def concat_w_padding(qs_h:np.ndarray,qs:np.ndarray,axis=0):
+  npprint('qs_h', qs_h)
+  npprint('qs', qs)
+  st()
+
+  return qs_n
+
+
+
+def quat2np(q:np.quaternion,_dtype=np.float128):
+  w = np.float128(q.w)
+  x = np.float128(q.x)
+  y = np.float128(q.y)
+  z = np.float128(q.z)
+  q_np = np.asarray([w,x,y,z],dtype=_dtype).reshape(1,-1) # make row vec
+  # npprint('q_np', q_np)
+  # st()
+  return q_np
+
+def quats2np(qs:np.ndarray,axis=0,_dtype=np.float128):
+  qs_np = list()
+  for q in qs[:,0]:
+    qs_np.append(quat2np(q,_dtype))
+  if axis: qs_np = np.asarray(qs_np,_dtype).reshape(-1,4)
+  else: qs_np = np.asarray(qs_np,_dtype).reshape(1,-1)
+  return qs_np
 
 def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   ''' compute quaternion error and rank using designated metric.

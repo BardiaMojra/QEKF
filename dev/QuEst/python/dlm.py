@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+''' private modules '''
+from utils import *
 from pdb import set_trace as st
 from nbug import *
 
@@ -35,11 +37,31 @@ class dlm:
     self.log_dat(i, col+'_w', np.float128(q.w), alg)
     return
 
-  def log_state(self,i,q,qs,qr,t,tr,Qerr,Terr,alg):
+
+
+  def log_state(self,i:int,q:np.quaternion,qs:np.ndarray,qr:np.quaternion,
+                t:np.ndarray,tr:np.ndarray,Qerr:np.float128,Terr:np.float128,
+                alg:str,_dtype=np.float128):
     assert self.enabled, '\n\ndata logger DISABLES\n\n'
-    #i,q,qs,qr,t,tr,Qerr,Terr,alg
-    st()
     #todo: format the data to be logged.
+    #i,q,qs,qr,t,tr,Qerr,Terr,alg
+    # nprint('i', i)
+    # nprint('q', q)
+    # nprint('qs', qs)
+    # nprint('qr', qr)
+    # nprint('t', t)
+    # nprint('tr', tr)
+    # nprint('Qerr', Qerr)
+    # nprint('Terr', Terr)
+    # nprint('alg', alg)
+    # st()
+
+    self.prt()
+    i = np.asarray([[i]], dtype=_dtype).reshape(1,1)
+    q = quat2np(q)
+    qs = quats2np(qs)
+    qr = quat2np(qr)
+    st()
 
     if(self.i_hist is None) or\
       (self.q_hist is None) or\
@@ -51,18 +73,22 @@ class dlm:
       (self.Terr_hist is None) or\
       (self.alg_hist is None):
         self.i_hist = np.copy(i)
-        self.q_hist = np.copy(q.flatten())
-        self.qs_hist = np.copy(q.flatten())
-        self.qr_hist = np.copy(qr.flatten())
-        self.t_hist = np.copy(t.flatten())
-        self.tr_hist = np.copy(tr.flatten())
-        self.Qerr_hist = np.copy(Qerr.flatten())
-        self.Terr_hist = np.copy(Terr.flatten())
+        self.q_hist = np.copy(q)
+        self.qs_hist = np.copy(qs)
+        self.qr_hist = np.copy(qr)
+        self.t_hist = np.copy(t)
+        self.tr_hist = np.copy(tr)
+        self.Qerr_hist = np.copy(Qerr)
+        self.Terr_hist = np.copy(Terr)
         self.alg_hist = np.copy(alg)
     else:
-      self.i_hist = np.concatenate((self.i_hist, i), axis=0)
-      self.q_hist = np.concatenate((self.q_hist, q.flatten()), axis=0)
-      self.qs_hist = np.concatenate((self.qs_hist, qs.flatten()), axis=0)
+      st()
+      self.i_hist = np.concatenate((self.i_hist,i), axis=0)
+      self.q_hist = np.concatenate((self.q_hist,q), axis=0)
+
+      # self.qs_hist = np.concatenate((self.qs_hist, qs.flatten()), axis=0)
+      self.qs_hist = concat_w_padding(self.qs_hist, qs, axis=0)
+
       self.qr_hist = np.concatenate((self.qr_hist, qr.flatten()), axis=0)
       self.t_hist = np.concatenate((self.t_hist, t.flatten()), axis=0)
       self.tr_hist = np.concatenate((self.tr_hist, tr.flatten()), axis=0)
@@ -70,10 +96,6 @@ class dlm:
       self.Terr_hist = np.concatenate((self.Terr_hist, Terr.flatten()), axis=0)
       self.alg_hist = np.concatenate((self.alg_hist, alg.flatten()), axis=0)
     return
-
-
-
-
 
   def prt(self):
     assert self.enabled, '\n\ndata logger is DISABLED!\n\n'
