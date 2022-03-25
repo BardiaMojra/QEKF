@@ -16,9 +16,11 @@ matlab_coefs_outPath = '../matlab/quest_5p_ransac/out/KITTI/keypoints/'
 
 
 ''' #todo
-# replace error metric with one from paper
-# test against gt -- make sure residual is small
-# get translations,
+# implement ransac
+# explore other datasets with kp in frame the whole time
+or
+# implement the chaining feature
+# explore Mask-RCNN for excluding cars and people
 '''
 
 ''' general config '''
@@ -61,8 +63,8 @@ def main():
 
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
-    # imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
-    # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+    imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
+    plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
 
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
@@ -133,6 +135,7 @@ def main():
     # st()
 
     # store the current image for the next iteration
+    #todo: test this, keep reference at t=0, instead of frame by frame
     Im_p = Im_n
     kp_p = kp_n
   print('end of quest data iterator ----->>')
@@ -141,21 +144,11 @@ def main():
 
   ''' print results '''
   dlog.prt_log()
-  print(llhead+'results and statistics')
-  nprint('rotation error mean', np.mean(dlog.Qerr_hist))
-  nprint('rotation error std', np.std(dlog.Qerr_hist))
-  nprint('rotation error median', np.median(dlog.Qerr_hist))
-  # rotErrS = std(rotErr,1);             % Standard deviation
-  # rotErrMd = median(rotErr,1);         % Median
-  # rotErrQ1 = quantile(rotErr,0.25, 1); % 25% quartile
-  # rotErrQ3 = quantile(rotErr,0.75, 1); % 75% quartile
-  # tranErrM = mean(tranErr,1);
-  # tranErrS = std(tranErr,1);
-  # tranErrMd = median(tranErr,1);
-  # tranErrQ1 = quantile(tranErr,0.25, 1);
-  # tranErrQ3 = quantile(tranErr,0.75, 1);
+  dlog.prt_stats()
 
-  print('\\------')
+
+
+  print('\\------>>>>')
   st()
 
   return # end of main

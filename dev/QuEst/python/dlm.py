@@ -84,6 +84,19 @@ class dlm:
       self.alg_hist = np.concatenate((self.alg_hist, alg), axis=0)
     return
 
+  def prt_stats(self):
+    print('\n >> results and statistics << ')
+    tbprint('rotation error mean',   np.mean(self.Qerr_hist))
+    tbprint('rotation error std',    np.std(self.Qerr_hist))
+    tbprint('rotation error median', np.median(self.Qerr_hist))
+    tbprint('rotation 25% quantile', np.quantile(self.Qerr_hist, 0.25))
+    tbprint('rotation 75% quantile', np.quantile(self.Qerr_hist, 0.75))
+    tbprint('translation error mean',   np.mean(self.Terr_hist))
+    tbprint('translation error std',    np.std(self.Terr_hist))
+    tbprint('translation error median', np.median(self.Terr_hist))
+    tbprint('translation 25% quantile', np.quantile(self.Terr_hist, 0.25))
+    tbprint('translation 75% quantile', np.quantile(self.Terr_hist, 0.75))
+
   def prt_log(self):
     assert self.enabled, '\n\ndata logger is DISABLED!\n\n'
     npprint('self.i_hist', self.i_hist)
@@ -115,6 +128,7 @@ def concat_w_padding(qs_h:np.ndarray,qs:np.ndarray,_axis=0):
   # npprint('qs_n', qs_n)
   return qs_n
 
-
+def tbprint(string, args=None):
+  print('\-->> '+string+': '+str(args))
 
 # EOF

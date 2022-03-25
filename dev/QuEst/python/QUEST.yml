@@ -8,6 +8,7 @@ dependencies:
   - python
   - numpy
   - scipy
+  - scikit-learn
   # - lapack # scipy.linalg.svd dep on this
   # - mkl #
   - numba
@@ -21,6 +22,5 @@ dependencies:
   # - py-opencv
   - pip
   - pip:
-      # - scipy
       - opencv-python
       - opencv-contrib-python

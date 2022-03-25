@@ -1,16 +1,28 @@
 import cv2 as cv
 
+from sklearn.base import RegressorMixin
+from sklearn.base import TransformerMixin
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import oneHotEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
 ''' private modules '''
 from nbug import *
 from pdb import set_trace as st
 
-''' global routines '''
-def QuEst_RANSAC_v01_2(x1, x2, RANSAC_threshold):
-  ''' QuEst_RANSAC estimates the pose between two camera views using RANSAC
+Pipeline([
+  ('sc', StandardScaler()),
+  ('km', KMeansSomehow()),
+  ('lr', LogisticRegression())
+])
+
+class QuEst_RANSAC(RegressorMixin):
+  def fit(self, X, y, RANSAC_threshold):
+    ''' QuEst_RANSAC estimates the pose between two camera views using RANSAC
     and QuEst algorithm.
     Input:
-          x1  - 3xN set of mathced feature point coordinates
+          x1  - 3xN set of matched feature point coordinates
                 (Euclidean coordinates).
           x2  - 3xN set of feature point coordinates points such that x1
                 is matched with x2.
@@ -37,29 +49,33 @@ def QuEst_RANSAC_v01_2(x1, x2, RANSAC_threshold):
     ------------------------------------------------------------------
     Ver 1_1: RANSAC based on Fundamental matrix
     Ver 1_2: x1, x2 are Euclidean coordinates '''
-  assert x1.shape == x2.shape, lhead+'ERR: images have diff dimensions'+stail
-  # normalize the points in l^1 norm
-  x1 = x1 / sum(abs(x1))
-  x2 = x2 / sum(abs(x2))
-  s = 6;  # Number of points needed to uniquely fit a fundamental matrix.
-          # Note that only 5 points are needed to estimate the pose, but
-          # with 5 points the solution is not unique.
-  ptrs = {'fittingfn': PoseEstimator,
-           'distfn': FundDist,
-           'degenfn': IsDegenerate}
+    assert x1.shape == x2.shape, lhead+'ERR: images have diff dimensions'+stail
+    # normalize the points in l^1 norm
+    x1 = x1 / sum(abs(x1))
+    x2 = x2 / sum(abs(x2))
+    s = 6; # Number of points needed to uniquely fit a fundamental matrix.
+           # Note that only 5 points are needed to estimate the pose, but
+           # with 5 points the solution is not unique.
+
+
+  # ptrs = {'fittingfn': PoseEstimator,
+          #  'distfn': FundDist,
+          #  'degenfn': IsDegenerate}
   # x1 and x2 are 'stacked' to create a 6xN array for ransac
-  x = np.concatenate([x1, x2], axis=1)
-  nprint('x[5:,:]', x[5:,:])
-  M, inliers = ransac(x, ptrs['fittingfn'], ptrs['distfn'],\
-                      ptrs['degenfn'], s, RANSAC_threshold)
-  # now do a final fit on the data points considered to be inliers
-  # Mb = feval(fittingfn, [x1(:,inliers); x2(:,inliers)]);
-  return M, inliers
+
+    x = np.concatenate([x1, x2], axis=1)
+    nprint('x[5:,:]', x[5:,:])
+    # M, inliers = ransac(x, ptrs['fittingfn'], ptrs['distfn'],\
+                        # ptrs['degenfn'], s, RANSAC_threshold)
+    # now do a final fit on the data points considered to be inliers
+    # Mb = feval(fittingfn, [x1(:,inliers); x2(:,inliers)]);
 
 
+    self.y_bar = np.mean(y)
+    return # end of fit
 
-def FundDist(M, x, t):
-  ''' Distance function
+  def predict(self,M,X,t):
+    ''' Distance function
     Function to evaluate the first order approximation of the geometric error
     (Sampson distance) of the fit of a fundamental matrix with respect to a
     set of matched points as needed by RANSAC. See: Hartley and Zisserman,
@@ -68,46 +84,54 @@ def FundDist(M, x, t):
     which we have to pick the best one. (A 7 point solution can return up to 3
     solutions) '''
 
-  x1 = x[:,0:3]
-  x2 = x[:,3:6]
-  F = M.F;
+    x1 = X[:,0:3]
+    x2 = X[:,3:6]
+    F = M.F;
 
-  if len(F) > 1: # we have several solutions each of which must be tested
-    nF = len(F) # Number of solutions to test
-    bestM = M
-    bestM.F = F[0] # initial allocation of best solution
-    ninliers = 0 # number of inliers
+    if len(F) > 1: # we have several solutions each of which must be tested
+      nF = len(F) # Number of solutions to test
+      bestM = M
+      bestM.F = F[0] # initial allocation of best solution
+      ninliers = 0 # number of inliers
 
-    for k in range(1,nF):
-      x2tFx1 = np.zeros(1, len(x1))
-      for n in range(1,len(x1)):
-        x2tFx1[n] = x2[:,n].T @ F[k] @ x1[:,n]
-      Fx1  = F[k] @ x1
-      Ftx2 = F[k].T @ x2
-      # evaluate distances
-      d = x2tFx1**2/(Fx1[:,0]**2 + Fx1[1,:]**2 + Ftx2[0,:]**2 + Ftx2[1,:]**2)
+      for k in range(1,nF):
+        x2tFx1 = np.zeros(1, len(x1))
+        for n in range(1,len(x1)):
+          x2tFx1[n] = x2[:,n].T @ F[k] @ x1[:,n]
+        Fx1  = F[k] @ x1
+        Ftx2 = F[k].T @ x2
+        # evaluate distances
+        d = x2tFx1**2/(Fx1[:,0]**2 + Fx1[1,:]**2 + Ftx2[0,:]**2 + Ftx2[1,:]**2)
 
-      inliers = np.nonzero(abs(d) < t) # indices of inlying points
+        inliers = np.nonzero(abs(d) < t) # indices of inlying points
 
-      if len(inliers) > ninliers:   # Record best solution
-        ninliers = len(inliers)
-        bestM.F = F[k]
-        bestInliers = inliers;
-  else: # we just have one solution
-    x2tFx1 = np.zeros(1,len(x1))
-    for n in range(len(x1)):
-      x2tFx1[n] = x2[:,n].T @ F @ x1[:,n]
+        if len(inliers) > ninliers:   # Record best solution
+          ninliers = len(inliers)
+          bestM.F = F[k]
+          bestInliers = inliers;
+    else: # we just have one solution
+      x2tFx1 = np.zeros(1,len(x1))
+      for n in range(len(x1)):
+        x2tFx1[n] = x2[:,n].T @ F @ x1[:,n]
 
-    Fx1  = F @ x1
-    Ftx2 = F.T @ x2
+      Fx1  = F @ x1
+      Ftx2 = F.T @ x2
 
-    # Evaluate distances (Sampson Distance)
-    d =  x2tFx1**2 / (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+      # Evaluate distances (Sampson Distance)
+      d =  x2tFx1**2 / (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
 
-    bestInliers = find(abs(d) < t);     % Indices of inlying points
-    bestM = M;                          % Copy M directly to bestM
+      bestInliers = find(abs(d) < t);     % Indices of inlying points
+      bestM = M;                          % Copy M directly to bestM
 
-  return bestInliers, bestM
+    # return bestInliers, bestM
+
+    return np.ones(X.shape[0]) * self.y_bar
+
+
+class KMeansTransformer(TransformerMixin)
+
+
+
 
 %% Check degeneracy
 % Function to determine if a set of matched points will result
