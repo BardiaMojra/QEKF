@@ -43,25 +43,16 @@ class dlm:
                 t:np.ndarray,tr:np.ndarray,Qerr:np.float128,Terr:np.float128,
                 alg:str,_dtype=np.float128):
     assert self.enabled, '\n\ndata logger DISABLES\n\n'
-    #todo: format the data to be logged.
-    #i,q,qs,qr,t,tr,Qerr,Terr,alg
-    # nprint('i', i)
-    # nprint('q', q)
-    # nprint('qs', qs)
-    # nprint('qr', qr)
-    # nprint('t', t)
-    # nprint('tr', tr)
-    # nprint('Qerr', Qerr)
-    # nprint('Terr', Terr)
-    # nprint('alg', alg)
-    # st()
 
-    self.prt()
-    i = np.asarray([[i]], dtype=_dtype).reshape(1,1)
+    i = np.asarray([[i]], dtype=int).reshape(1,1)
     q = quat2np(q)
     qs = quats2np(qs)
     qr = quat2np(qr)
-    st()
+    t = np.asarray(t, dtype=_dtype).reshape(1,-1)
+    tr = np.asarray(tr, dtype=_dtype).reshape(1,-1)
+    Qerr = np.asarray([[Qerr]], dtype=_dtype).reshape(1,1)
+    Terr = np.asarray([[Terr]], dtype=_dtype).reshape(1,1)
+    alg = np.asarray([[alg]], dtype=str).reshape(1,1)
 
     if(self.i_hist is None) or\
       (self.q_hist is None) or\
@@ -82,35 +73,47 @@ class dlm:
         self.Terr_hist = np.copy(Terr)
         self.alg_hist = np.copy(alg)
     else:
-      st()
       self.i_hist = np.concatenate((self.i_hist,i), axis=0)
       self.q_hist = np.concatenate((self.q_hist,q), axis=0)
-
-      # self.qs_hist = np.concatenate((self.qs_hist, qs.flatten()), axis=0)
-      self.qs_hist = concat_w_padding(self.qs_hist, qs, axis=0)
-
-      self.qr_hist = np.concatenate((self.qr_hist, qr.flatten()), axis=0)
-      self.t_hist = np.concatenate((self.t_hist, t.flatten()), axis=0)
-      self.tr_hist = np.concatenate((self.tr_hist, tr.flatten()), axis=0)
-      self.Qerr_hist = np.concatenate((self.Qerr_hist, Qerr.flatten()), axis=0)
-      self.Terr_hist = np.concatenate((self.Terr_hist, Terr.flatten()), axis=0)
-      self.alg_hist = np.concatenate((self.alg_hist, alg.flatten()), axis=0)
+      self.qs_hist = concat_w_padding(self.qs_hist,qs,_axis=0)
+      self.qr_hist = np.concatenate((self.qr_hist,qr), axis=0)
+      self.t_hist = np.concatenate((self.t_hist, t), axis=0)
+      self.tr_hist = np.concatenate((self.tr_hist, tr), axis=0)
+      self.Qerr_hist = np.concatenate((self.Qerr_hist, Qerr), axis=0)
+      self.Terr_hist = np.concatenate((self.Terr_hist, Terr), axis=0)
+      self.alg_hist = np.concatenate((self.alg_hist, alg), axis=0)
     return
 
-  def prt(self):
+  def prt_log(self):
     assert self.enabled, '\n\ndata logger is DISABLED!\n\n'
-    nprint('self.i_hist', self.i_hist)
-    nprint('self.q_hist', self.q_hist)
-    nprint('self.qs_hist', self.qs_hist)
-    nprint('self.qr_hist', self.qr_hist)
-    nprint('self.t_hist', self.t_hist)
-    nprint('self.tr_hist', self.tr_hist)
-    nprint('self.Qerr_hist', self.Qerr_hist)
-    nprint('self.Terr_hist', self.Terr_hist)
-    nprint('self.alg_hist', self.alg_hist)
+    npprint('self.i_hist', self.i_hist)
+    npprint('self.q_hist', self.q_hist)
+    npprint('self.qs_hist', self.qs_hist)
+    npprint('self.qr_hist', self.qr_hist)
+    npprint('self.t_hist', self.t_hist)
+    npprint('self.tr_hist', self.tr_hist)
+    npprint('self.Qerr_hist', self.Qerr_hist)
+    npprint('self.Terr_hist', self.Terr_hist)
+    npprint('self.alg_hist', self.alg_hist)
     return
 
-
+def concat_w_padding(qs_h:np.ndarray,qs:np.ndarray,_axis=0):
+  w = max(qs_h.shape[1],qs.shape[1])
+  if qs_h.shape[1] == qs.shape[1]:
+    pass
+  elif qs_h.shape[1] > qs.shape[1]:
+    pad = np.zeros((1,w-qs.shape[1]),dtype=type(qs_h.dtype))
+    qs = np.concatenate((qs,pad),axis=1)
+  elif qs_h.shape[1] < qs.shape[1]:
+    pad = np.zeros((qs_h.shape[0],w-qs_h.shape[1]),dtype=type(qs_h.dtype))
+    qs_h = np.concatenate((qs_h,pad),axis=1)
+  else:
+    assert True, lhead+'IMPOSSIBLE!'+stail
+  # npprint('qs_h', qs_h)
+  # npprint('qs', qs)
+  qs_n = np.concatenate((qs_h,qs),axis=_axis)
+  # npprint('qs_n', qs_n)
+  return qs_n
 
 
 

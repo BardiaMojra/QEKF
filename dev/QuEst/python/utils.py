@@ -15,12 +15,7 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
-def concat_w_padding(qs_h:np.ndarray,qs:np.ndarray,axis=0):
-  npprint('qs_h', qs_h)
-  npprint('qs', qs)
-  st()
 
-  return qs_n
 
 
 
@@ -261,6 +256,17 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
   # mats.prt() # keep
   return mats, m1, m2
 
+def retKPs_pxl(matches:Dmatch_obj):
+  kps1 = matches.p1[:,:2].astype(np.int64).copy()
+  kps2 = matches.p2[:,:2].astype(np.int64).copy()
+  npprint('kps1', kps1)
+  npprint('kps2', kps2)
+  st()
+  return kps1, kps2
+
+
+
+
 # def MatchFeaturePoints(Ip, ppoints, In, npoints, dset, maxPts, alg='ORB'):
 #   f1, vp1 = GetFeaturePoints(Ip,ppoints);
 #   f2, vp2 = GetFeaturePoints(In,npoints);
@@ -316,9 +322,9 @@ def RelativeGroundTruth(i, dset):
     rot = quaternion.as_rotation_matrix(np.conj(q2))
     # nprint('rot', rot)
     tr = rot @ (t2 - t1)
-    npprint('t1', t1)
-    npprint('t2', t2)
-    npprint('tr', tr)
+    # npprint('t1', t1)
+    # npprint('t2', t2)
+    # npprint('tr', tr)
     # st()
   elif bench == 'NAIST':
     # In this dataset the absolute pose is given in the camera coordinate

@@ -83,10 +83,10 @@ class dmm:
     camParams, K, dist = get_calib_matrix(bench, datapath, benchnum)
     t0, q0, T_gt, Q_gt  = load_gt(bench, datapath, benchnum)
 
-    # nprint('t0', t0)
+    # npprint('t0', t0)
     # nprint('q0', q0)
-    # nprint('Q_gt[:5]', Q_gt[:5])
-    # nprint('T_gt[:5]', T_gt[:5])
+    # npprint('Q_gt[:5]', Q_gt[:5])
+    # npprint('T_gt[:5]', T_gt[:5])
     # st()
 
     self.fnames = fnames

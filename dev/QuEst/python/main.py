@@ -57,7 +57,7 @@ def main():
 
   ''' recover Pose using RANSAC and compare with ground truth '''
   for i in range(1, len(keyFrames)):
-    print('\ ------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
+    print('\n\n\ -----------===========---------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
 
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
@@ -74,8 +74,8 @@ def main():
 
     # get ground truth
     qr, tr = RelativeGroundTruth(i, dset)
-    nprint('qr', qr)
-    nprint('tr', tr)
+    # nprint('qr', qr)
+    # nprint('tr', tr)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
@@ -92,8 +92,8 @@ def main():
       elif alg == 'QuEst_v0708':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, minPts)
         qs = QuEst(m=m1, n=m2)
-        m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
-        qs = QuEst(m=m1, n=m2)
+        # m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
+        # qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr,qs)
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
 
@@ -109,19 +109,28 @@ def main():
       T_err = get_TransError(tr, t)
       # st()
       dlog.log_state(i,q,qs,qr,t,tr,Q_err,T_err,alg)
-      dlog.prt()
-      st()
+      # dlog.prt_log()
+      # st()
 
-    # end of for alg
+
+    # end of for alg ----
 
     # display images with matched feature points
     # plt.imshow(Im_p); plt.show()
-    imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
-    plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+    # npprint('matches.p1', matches.p1)
+    # npprint('matches.p2', matches.p2)
+    # st()
+    # kps1, kps2 = retKPs_pxl(matches)
+
+
+
+
+    # imageKeys = cv.drawMatches(Im_p,kps1,Im_n,kps2,matches,None,flags=4)
+    # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
     # Im_match = cv.drawMatches(Im_n, kp_n, Im_p, kp_p, matches, None,\
       # flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    fignum+=1; write_image(fignum, imageKeys, dmm.outDir)
-    st()
+    # fignum+=1; write_image(fignum, imageKeys, dmm.outDir)
+    # st()
 
     # store the current image for the next iteration
     Im_p = Im_n
@@ -130,16 +139,12 @@ def main():
 
   ''' end processing '''
 
-
-  # print results
-  # Remove NaN entries (corresponding to skipped frames)
-  # nanIdx = find( sum(isnan(rotErr),2) );
-  # rotErr(nanIdx,:) = [];
-  # tranErr(nanIdx,:) = [];
-  # numKeyFrames = size(rotErr,1);
-
-  # statistics of error for rotation and translation estimates
-  # rotErrM = mean(rotErr,1);            % Mean
+  ''' print results '''
+  dlog.prt_log()
+  print(llhead+'results and statistics')
+  nprint('rotation error mean', np.mean(dlog.Qerr_hist))
+  nprint('rotation error std', np.std(dlog.Qerr_hist))
+  nprint('rotation error median', np.median(dlog.Qerr_hist))
   # rotErrS = std(rotErr,1);             % Standard deviation
   # rotErrMd = median(rotErr,1);         % Median
   # rotErrQ1 = quantile(rotErr,0.25, 1); % 25% quartile
@@ -150,17 +155,8 @@ def main():
   # tranErrQ1 = quantile(tranErr,0.25, 1);
   # tranErrQ3 = quantile(tranErr,0.75, 1);
 
-  # Table of results
-  # RowNames = ['Rot err mean', 'Rot err std', 'Rot err median',
-  #             'Rot err Q_1', 'Rot err Q_3',
-              # # 'Tran err mean', 'Tran err std', 'Tran err median',
-  #             # 'Tran err Q_1', 'Tran err Q_3']
-  # # data = [rotErrM, rotErrS, rotErrMd,
-  #         # rotErrQ1, rotErrQ3,
-          # # tranErrM, tranErrS, tranErrMd,
-  #         # tranErrQ1, tranErrQ3]
-  # # table(data(:,1),'RowNames',RowNames, 'VariableNames', algorithms)
-
+  print('\\------')
+  st()
 
   return # end of main
 

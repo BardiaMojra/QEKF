@@ -44,8 +44,8 @@ benchnum = 3;
 %% Set parameters
 
 % Algorithms to run
-% algorithms = {'QuEst_RANSAC_v0102'};
-algorithms = {'QuEst_v0708'};
+algorithms = {'QuEst_RANSAC_v0102'};
+%algorithms = {'QuEst_v0708'};
 
 % Keyframes
 skipFrame = 0;         % This is the number of frames that are skiped between two key frames
@@ -119,8 +119,8 @@ for i = keyFrames
         end
 
 %         % Find the closet quaternion and translation to the ground truth    
-%         [q, matchIdx] = FindClosetQVer2_2(relPose.qr, q);
-%         t = FindClosetTrans(relPose.tr, [tOut,-tOut]);        
+        [q, matchIdx] = FindClosetQVer2_2(relPose.qr, q);
+        t = FindClosetTrans(relPose.tr, [tOut,-tOut]);        
         t = -tOut;
         
         % Calculate the estimation error
