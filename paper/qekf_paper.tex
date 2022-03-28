@@ -613,7 +613,7 @@ In the new Python implementation, I took advantage of highly the developed
 OpenCV modules and used ORB feature detector instead of SIFT. The initial
 results have been very promising and ORB is supposed to have a shorter
 detection time than SIFT. I still need to time my implementation and
-compare it against what is presented in \cite{quest}. Moreover, for this
+to compare it against what is presented in \cite{quest}. Moreover, for this
 implementation, I used Numpy Quaternion module that provides a fast and
 reliable Quaternion algebra library. By default, it declares all
 floating-point variables as \emph{float64} and it has a dedicated Quaternion data
@@ -625,14 +625,24 @@ implementation repeatedly produces a smaller set of solutions compared to
 it Matlab implementation, 24 instead 32. This is beneficial since it shrinks
 the pool of possible solutions. The root cause of this is under
 investigation but it might be related to numerical accuracy and the
-computational rounding effect.
+computational rounding effect.\\
 For the evaluation part, we followed \cite{huynh2009metrics}
 where the author presented six functions for measuring the distance between 3D
 rotations. This is particularly trickly for Quaternions as they are
 normalized when representing rotation from the previous frame or relative
 orientation. The paper presents 5 metrics that are suitable for operation
 on \emph{SO(3)}, three of which I am currently implementing.\\
-
+We implemented \(\phi_3\) metric from \cite{huynh2009metrics} as it is the
+only metric we are interested in. The QuEst algorithm works but it produces
+inaccurate results by a factor of 100-1000 and it seems as
+if suboptimal point correspondences were picked for calculating rotation
+between frames. For this reason, I am now implementing RANSAC similar to
+Kaveh's original implementation. Next, I will implement \emph{semantic
+segmentation} for the KITTI dataset and it will be used to extract more
+consistent point correspondences. It is important to select feature points
+that are only from stationary objects and background, otherwise, including
+point correspondences from moving objects will introduce significant errors
+to pose triangulation.
 
 \subsection{Units}
 
