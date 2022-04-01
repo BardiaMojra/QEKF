@@ -2,61 +2,53 @@ import numpy as np
 import scipy as sc # use np if scipy unavailable
 import scipy.linalg as lalg # use np if scipy unavailable
 
-def ransac(data,model,n,k,t,d,debug=False,return_all=False):
+
+''' NBUG libraries '''
+from nbug import *
+from pdb import set_trace as st
+
+''' private libraries '''
+from quest import *
+
+def ransac_QuEst_h(m1,m2,model,max_iters,threshold,min_inliers,nbug=True,\
+                   return_all=True,_dtype=np.float128):
   """fit model parameters to data using the RANSAC algorithm
     This implementation written from pseudocode found at
     http://en.wikipedia.org/w/index.php?title=RANSAC&oldid=116358182
-    Given:
+    input:
       data - a set of observed data points
       model - a model that can be fitted to data points
-      n - the minimum number of data values required to fit the model
-      k - the maximum number of iterations allowed in the algorithm
-      t - a threshold value for determining when a data point fits a model
-      d - the number of close data values required to assert that a model fits
-      well to data
-    Return:
-      bestfit - model parameters which best fit the data (or nil if no good
-      model is found)
-    iterations = 0
-    bestfit = nil
-    besterr = something really large
-    while iterations < k {
-      maybeinliers = n randomly selected values from data
-      maybemodel = model parameters fitted to maybeinliers
-      alsoinliers = empty set
-      for every point in data not in maybeinliers {
-        if point fits maybemodel with an error smaller than t
-          add point to alsoinliers
-      if the number of elements in alsoinliers is > d {
-        % this implies that we may have found a good model
-        % now test how good it is
-        bettermodel = model parameters fitted to all points in maybeinliers and alsoinliers
-        thiserr = a measure of how well model fits these points
-        if thiserr < besterr {
-          bestfit = bettermodel
-          besterr = thiserr
-      increment iterations
-    return bestfit """
+      datum_min - min number of data values required to fit the model
+      iters_max  - max number of iterations allowed in the algorithm
+      threshold - threshold value for determining when a data point fits a model
+      inliers_min - the number of close data values required to assert that a model fits well to data
+    return:
+      bestfit - model parameters which best fit the data """
+  st()
+  data = np.concatenate((m1,m2), axis=1, dtype=_dtype)
   iterations = 0
   bestfit = None
   besterr = np.inf
   best_inlier_idxs = None
-  while iterations < k:
-    maybe_idxs, test_idxs = random_partition(n,data.shape[0])
+  for i in range(max_iters):
+    #todo explore ways to get points with SOME distance from each other
+    #todo test enforcing min distance between correspondences
+    maybe_idxs, test_idxs = random_partition(min_inliers,m1.shape[0])
+
     maybeinliers = data[maybe_idxs,:]
     test_points = data[test_idxs]
     maybemodel = model.fit(maybeinliers)
     test_err = model.get_error( test_points, maybemodel)
-    also_idxs = test_idxs[test_err < t] # select indices of rows with accepted points
+    also_idxs = test_idxs[test_err < threshold] # select indices of rows with accepted points
     alsoinliers = data[also_idxs,:]
-    if debug:
+    if nbug:
       print ('test_err.min()'+test_err.min())
       print ('test_err.max()'+test_err.max())
       print ('np.mean(test_err)'+np.mean(test_err))
       print ('iteration: {}', iterations)
       print('len(alsoinliers): {}', len(alsoinliers))
       print('\n\n')
-    if len(alsoinliers) > d:
+    if len(alsoinliers) > min_inliers:
       betterdata = np.concatenate( (maybeinliers, alsoinliers) )
       bettermodel = model.fit(betterdata)
       better_errs = model.get_error( betterdata, bettermodel)
@@ -73,20 +65,23 @@ def ransac(data,model,n,k,t,d,debug=False,return_all=False):
   else:
     return bestfit
 
+
+''' private routines '''
+
 def random_partition(n,n_data):
+  #todo try loading sparse random data points
   """return n random rows of data (and also the other len(data)-n rows)"""
   all_idxs = np.arange( n_data )
   np.random.shuffle(all_idxs)
   idxs1 = all_idxs[:n]
   idxs2 = all_idxs[n:]
   return idxs1, idxs2
-
-class QuEst:
+class QuEst_SampsonDist_Model:
   """QuEst_RANSAC estimates the pose between two camera views using RANSAC and
   QuEst algorithm. """
   def __init__(self, kps1, kps2, debug=False):
-    self.kps1 = kps1
-    self.kps2 = kps2
+    self.kps1 = kps1 # inputs X
+    self.kps2 = kps2 # outputs Y
     self.debug = debug
   def fit(self, data):
     ''' pose estimation: estimates the relative rotation and translation
@@ -99,13 +94,18 @@ class QuEst:
     Output:
       M      - A structure that contains the estimated pose.
     Copyright (c) 2016, Kaveh Fathian. The University of Texas at Dallas. '''
+
     # A = np.vstack([data[:,i] for i in self.input_columns]).T
     # B = np.vstack([data[:,i] for i in self.output_columns]).T
-    # x,resids,rank,s = scipy.linalg.lstsq(A,B)
+    # npprint('A',A)
+    # npprint('',A)
+
+    # x,resids,rank,s = scipy.linalg.lstsq(A,B) # replace with QuEst
     # est pose with QuEst
-    pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5)) # run QuEst algorithm
+    qs = QuEst(m=A, n=B)
+    # pose = QuEst_Ver1_1(A,B) # run QuEst algorithm
     # find the best solution
-    res = QuatResidueVer3_1(x1, x2, pose.Q); % Scoring function
+    res = QuatResidueVer3_1(x1, x2, pose.Q) # Scoring function
     resMin, mIdx = min(abs(res))
     q = pose.Q(:,mIdx);
     t = pose.T(:,mIdx);
@@ -151,14 +151,22 @@ def test():
     A_noisy[outlier_idxs] =  20*np.random.random((n_outliers,n_inputs) )
     B_noisy[outlier_idxs] = 50*np.random.normal(size=(n_outliers,n_outputs) )
   # setup model
+
+
   all_data = np.hstack( (A_noisy,B_noisy) )
   input_columns = range(n_inputs) # the first columns of the array
+
   output_columns = [n_inputs+i for i in range(n_outputs)] # the last columns of the array
+
   debug = False
+
   model = LinearLeastSquaresModel(input_columns,output_columns,debug=debug)
+
   linear_fit,resids,rank,s = scipy.linalg.lstsq(all_data[:,input_columns],
                                                 all_data[:,output_columns])
+
   # run RANSAC algorithm
+
   ransac_fit, ransac_data = ransac(all_data,model,
                                     50, 1000, 7e3, 300, # misc. parameters
                                     debug=debug,return_all=True)

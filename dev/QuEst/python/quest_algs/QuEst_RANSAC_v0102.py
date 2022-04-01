@@ -11,11 +11,14 @@ from sklearn.linear_model import LogisticRegression
 from nbug import *
 from pdb import set_trace as st
 
-Pipeline([
-  ('sc', StandardScaler()),
-  ('km', KMeansSomehow()),
-  ('lr', LogisticRegression())
-])
+# Pipeline([
+#   ('sc', StandardScaler()),
+#   ('km', KMeansSomehow()),
+#   ('lr', LogisticRegression())
+# ])
+
+
+
 
 class QuEst_RANSAC(RegressorMixin):
   def fit(self, X, y, RANSAC_threshold):

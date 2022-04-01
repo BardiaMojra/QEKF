@@ -132,6 +132,9 @@ class LinearLeastSquaresModel:
     def fit(self, data):
         A = numpy.vstack([data[:,i] for i in self.input_columns]).T
         B = numpy.vstack([data[:,i] for i in self.output_columns]).T
+        npprint('A',A)
+        npprint('A',A)
+
         x,resids,rank,s = scipy.linalg.lstsq(A,B)
         return x
     def get_error( self, data, model):

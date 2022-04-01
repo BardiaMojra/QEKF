@@ -1,7 +1,7 @@
 ''' main - QuEst '''
 # import numpy as np
 # import matplotlib
-import pandas as pd
+# import pandas as pd
 
 ''' private libraries '''
 from quest import *
@@ -24,19 +24,24 @@ or
 '''
 
 ''' general config '''
+NBUG          = True
 _show         = True
 _save         = True
 _prt          = True
 # _START        = 0
 # _END          = 150
-_ALGORITHMS   = ['QuEst_v0708'] #,'QuEst']
+_ALGORITHMS   = ['QuEst_RANSAC_v0102']
+# _ALGORITHMS   = ['QuEst_v0708']
 _BENCHTYPE    = 'KITTI'
 _BENCHNUM     = 3
 skipFrame     = 0 # num of frames that are skiped between two key frames
 ranThresh     = 1e-6 # RANSAC outlier threshold
 surfThresh    = 200 # SURF feature point detection threshold
-maxPts        = 30 # max num of feature points to use for pose est (lower value increases speed)
+maxPts        = 50 # max num of feature points to use for pose est (lower value increases speed)
 minPts        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
+min_inliers    = 5 #todo fix this
+maxIter       = 50 #todo fix this
+rThreshold    = 20 #todo fix this
 
 def main():
   global fignum; fignum = int(0)
@@ -88,9 +93,15 @@ def main():
     # recover pose and find error by comparing with the ground truth
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
-        M, inliers = QRANSAC0102(matches, ranThresh)
-        qs = M.Q
-        tOut = M.t
+        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, len(matches))
+
+        q, m1, m2 = rQuEst(m1, m2, QuEst,
+                           maxIter,
+                           rThreshold,
+                           min_inliers,
+                           debug=NBUG,
+                           return_all=True)
+        tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, minPts)
         qs = QuEst(m=m1, n=m2)
@@ -98,10 +109,8 @@ def main():
         # qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr,qs)
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
-
       else:
         eprint(str('algorithm is not supported: '+alg))
-
       # find the closet quaternion and translation to the ground truth
       # t = FindClosetTrans(tr, [tOut,-tOut]);
       t = -tOut
