@@ -13,9 +13,21 @@ from pdb import set_trace as st
 from quest import *
 from utils import *
 
-def ransac_QuEst_h(m1,m2,model,max_iters,threshold,min_inliers,nbug=True,\
-                   return_all=True,_dtype=np.float128):
-  """fit model parameters to data using the RANSAC algorithm
+
+
+
+class rmodel(object):
+  def __init__(self,q,t,m1,m2,F):
+    self.q  = q
+    self.t  = t
+    self.m1 = m1
+    self.m2 = m2
+    self.F  = F
+  # end of class rmodel(object): ------------------->> //
+
+class qransac:
+  """QuEst_RANSAC estimates the pose between two camera views using RANSAC and
+  QuEst algorithm. Fit model parameters to data using the RANSAC algorithm
     This implementation written from pseudocode found at
     http://en.wikipedia.org/w/index.php?title=RANSAC&oldid=116358182
     input:
@@ -27,64 +39,65 @@ def ransac_QuEst_h(m1,m2,model,max_iters,threshold,min_inliers,nbug=True,\
       inliers_min - the number of close data values required to assert that a model fits well to data
     return:
       bestfit - model parameters which best fit the data """
-  st()
-  data = np.concatenate((m1,m2), axis=1, dtype=_dtype)
-  iterations = 0
-  bestfit = None
-  besterr = np.inf
-  best_inlier_idxs = None
-  for i in range(max_iters):
-    #todo explore ways to get points with SOME distance from each other
-    #todo test enforcing min distance between correspondences
-    maybe_idxs, test_idxs = random_partition(min_inliers,m1.shape[0])
+  def __init__(self,m1,m2,max_iters,threshold,min_inliers,\
+               nbug=True,return_all=True,_dtype=np.float128):
+    self.m1 = m1  # inputs X
+    self.m2 = m2  # outputs Y
+    self.max_iters = max_iters
+    self.threshold = threshold
+    self.min_inliers = min_inliers
+    self.NBUG = nbug
+    self.return_all = return_all
+    self.dtype = _dtype
 
-    maybeinliers = data[maybe_idxs,:]
-    test_points = data[test_idxs]
-    maybemodel = model.fit(maybeinliers)
-    test_err = model.get_error( test_points, maybemodel)
-    also_idxs = test_idxs[test_err < threshold] # select indices of rows with accepted points
-    alsoinliers = data[also_idxs,:]
-    if nbug:
-      print ('test_err.min()'+test_err.min())
-      print ('test_err.max()'+test_err.max())
-      print ('np.mean(test_err)'+np.mean(test_err))
-      print ('iteration: {}', iterations)
-      print('len(alsoinliers): {}', len(alsoinliers))
-      print('\n\n')
-    if len(alsoinliers) > min_inliers:
-      betterdata = np.concatenate( (maybeinliers, alsoinliers) )
-      bettermodel = model.fit(betterdata)
-      better_errs = model.get_error( betterdata, bettermodel)
-      thiserr = np.mean( better_errs )
-      if thiserr < besterr:
-        bestfit = bettermodel
-        besterr = thiserr
-        best_inlier_idxs = np.concatenate( (maybe_idxs, also_idxs) )
-    iterations+=1
-  if bestfit is None:
-    raise ValueError("did not meet fit acceptance criteria")
-  if return_all:
-    return bestfit, {'inliers':best_inlier_idxs}
-  else:
-    return bestfit
+  def get_best_fit(self):
+    st()
+
+    # todo working here .........
 
 
-''' private routines '''
-def random_partition(n,n_data):
-  #todo try loading sparse random data points
-  """return n random rows of data (and also the other len(data)-n rows)"""
-  all_idxs = np.arange( n_data )
-  np.random.shuffle(all_idxs)
-  idxs1 = all_idxs[:n]
-  idxs2 = all_idxs[n:]
-  return idxs1, idxs2
-class QuEst_SampsonDist_Model:
-  """QuEst_RANSAC estimates the pose between two camera views using RANSAC and
-  QuEst algorithm. """
-  def __init__(self, kps1, kps2, debug=False):
-    self.kps1 = kps1 # inputs X
-    self.kps2 = kps2 # outputs Y
-    self.debug = debug
+    iterations = 0
+    bestfit = None
+    besterr = np.inf
+    best_inlier_idxs = None
+    for i in range(self.max_iters):
+      #todo explore ways to get points with SOME distance from each other
+      #todo test enforcing min distance between correspondences
+      maybe_idxs = self.random_partition(self.min_inliers,self.m1.shape[0])
+
+      maybeinliers = self.m1[:,maybe_idxs]
+
+
+
+      maybemodel = self.fit(maybeinliers)
+      alsoinliers,errs,bestM = self.get_error(maybemodel)
+
+
+      if self.NBUG:
+        print ('test_err.min()'+errs.min())
+        print ('test_err.max()'+errs.max())
+        print ('np.mean(test_err)'+np.mean(errs))
+        print ('iteration: {}', iterations)
+        print('len(alsoinliers): {}', len(alsoinliers))
+        print('\n\n')
+      if len(alsoinliers) > self.min_inliers:
+        betterdata = np.concatenate( (maybeinliers, alsoinliers) )
+        bettermodel = self.fit(betterdata)
+        better_errs = self.get_error( betterdata, bettermodel)
+        thiserr = np.mean( better_errs )
+        if thiserr < besterr:
+          bestfit = bettermodel
+          besterr = thiserr
+          best_inlier_idxs = np.concatenate( (maybe_idxs, also_idxs) )
+      iterations+=1
+    if bestfit is None:
+      raise ValueError("did not meet fit acceptance criteria")
+    if self.return_all:
+      return bestfit, {'inliers':best_inlier_idxs}
+    else:
+      return bestfit
+
+
   def fit(self,m1,m2,_dtype=np.float128):
     ''' pose estimation: estimates the relative rotation and translation
     between two camera views using the 5 point quaternion algorithm.
@@ -133,136 +146,63 @@ class QuEst_SampsonDist_Model:
     F = Tx @ R
     npprint('F',F)
     st()
+    M = rmodel(q=q,t=t,m1=m1,m2=m2,F=F)
+    return M
 
-    return {'q':q, 't':t, 'm1':m1, 'm2':m2, 'F':F}
 
-
-  def get_error(self,m1,m2,F):
+  def get_error(self, M:rmodel):
     ''' use Sampson distance to compute the first order approximation
     geometric error of the fitted fundamental matrix given a set of matched
     correspondences '''
-
     # todo working here
-    npprint('m1', m1)
-    npprint('m2', m2)
-    npprint('F', F)
+    npprint('M.m1', M.m1)
+    npprint('M.m2', M.m2)
+    npprint('M.F', M.F)
     st()
+    if M.F.ndim > 3: # we have multiple essential matrices
+      nF = M.F.shape[3]
+      bestM = M
+      bestM.F = M.F[1] # initial allocation of best solution
+      num_inliers = 0 # number of inliers
+      for k in range(len(nF)):
+        m2tFm1 = np.zeros(1,M.m1.shape[1])
+        for n in M.m1.shape[1]:
+          m2tFm1[n] = M.m2[:,n].T @ M.F[k] @ M.m1[:,n]
+        Fm1  = M.F[k]   @ M.m1
+        Ftm2 = M.F[k].T @ M.m2
 
-    if F.ndim > 3: # we have multiple essential matrices
-      nF =
-
-
-
-
-  if iscell(F)        % We have several solutions each of which must be tested
-    nF = length(F); % Number of solutions to test
-    bestM = M;
-    bestM.F = F{1}; % Initial allocation of best solution
-    ninliers = 0;   % Number of inliers
-    for k = 1 : nF
-      x2tFx1 = zeros(1,length(x1));
-      for n = 1:length(x1)
-          x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
-      end
-
-      Fx1  = F{k}*x1;
-      Ftx2 = F{k}'*x2;
-
-      % Evaluate distances
-      d =  x2tFx1.^2 ./ ...
-        (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-      inliers = find(abs(d) < t);     % Indices of inlying points
-      if length(inliers) > ninliers   % Record best solution
-        ninliers = length(inliers);
-        bestM.F = F{k};
-        bestInliers = inliers;
-  else     % We just have one solution
-    x2tFx1 = zeros(1,length(x1));
-    for n = 1:length(x1)
-        x2tFx1(n) = x2(:,n)'*F*x1(:,n);
-    end
-
-    Fx1  = F*x1;
-    Ftx2 = F'*x2;
-
-    % Evaluate distances
-    d =  x2tFx1.^2 ./ ...
-         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-
-    bestInliers = find(abs(d) < t);     % Indices of inlying points
-    bestM = M;                          % Copy M directly to bestM
-
-end
-
-end
+      # evaluate distances
+      d =  m2tFm1 **2 /\
+        (Fm1[0,:]**2 + Fm1[1,:]**2 + Ftm2[0,:]**2 + Ftm2[1,:]**2)
+      inliers = np.where(abs(d) <  self.threshold)
+      if len(inliers) > ninliers:  # record best solution
+        ninliers = len(inliers)
+        bestM.F = M.F[k]
+        bestInlier_idxs = inliers
+    else: # single solution
+      m2tFm1 = np.zeros(1,len(M.m1))
+      for n in range(len(M.m1)):
+        m2tFm1[n] = M.m2[:,n].T @ M.F @ M.m1[:,n]
+      Fm1  = M.F @ M.m1
+      Ftm2 = M.F.T @ M.m2
+      # evaluate distances
+      d =  m2tFm1**2 /\
+         (Fm1[0,:]**2 + Fm1[1,:]**2 + Ftm2[0,:]**2 + Ftm2[1,:]**2)
+      bestInlier_idxs = np.where(abs(d) < self.threshold) # indices of inlying points
+      bestM = M # copy M directly to bestM
+    return bestInlier_idxs, d[bestInlier_idxs], bestM
 
 
 
-
-
-
-
-    return err_per_point
-
-def test():
-  # generate perfect input data
-  n_samples = 500
-  n_inputs = 1
-  n_outputs = 1
-  A_exact = 20*np.random.random((n_samples,n_inputs) )
-  perfect_fit = 60*np.random.normal(size=(n_inputs,n_outputs) ) # the model
-  B_exact = np.dot(A_exact,perfect_fit)
-  assert B_exact.shape == (n_samples,n_outputs)
-  # add a little gaussian noise (linear least squares alone should handle this well)
-  A_noisy = A_exact + np.random.normal(size=A_exact.shape )
-  B_noisy = B_exact + np.random.normal(size=B_exact.shape )
-  if 1:
-    # add some outliers
-    n_outliers = 100
-    all_idxs = np.arange( A_noisy.shape[0] )
+  def random_partition(self,n,n_data):
+    #todo try loading sparse random data points
+    """return n random rows of data (and also the other len(data)-n rows)"""
+    all_idxs = np.arange( n_data )
     np.random.shuffle(all_idxs)
-    outlier_idxs = all_idxs[:n_outliers]
-    non_outlier_idxs = all_idxs[n_outliers:]
-    A_noisy[outlier_idxs] =  20*np.random.random((n_outliers,n_inputs) )
-    B_noisy[outlier_idxs] = 50*np.random.normal(size=(n_outliers,n_outputs) )
-  # setup model
+    idxs = all_idxs[:n]
+    return idxs
 
 
-  all_data = np.hstack( (A_noisy,B_noisy) )
-  input_columns = range(n_inputs) # the first columns of the array
 
-  output_columns = [n_inputs+i for i in range(n_outputs)] # the last columns of the array
 
-  debug = False
-
-  model = LinearLeastSquaresModel(input_columns,output_columns,debug=debug)
-
-  linear_fit,resids,rank,s = scipy.linalg.lstsq(all_data[:,input_columns],
-                                                all_data[:,output_columns])
-
-  # run RANSAC algorithm
-
-  ransac_fit, ransac_data = ransac(all_data,model,
-                                    50, 1000, 7e3, 300, # misc. parameters
-                                    debug=debug,return_all=True)
-  if 1:
-    import pylab
-    sort_idxs = np.argsort(A_exact[:,0])
-    A_col0_sorted = A_exact[sort_idxs] # maintain as rank-2 array
-    if 1:
-        pylab.plot( A_noisy[:,0], B_noisy[:,0], 'k.', label='data' )
-        pylab.plot( A_noisy[ransac_data['inliers'],0], B_noisy[ransac_data['inliers'],0], 'bx', label='RANSAC data' )
-    else:
-        pylab.plot( A_noisy[non_outlier_idxs,0], B_noisy[non_outlier_idxs,0], 'k.', label='noisy data' )
-        pylab.plot( A_noisy[outlier_idxs,0], B_noisy[outlier_idxs,0], 'r.', label='outlier data' )
-    pylab.plot( A_col0_sorted[:,0],
-                np.dot(A_col0_sorted,ransac_fit)[:,0],
-                label='RANSAC fit' )
-    pylab.plot( A_col0_sorted[:,0],
-                np.dot(A_col0_sorted,perfect_fit)[:,0],
-                label='exact system' )
-    pylab.plot( A_col0_sorted[:,0],
-                np.dot(A_col0_sorted,linear_fit)[:,0],
-                label='linear fit' )
-    pylab.legend()
-    pylab.show()
+# EOF

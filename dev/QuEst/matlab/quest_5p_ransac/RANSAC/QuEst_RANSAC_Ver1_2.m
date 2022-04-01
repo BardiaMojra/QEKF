@@ -100,6 +100,7 @@ if iscell(F)        % We have several solutions each of which must be tested
     bestM = M;
     bestM.F = F{1}; % Initial allocation of best solution
     ninliers = 0;   % Number of inliers
+    length(x1)
     for k = 1 : nF
         x2tFx1 = zeros(1,length(x1));
         for n = 1:length(x1)

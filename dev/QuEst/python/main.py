@@ -101,6 +101,7 @@ def main():
                            min_inliers,
                            debug=NBUG,
                            return_all=True)
+
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, minPts)
