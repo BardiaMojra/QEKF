@@ -95,12 +95,12 @@ def main():
       if alg == 'QuEst_RANSAC_v0102':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, len(matches))
 
-        q, m1, m2 = rQuEst(m1, m2, QuEst,
-                           maxIter,
-                           rThreshold,
-                           min_inliers,
-                           debug=NBUG,
-                           return_all=True)
+        rquest = QUEST_RANSAC(m1, m2, QuEst
+                                 maxIter,
+                                 rThreshold,
+                                 min_inliers,
+                                 debug=NBUG,
+                                 return_all=True)
 
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':

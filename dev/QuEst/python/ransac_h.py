@@ -25,7 +25,7 @@ class rmodel(object):
     self.F  = F
   # end of class rmodel(object): ------------------->> //
 
-class qransac:
+class QUEST_RANSAC:
   """QuEst_RANSAC estimates the pose between two camera views using RANSAC and
   QuEst algorithm. Fit model parameters to data using the RANSAC algorithm
     This implementation written from pseudocode found at
@@ -39,7 +39,7 @@ class qransac:
       inliers_min - the number of close data values required to assert that a model fits well to data
     return:
       bestfit - model parameters which best fit the data """
-  def __init__(self,m1,m2,max_iters,threshold,min_inliers,\
+  def __init__(self,m1,m2, quest_model, max_iters,threshold,min_inliers,\
                nbug=True,return_all=True,_dtype=np.float128):
     self.m1 = m1  # inputs X
     self.m2 = m2  # outputs Y
