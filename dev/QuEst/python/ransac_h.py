@@ -143,42 +143,40 @@ class QuEst_SampsonDist_Model:
     correspondences '''
 
     # todo working here
+    npprint('m1', m1)
+    npprint('m2', m2)
+    npprint('F', F)
+    st()
+
+    if F.ndim > 3: # we have multiple essential matrices
+      nF =
 
 
-    B_fit = m1 ,model
-    err_per_point = np.sum((B-B_fit)**2,axis=1) # sum squared error per row
 
 
-x1 = x(1:3,:);    % Extract x1 and x2 from x
-x2 = x(4:6,:);
-
-F = M.F;
-
-if iscell(F)        % We have several solutions each of which must be tested
+  if iscell(F)        % We have several solutions each of which must be tested
     nF = length(F); % Number of solutions to test
     bestM = M;
     bestM.F = F{1}; % Initial allocation of best solution
     ninliers = 0;   % Number of inliers
     for k = 1 : nF
-        x2tFx1 = zeros(1,length(x1));
-        for n = 1:length(x1)
-            x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
-        end
+      x2tFx1 = zeros(1,length(x1));
+      for n = 1:length(x1)
+          x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
+      end
 
-        Fx1  = F{k}*x1;
-        Ftx2 = F{k}'*x2;
+      Fx1  = F{k}*x1;
+      Ftx2 = F{k}'*x2;
 
-        % Evaluate distances
-        d =  x2tFx1.^2 ./ ...
-         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-        inliers = find(abs(d) < t);     % Indices of inlying points
-        if length(inliers) > ninliers   % Record best solution
-          ninliers = length(inliers);
-          bestM.F = F{k};
-          bestInliers = inliers;
-        end
-    end
-else     % We just have one solution
+      % Evaluate distances
+      d =  x2tFx1.^2 ./ ...
+        (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+      inliers = find(abs(d) < t);     % Indices of inlying points
+      if length(inliers) > ninliers   % Record best solution
+        ninliers = length(inliers);
+        bestM.F = F{k};
+        bestInliers = inliers;
+  else     % We just have one solution
     x2tFx1 = zeros(1,length(x1));
     for n = 1:length(x1)
         x2tFx1(n) = x2(:,n)'*F*x1(:,n);
