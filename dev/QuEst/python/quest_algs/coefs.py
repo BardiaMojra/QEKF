@@ -60,8 +60,6 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   # npprint('coefsD', cD)
   # npprint('coefsD[idxBin2[0,:], 0]', cD[idx2[0,:], 0])
 
-
-
   a1  = np.concatenate((cN[idx2[0,:],0],cD[idx2[0,:],0]),axis=0).reshape(-1,1)
   a2  = np.concatenate((cN[idx2[0,:],1],cD[idx2[0,:],1]),axis=0).reshape(-1,1)
   a3  = np.concatenate((cN[idx2[0,:],2],cD[idx2[0,:],2]),axis=0).reshape(-1,1)
@@ -202,7 +200,7 @@ def coefsNumDen(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,\
                             A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,\
                             A20,A21,A22,A23,A24,A25,A26,A27,A28,A29,\
                             A30,A31,A32,A33,A34), axis=1, dtype=_dtype)
-
   # npprint('coefsND', coefsND)
   # st()
   return coefsND
+  # EOF

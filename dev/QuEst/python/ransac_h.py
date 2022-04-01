@@ -1,6 +1,8 @@
 import numpy as np
-import scipy as sc # use np if scipy unavailable
-import scipy.linalg as lalg # use np if scipy unavailable
+import scipy as sc #
+import scipy.linalg as lalg
+from scipy.spatial.transform import Rotation as sc_R
+
 
 
 ''' NBUG libraries '''
@@ -9,6 +11,7 @@ from pdb import set_trace as st
 
 ''' private libraries '''
 from quest import *
+from utils import *
 
 def ransac_QuEst_h(m1,m2,model,max_iters,threshold,min_inliers,nbug=True,\
                    return_all=True,_dtype=np.float128):
@@ -67,7 +70,6 @@ def ransac_QuEst_h(m1,m2,model,max_iters,threshold,min_inliers,nbug=True,\
 
 
 ''' private routines '''
-
 def random_partition(n,n_data):
   #todo try loading sparse random data points
   """return n random rows of data (and also the other len(data)-n rows)"""
@@ -83,7 +85,7 @@ class QuEst_SampsonDist_Model:
     self.kps1 = kps1 # inputs X
     self.kps2 = kps2 # outputs Y
     self.debug = debug
-  def fit(self, data):
+  def fit(self,m1,m2,_dtype=np.float128):
     ''' pose estimation: estimates the relative rotation and translation
     between two camera views using the 5 point quaternion algorithm.
     Input:
@@ -94,39 +96,114 @@ class QuEst_SampsonDist_Model:
     Output:
       M      - A structure that contains the estimated pose.
     Copyright (c) 2016, Kaveh Fathian. The University of Texas at Dallas. '''
-
     # A = np.vstack([data[:,i] for i in self.input_columns]).T
     # B = np.vstack([data[:,i] for i in self.output_columns]).T
     # npprint('A',A)
     # npprint('',A)
-
     # x,resids,rank,s = scipy.linalg.lstsq(A,B) # replace with QuEst
     # est pose with QuEst
-    qs = QuEst(m=A, n=B)
+    qs = QuEst(m=m1, n=m2)
+    npprint('qs', qs)
+    st()
     # pose = QuEst_Ver1_1(A,B) # run QuEst algorithm
     # find the best solution
-    res = QuatResidueVer3_1(x1, x2, pose.Q) # Scoring function
-    resMin, mIdx = min(abs(res))
-    q = pose.Q(:,mIdx);
-    t = pose.T(:,mIdx);
+    qs_residues = get_residues(m1,m2,qs) # Scoring function
+    npprint('qs', qs)
+    npprint('qs_residues', qs_residues)
+    npprint('idx', idx)
+    npprint('qs[idx]', qs[idx])
+
+    idx = np.amin(qs_residues[:])
+    # resMin, mIdx = min(abs(qs_residues))
+    q = qs[idx]
+    t, dep1, dep2, res = get_Txyz(m1,m2,q)
+    # t = pose.T(:,mIdx);
 
     # make a fundamental matrix from the recovered rotation and translation
-    R = Q2R(q);
-    Tx = Skew(t/norm(t));
-    F = Tx * R;
+    q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
+    R = sc_R.from_quat(q_arr).as_matrix()
 
-    M.Q  = q;
-    M.t  = t;
-    M.m1 = x1;
-    M.m2 = x2;
-    M.F  = F;
 
-    return x
-  def get_error( self, data, model):
-    A = np.vstack([data[:,i] for i in self.kps1]).T
-    B = np.vstack([data[:,i] for i in self.kps2]).T
-    B_fit = np.dot(A,model)
+    npprint('t',t)
+    st()
+
+    Tx = skew(t/np.norm(t))
+    npprint('Tx',Tx)
+    st()
+    F = Tx @ R
+    npprint('F',F)
+    st()
+
+    return {'q':q, 't':t, 'm1':m1, 'm2':m2, 'F':F}
+
+
+  def get_error(self,m1,m2,F):
+    ''' use Sampson distance to compute the first order approximation
+    geometric error of the fitted fundamental matrix given a set of matched
+    correspondences '''
+
+    # todo working here
+
+
+    B_fit = m1 ,model
     err_per_point = np.sum((B-B_fit)**2,axis=1) # sum squared error per row
+
+
+x1 = x(1:3,:);    % Extract x1 and x2 from x
+x2 = x(4:6,:);
+
+F = M.F;
+
+if iscell(F)        % We have several solutions each of which must be tested
+    nF = length(F); % Number of solutions to test
+    bestM = M;
+    bestM.F = F{1}; % Initial allocation of best solution
+    ninliers = 0;   % Number of inliers
+    for k = 1 : nF
+        x2tFx1 = zeros(1,length(x1));
+        for n = 1:length(x1)
+            x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
+        end
+
+        Fx1  = F{k}*x1;
+        Ftx2 = F{k}'*x2;
+
+        % Evaluate distances
+        d =  x2tFx1.^2 ./ ...
+         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+        inliers = find(abs(d) < t);     % Indices of inlying points
+        if length(inliers) > ninliers   % Record best solution
+          ninliers = length(inliers);
+          bestM.F = F{k};
+          bestInliers = inliers;
+        end
+    end
+else     % We just have one solution
+    x2tFx1 = zeros(1,length(x1));
+    for n = 1:length(x1)
+        x2tFx1(n) = x2(:,n)'*F*x1(:,n);
+    end
+
+    Fx1  = F*x1;
+    Ftx2 = F'*x2;
+
+    % Evaluate distances
+    d =  x2tFx1.^2 ./ ...
+         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+
+    bestInliers = find(abs(d) < t);     % Indices of inlying points
+    bestM = M;                          % Copy M directly to bestM
+
+end
+
+end
+
+
+
+
+
+
+
     return err_per_point
 
 def test():
@@ -191,6 +268,3 @@ def test():
                 label='linear fit' )
     pylab.legend()
     pylab.show()
-
-if __name__=='__main__':
-  test()

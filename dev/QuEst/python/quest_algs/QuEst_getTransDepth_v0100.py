@@ -11,6 +11,15 @@ from scipy.spatial.transform import Rotation as sc_R
 from pdb import set_trace as st
 from nbug import *
 
+def get_Txyz_np(kps1,kps2,qs,_dtype=np.float128):
+  t = np.zeros
+
+
+  npprint('qs',qs)
+  st()
+
+  return
+
 def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
   ''' recover translation and depths given the rotation and feature point
   coordinates

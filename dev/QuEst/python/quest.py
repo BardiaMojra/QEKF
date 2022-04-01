@@ -4,6 +4,7 @@
 ''' select QuEst '''
 # from quest_algs.QuEst_v0708_spd import QuEst_5Pt_Ver7_8_spd as QuEst
 from quest_algs.QuEst_v0708 import QuEst_5Pt_Ver7_8 as QuEst
+from quest_algs.QuEst_v0708 import get_qs_residues as get_residues
 # from quest_algs import QuEst_RANSAC_v0102 as RQuEst
 
 ''' select rQuEst '''

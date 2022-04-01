@@ -112,8 +112,69 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   x = X5[1,:] / w4
   y = X5[2,:] / w4
   z = X5[3,:] / w4
-  Q = np.concatenate((w,x,y,z), axis=0, dtype=np.complex128)
-  Q = np.float128(Q)
-  Qnorm = np.sqrt(np.sum(Q**2, axis=0)).reshape(1,-1)
-  Q = Q/Qnorm # match matlab format
-  return quaternion.as_quat_array(Q.T).reshape(-1,1) #
+  qs = np.concatenate((w,x,y,z), axis=0, dtype=np.complex128)
+  qs = np.float128(qs)
+  Qnorm = np.sqrt(np.sum(qs**2, axis=0)).reshape(1,-1)
+  qs = qs/Qnorm # match matlab format
+  return quaternion.as_quat_array(qs.T).reshape(-1,1) #
+
+
+
+def get_qs_residues(m1, m2, qSols):
+  ''' calculate the residue value |C x - c| for estimated quaternion solutions
+  '''
+  # coefficinet matrix in the linearized system of multinomials (C * x = c)
+  C0 = get_COEFS(m1,m2)
+
+
+  st()
+  q1 = qSols[0,:]
+  q2 = qSols[1,:]
+  q3 = qSols[2,:]
+  q4 = qSols[3,:]
+
+  xVec = [q1**4,
+          q1**3. * q2,
+          q1**2. * q2**2,
+          q1 * q2**3,
+          q2**4,
+          q1**3. *q3,
+          q1**2. *q2 *q3,
+          q1* q2**2. *q3,
+          q2**3. *q3,
+          q1**2. * q3**2,
+          q1*q2 * q3**2,
+          q2**2. * q3**2,
+          q1* q3**3,
+          q2* q3**3,
+          q3**4,
+          q1**3. *q4,
+          q1**2. *q2*q4,
+          q1*q2**2. *q4,
+          q2**3. *q4,
+          q1**2. *q3*q4,
+          q1*q2 * q3*q4,
+          q2**2. * q3*q4,
+          q1* q3**2. *q4,
+          q2* q3**2. *q4,
+          q3**3. *q4,
+          q1**2. *q4**2,
+          q1*q2 * q4**2,
+          q2**2. * q4**2,
+          q1*q3 * q4**2,
+          q2*q3 * q4**2,
+          q3**2. * q4**2,
+          q1 * q4**3,
+          q2 * q4**3,
+          q3 * q4**3,
+          q4**4]
+
+  npprint('xVec', xVec)
+  st()
+  # residues
+  residuMat = C0 * xVec;
+
+  residu = sum( abs(residuMat), 1);
+
+  return residu
+# EOF

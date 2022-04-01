@@ -16,6 +16,10 @@ from pdb import set_trace as st
 # plt.style.use('ggplot')
 
 
+def skew(v):
+  if len(v) == 4: v = v[:3]/v[3]
+  skv = np.roll(np.roll(np.diag(v.flatten()),1,1),-1,0)
+  return skv - skv.T
 
 
 
@@ -264,39 +268,6 @@ def retKPs_pxl(matches:Dmatch_obj):
   st()
   return kps1, kps2
 
-
-
-
-# def MatchFeaturePoints(Ip, ppoints, In, npoints, dset, maxPts, alg='ORB'):
-#   f1, vp1 = GetFeaturePoints(Ip,ppoints);
-#   f2, vp2 = GetFeaturePoints(In,npoints);
-#   indexPairs, mmetric = matchFeatures(f1, f2, 'MaxRatio',0.7, ...
-#       'MatchThreshold',1, 'Unique',true);
-#   matchedPoints1 = vp1(indexPairs(:,1));
-#   matchedPoints2 = vp2(indexPairs(:,2));
-#   p1 = matchedPoints1.Location;
-#   p2 = matchedPoints2.Location;
-#   %   figure; showMatchedFeatures(Ip,In,p1,p2);
-#   % Feature points
-#   numMatch = size(p1, 1);  % Number of matched feature points
-#   numPts = min(numMatch, maxPts);
-#   p1 = p1(1:numPts, :);
-#   p2 = p2(1:numPts, :);
-#   # point coordinates on image plane
-#   m1 = dataset.K \ double( [p1 ones(numPts, 1)].' );
-#   m2 = dataset.K \ double( [p2 ones(numPts, 1)].' );
-#   # Unit norm coordinates
-#   m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1)));
-#   m2u = bsxfun(@rdivide, m2, sqrt(sum(m2.^2,1)));
-#   matches.p1 = p1;
-#   matches.p2 = p2;
-#   matches.m1 = m1;
-#   matches.m2 = m2;
-#   matches.m1u = m1u;
-#   matches.m2u = m2u;
-#   matches.numPts = numPts;
-#   return matches
-
 def RelativeGroundTruth(i, dset):
   q1 = dset.q0
   t1 = dset.t0
@@ -339,7 +310,6 @@ def RelativeGroundTruth(i, dset):
     pass
   else:
     assert False, 'unknown benchtype '+bench
-
   # store the current pose for the next iteration
   dset.q0 = q2;
   dset.t0 = t2;
