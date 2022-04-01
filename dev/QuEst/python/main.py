@@ -39,7 +39,7 @@ ranThresh     = 1e-6 # RANSAC outlier threshold
 surfThresh    = 200 # SURF feature point detection threshold
 maxPts        = 50 # max num of feature points to use for pose est (lower value increases speed)
 minPts        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
-min_inliers    = 5 #todo fix this
+min_inliers   = 5 #todo fix this
 maxIter       = 50 #todo fix this
 rThreshold    = 20 #todo fix this
 
