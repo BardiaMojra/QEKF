@@ -74,11 +74,9 @@ class QUEST_RANSAC:
       # npprint('maybeinliers', maybeinliers)
       # npprint('else_data', else_data)
 
-      # todo working here .........
       maybemodel = self.fit(maybeinliers)
-      npprint('maybemodel', maybemodel)
 
-      st()
+      # todo working here .........
       alsoinliers,errs,bestM = self.get_error(test_data, maybemodel)
 
       st()
@@ -110,7 +108,7 @@ class QUEST_RANSAC:
       return bestfit
 
 
-  def fit(self,data,_dtype=np.float128):
+  def fit(self,data):
     ''' pose estimation: estimates the relative rotation and translation
     between two camera views using the 5 point quaternion algorithm.
     Input:
@@ -123,75 +121,35 @@ class QUEST_RANSAC:
     Copyright (c) 2016, Kaveh Fathian. The University of Texas at Dallas. '''
     m1 = data[:,:3].T
     m2 = data[:,3:].T
-    # npprint('m1',m1)
-    # npprint('m2',m2)
-    # st()
-
     qs = self.quest(m=m1, n=m2) # est rotation with QuEst
-    # npprint('qs', qs)
-    # st()
-    # pose = QuEst_Ver1_1(A,B) # run QuEst algorithm
-    # find the best solution
     qs_residues = get_residues(m1,m2,qs) # Scoring function
-    # npprint('qs', qs)
-    # npprint('qs_residues', qs_residues)
-
-    idx = np.where(qs_residues==qs_residues.min())[0][0]
-
-    # nprint('idx', idx)
-    # nprint('qs[idx]', qs[idx][0])
-    # resMin, mIdx = min(abs(qs_residues))
+    idx = np.where(qs_residues==qs_residues.min())[0][0] # find best sol
     q = qs[idx,0]
-    nprint('q',q)
-    st()
-
     t, dep1, dep2, res = self.get_Txyz(m1,m2,q)
-
     # make a fundamental matrix from the recovered rotation and translation
-    # q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
+    R = sc_R.from_quat(quat2arr(q)).as_matrix()
+    Tx = skew(t/lalg.norm(t))
+    F = Tx @ R # compute fundamental matrix
+    return rmodel(q=q,t=t,m1=m1,m2=m2,F=F)
 
 
-
-    R = sc_R.from_quat(q).as_rotation_matrix()
-    npprint('R',R)
-
-
-    npprint('t',t)
-    st()
-
-    Tx = skew(t/np.norm(t))
-    npprint('Tx',Tx)
-    st()
-    F = Tx @ R
-    npprint('F',F)
-    st()
-    M = rmodel(q=q,t=t,m1=m1,m2=m2,F=F)
-
-
-
-    return M
-
-
-  def get_error(self, test_data, maybemodel:rmodel):
+  def get_error(self,test_data,M:rmodel):
     ''' use Sampson distance to compute the first order approximation
     geometric error of the fitted fundamental matrix given a set of matched
-    correspondences '''
-
-    M = maybemodel
-
-    # todo working here
-    npprint('M.m1', M.m1)
-    npprint('M.m2', M.m2)
-    npprint('M.F', M.F)
-    st()
+    correspondences
+      input: M (rmodel) - maybe model
+      output: '''
     if M.F.ndim > 3: # we have multiple essential matrices
-      nF = M.F.shape[3]
+      print(f'M.F.ndim = {M.F.ndim} and > 3')  # todo step through and confirm
+      st()
+
       bestM = M
-      bestM.F = M.F[1] # initial allocation of best solution
-      num_inliers = 0 # number of inliers
-      for k in range(len(nF)):
-        m2tFm1 = np.zeros(1,M.m1.shape[1])
+      bestM.F = M.F[0] # initial allocation of best solution
+      ninliers = 0 # number of inliers
+      for k in range(M.F.shape[2]):
+        m2tFm1 = np.zeros((1,M.m1.shape[1]),dtype=self.dtype)
         for n in M.m1.shape[1]:
+          st()
           m2tFm1[n] = M.m2[:,n].T @ M.F[k] @ M.m1[:,n]
         Fm1  = M.F[k]   @ M.m1
         Ftm2 = M.F[k].T @ M.m2
@@ -206,14 +164,26 @@ class QUEST_RANSAC:
         bestM.F = M.F[k]
         bestInlier_idxs = inliers
     else: # single solution
-      m2tFm1 = np.zeros(1,len(M.m1))
-      for n in range(len(M.m1)):
-        m2tFm1[n] = M.m2[:,n].T @ M.F @ M.m1[:,n]
+      npprint('M.m1',M.m1)
+      npprint('M.m2',M.m2)
+      st()
+
+      m2tFm1 = np.zeros((1, M.m1.shape[1]),dtype=self.dtype)
+      for n in range(M.m1.shape[1]):
+        st()
+        m2tFm1[0,n] = M.m2[:,n].T @ M.F @ M.m1[:,n]
+        nprint('m2tFm1[0,n]', m2tFm1[0,n])
+
+      npprint('m2tFm1', m2tFm1)
+      st()
       Fm1  = M.F @ M.m1
       Ftm2 = M.F.T @ M.m2
+      npprint
       # evaluate distances
       d =  m2tFm1**2 /\
          (Fm1[0,:]**2 + Fm1[1,:]**2 + Ftm2[0,:]**2 + Ftm2[1,:]**2)
+
+
       bestInlier_idxs = np.where(abs(d) < self.threshold) # indices of inlying points
       bestM = M # copy M directly to bestM
     return bestInlier_idxs, d[bestInlier_idxs], bestM

@@ -22,6 +22,13 @@ def skew(v):
   return skv - skv.T
 
 
+def quat2arr(q:np.quaternion,_dtype=np.float128):
+  q = q.normalized()
+  w = np.float128(q.w)
+  x = np.float128(q.x)
+  y = np.float128(q.y)
+  z = np.float128(q.z)
+  return np.asarray([w,x,y,z],dtype=_dtype) # make vec
 
 def quat2np(q:np.quaternion,_dtype=np.float128):
   q = q.normalized()
@@ -29,10 +36,7 @@ def quat2np(q:np.quaternion,_dtype=np.float128):
   x = np.float128(q.x)
   y = np.float128(q.y)
   z = np.float128(q.z)
-  q_np = np.asarray([w,x,y,z],dtype=_dtype).reshape(1,-1) # make row vec
-  # npprint('q_np', q_np)
-  # st()
-  return q_np
+  return np.asarray([w,x,y,z],dtype=_dtype).reshape(1,-1) # make row vec
 
 def quats2np(qs:np.ndarray,axis=0,_dtype=np.float128):
   qs_np = list()
