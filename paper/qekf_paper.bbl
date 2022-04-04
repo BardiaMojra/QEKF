@@ -26,4 +26,9 @@ D.~Q. Huynh, ``Metrics for 3d rotations: Comparison and analysis,'' {\em
   Journal of Mathematical Imaging and Vision}, vol.~35, no.~2, pp.~155--164,
   2009.
 
+\bibitem{shi2013sift}
+G.~Shi, X.~Xu, and Y.~Dai, ``Sift feature point matching based on improved
+  ransac algorithm,'' in {\em 2013 5th International Conference on Intelligent
+  Human-Machine Systems and Cybernetics}, vol.~1, pp.~474--477, IEEE, 2013.
+
 \end{thebibliography}

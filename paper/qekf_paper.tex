@@ -603,10 +603,10 @@ where H is a \(12 \times 9\) matrix. x is a \(9 \times 1\) matrix.
 
 \subsection{On QuEst Python Implementation}
 The new source code has been compared against the original implementation line by line
-and so far everything has matched and with few improvements. There are
+and so far everything has matched and few improvements have been made. There are
 three notable improvements thus far, 1) better feature matching and ranking
 of best-matched features between frames, 2) and more fine-tuned control
-over of variable data type in Python with Numpy Quaternion module. 3) Also,
+over of variable data type in Python with the Numpy Quaternion module. 3) Also,
 the Python implementation has resulted in fewer nonzero Quaternion solutions
 for equation 20 in \cite{quest}.\\
 In the new Python implementation, I took advantage of highly the developed
@@ -620,9 +620,9 @@ floating-point variables as \emph{float64} and it has a dedicated Quaternion dat
 type, i.e. \emph{Quaternion}. In Numpy, a Quaternion is declared as a set
 of four \emph{float128} variables. In order to preserve full numerical
 accuracy, all data handlers are declared \emph{float128} at initialization
-instead of default data type, \emph{float64}. Additionally, the
+instead of the default data type, \emph{float64}. Additionally, the
 implementation repeatedly produces a smaller set of solutions compared to
-it Matlab implementation, 24 instead 32. This is beneficial since it shrinks
+its Matlab implementation, 24 instead 32. This is beneficial since it shrinks
 the pool of possible solutions. The root cause of this is under
 investigation but it might be related to numerical accuracy and the
 computational rounding effect.\\
@@ -644,7 +644,18 @@ that are only from stationary objects and background, otherwise, including
 point correspondences from moving objects will introduce significant errors
 to pose triangulation.
 
-\subsection{Units}
+\subsection{RANSAC Implementation}
+This week, I worked on implementing
+a custom RANSAC to obtain a subset of matched feature points that form
+a consistent linear transformation from one frame to another
+\cite{shi2013sift}. The implemented RANSAC uses QuEst pose estimation
+algorithm to find a fit and returns a rotation value in form of a
+quaternion. The rotation model is then used to compute the Sampson distance
+for all other points and find inlier and outlier data points. This process
+repeats up to a predetermined limit and the model with the least error is
+returned as the estimated true transformation. The corresponding translation
+vector is computed after finding the most fitting rotation model from the
+matched feature points pool.
 
 
 

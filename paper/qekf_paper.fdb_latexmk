@@ -1,15 +1,15 @@
 # Fdb version 3
-["bibtex qekf_paper"] 1648440225 "qekf_paper.aux" "qekf_paper.bbl" "qekf_paper" 1648440246
+["bibtex qekf_paper"] 1649088587 "qekf_paper.aux" "qekf_paper.bbl" "qekf_paper" 1649088588
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/ieeetr.bst" 1292289607 18361 1a00e58565e7f19bf2b3e1bfb82254ae ""
-  "qekf_paper.aux" 1648440245 5351 ad9fb67b5da4dab148bf511b94afe7ce "pdflatex"
-  "ref.bib" 1648440224 1550 6879f59383e95f0ba47e7fb80979b7d5 ""
+  "qekf_paper.aux" 1649088587 5415 98256bf2c52c6b070de5dc1eb07157ac "pdflatex"
+  "ref.bib" 1649088586 1890 9c7576e408346bb03ac287cee8a8160e ""
   (generated)
-  "qekf_paper.bbl"
   "qekf_paper.blg"
-["pdflatex"] 1648440245 "/home/smerx/git/QEKF/paper/qekf_paper.tex" "/home/smerx/git/QEKF/paper/qekf_paper.pdf" "qekf_paper" 1648440246
+  "qekf_paper.bbl"
+["pdflatex"] 1649088587 "/home/smerx/git/QEKF/paper/qekf_paper.tex" "/home/smerx/git/QEKF/paper/qekf_paper.pdf" "qekf_paper" 1649088588
   "/etc/texmf/web2c/texmf.cnf" 1646963236 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/smerx/git/QEKF/paper/qekf_paper.aux" 1648440245 5351 ad9fb67b5da4dab148bf511b94afe7ce ""
-  "/home/smerx/git/QEKF/paper/qekf_paper.tex" 1648440244 25605 38ca5ac3c46db28153682c32221a86cf ""
+  "/home/smerx/git/QEKF/paper/qekf_paper.aux" 1649088587 5415 98256bf2c52c6b070de5dc1eb07157ac ""
+  "/home/smerx/git/QEKF/paper/qekf_paper.tex" 1649088564 26360 aaaf5bc386d578c45c9383a2f3ae1460 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/courier/pcrr7t.tfm" 1136768653 960 379cc0019370a9e0208a0a3f949f847a ""
@@ -92,12 +92,12 @@
   "images/fig01.png" 1647022899 90624 1dbeff27bc1b1d1536bd36bac3259f8a ""
   "images/fig02_ldm.png" 1647022899 55461 6fdd3700d322554a52be9c98a17ab3ef ""
   "images/fig03_contModel.png" 1647022899 26305 ff7c0a59d0fb439a270a43087257bc67 ""
-  "qekf_paper.aux" 1648440245 5351 ad9fb67b5da4dab148bf511b94afe7ce "pdflatex"
-  "qekf_paper.bbl" 1648440225 1180 f990d03b552b15e6d5e01d4195e1827d "bibtex qekf_paper"
-  "qekf_paper.tex" 1648440244 25605 38ca5ac3c46db28153682c32221a86cf ""
+  "qekf_paper.aux" 1649088587 5415 98256bf2c52c6b070de5dc1eb07157ac "pdflatex"
+  "qekf_paper.bbl" 1649088587 1433 f1cd172492108d19c0ea9da9666d92c3 "bibtex qekf_paper"
+  "qekf_paper.tex" 1649088564 26360 aaaf5bc386d578c45c9383a2f3ae1460 ""
   (generated)
-  "qekf_paper.aux"
-  "qekf_paper.log"
   "/home/smerx/git/QEKF/paper/qekf_paper.log"
   "qekf_paper.pdf"
+  "qekf_paper.aux"
   "/home/smerx/git/QEKF/paper/qekf_paper.pdf"
+  "qekf_paper.log"
