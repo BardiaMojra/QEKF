@@ -39,11 +39,12 @@ class QUEST_RANSAC:
       inliers_min - the number of close data values required to assert that a model fits well to data
     return:
       bestfit - model parameters which best fit the data """
-  def __init__(self,m1,m2, quest, max_iters,threshold,min_inliers,\
+  def __init__(self,m1,m2, quest, get_Txyz, max_iters,threshold,min_inliers,\
                nbug=True,return_all=True,_dtype=np.float128):
     self.m1 = m1  # inputs X
     self.m2 = m2  # outputs Y
     self.quest = quest
+    self.get_Txyz = get_Txyz
     self.max_iters = max_iters
     self.threshold = threshold
     self.min_inliers = min_inliers
@@ -51,16 +52,14 @@ class QUEST_RANSAC:
     self.return_all = return_all
     self.dtype = _dtype
 
+
   def get_best_fit(self):
-    # todo working here .........
     data = np.concatenate((self.m1,self.m2), axis=0).T
-    npprint('data', data)
+    # npprint('data', data)
 
     bestfit = None
     besterr = np.inf
     best_inlier_idxs = None
-
-
 
     for i in range(self.max_iters):
       #todo explore ways to get points with SOME distance from each other
@@ -75,7 +74,7 @@ class QUEST_RANSAC:
       # npprint('maybeinliers', maybeinliers)
       # npprint('else_data', else_data)
 
-
+      # todo working here .........
       maybemodel = self.fit(maybeinliers)
       npprint('maybemodel', maybemodel)
 
@@ -127,27 +126,34 @@ class QUEST_RANSAC:
     # npprint('m1',m1)
     # npprint('m2',m2)
     # st()
-    # est pose with QuEst
-    qs = self.quest(m=m1, n=m2)
-    npprint('qs', qs)
-    st()
+
+    qs = self.quest(m=m1, n=m2) # est rotation with QuEst
+    # npprint('qs', qs)
+    # st()
     # pose = QuEst_Ver1_1(A,B) # run QuEst algorithm
     # find the best solution
     qs_residues = get_residues(m1,m2,qs) # Scoring function
-    npprint('qs', qs)
-    npprint('qs_residues', qs_residues)
-    npprint('idx', idx)
-    npprint('qs[idx]', qs[idx])
+    # npprint('qs', qs)
+    # npprint('qs_residues', qs_residues)
 
-    idx = np.amin(qs_residues[:])
+    idx = np.where(qs_residues==qs_residues.min())[0][0]
+
+    # nprint('idx', idx)
+    # nprint('qs[idx]', qs[idx][0])
     # resMin, mIdx = min(abs(qs_residues))
-    q = qs[idx]
-    t, dep1, dep2, res = get_Txyz(m1,m2,q)
-    # t = pose.T(:,mIdx);
+    q = qs[idx,0]
+    nprint('q',q)
+    st()
+
+    t, dep1, dep2, res = self.get_Txyz(m1,m2,q)
 
     # make a fundamental matrix from the recovered rotation and translation
-    q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
-    R = sc_R.from_quat(q_arr).as_matrix()
+    # q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
+
+
+
+    R = sc_R.from_quat(q).as_rotation_matrix()
+    npprint('R',R)
 
 
     npprint('t',t)
@@ -160,6 +166,9 @@ class QUEST_RANSAC:
     npprint('F',F)
     st()
     M = rmodel(q=q,t=t,m1=m1,m2=m2,F=F)
+
+
+
     return M
 
 

@@ -130,11 +130,21 @@ def get_qs_residues(m1, m2, qSols):
   '''
   # coefficinet matrix in the linearized system of multinomials (C@x=c)
   C0 = get_COEFS(m1,m2)
-  q1 = np.asarray(quat2np(qSols[0,0]))
-  q2 = np.asarray(quat2np(qSols[1,0]))
-  q3 = np.asarray(quat2np(qSols[2,0]))
-  q4 = np.asarray(quat2np(qSols[3,0]))
 
+  # st()
+  qs_np = quats2np(qSols,axis=1).T
+  # nsprint('qs_np',qs_np)
+  # st()
+
+  q1 = qs_np[0,:]
+  q2 = qs_np[1,:]
+  q3 = qs_np[2,:]
+  q4 = qs_np[3,:]
+
+  # nsprint('q1',q1)
+  # nsprint('q2',q2)
+  # nsprint('q3',q3)
+  # nsprint('q4',q4)
   xVec = np.asarray([q1**4,
                      q1**3. * q2,
                      q1**2. * q2**2,
@@ -170,13 +180,14 @@ def get_qs_residues(m1, m2, qSols):
                      q2 * q4**3,
                      q3 * q4**3,
                      q4**4], dtype=np.float128)
-  nprint('xVec', xVec)
-  npprint('C0',C0)
-  st()
+  # nsprint('xVec', xVec)
+  # nsprint('C0',C0)
   # residues
   residuMat = C0 @ xVec
+  # npprint('residuMat',residuMat)
 
-  residu = sum( abs(residuMat), 1)
+  residu = np.sum(np.abs(residuMat),axis=0)
+  # npprint('residu',residu)
 
   return residu
 # EOF

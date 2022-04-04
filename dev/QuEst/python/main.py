@@ -96,12 +96,13 @@ def main():
       if alg == 'QuEst_RANSAC_v0102':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, len(matches))
 
-        rquest = RQUEST(m1, m2, QuEst,
-                                 maxIter,
-                                 rThreshold,
-                                 min_inliers,
-                                 nbug=NBUG,
-                                 return_all=True)
+        rquest = RQUEST(m1, m2,
+                        QuEst, get_Txyz,
+                        maxIter,
+                        rThreshold,
+                        min_inliers,
+                        nbug=NBUG,
+                        return_all=True)
         q = rquest.get_best_fit()
 
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
