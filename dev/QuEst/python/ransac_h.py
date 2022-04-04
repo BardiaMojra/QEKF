@@ -164,26 +164,24 @@ class QUEST_RANSAC:
         bestM.F = M.F[k]
         bestInlier_idxs = inliers
     else: # single solution
-      npprint('M.m1',M.m1)
-      npprint('M.m2',M.m2)
-      st()
+      # npprint('M.m1',M.m1)
+      # npprint('M.m2',M.m2)
 
       m2tFm1 = np.zeros((1, M.m1.shape[1]),dtype=self.dtype)
       for n in range(M.m1.shape[1]):
-        st()
         m2tFm1[0,n] = M.m2[:,n].T @ M.F @ M.m1[:,n]
-        nprint('m2tFm1[0,n]', m2tFm1[0,n])
 
-      npprint('m2tFm1', m2tFm1)
-      st()
+      # npprint('m2tFm1', m2tFm1)
       Fm1  = M.F @ M.m1
       Ftm2 = M.F.T @ M.m2
-      npprint
+      npprint('Fm1',Fm1)
+      npprint('Ftm2',Ftm2)
       # evaluate distances
       d =  m2tFm1**2 /\
          (Fm1[0,:]**2 + Fm1[1,:]**2 + Ftm2[0,:]**2 + Ftm2[1,:]**2)
+      npprint('d',d)
 
-
+      st()
       bestInlier_idxs = np.where(abs(d) < self.threshold) # indices of inlying points
       bestM = M # copy M directly to bestM
     return bestInlier_idxs, d[bestInlier_idxs], bestM

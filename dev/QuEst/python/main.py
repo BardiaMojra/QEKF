@@ -35,13 +35,12 @@ _ALGORITHMS   = ['QuEst_RANSAC_v0102']
 _BENCHTYPE    = 'KITTI'
 _BENCHNUM     = 3
 skipFrame     = 0 # num of frames that are skiped between two key frames
-ranThresh     = 1e-6 # RANSAC outlier threshold
-surfThresh    = 200 # SURF feature point detection threshold
-maxPts        = 50 # max num of feature points to use for pose est (lower value increases speed)
-minPts        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
-min_inliers   = 5 #todo fix this
-maxIter       = 50 #todo fix this
-rThreshold    = 20 #todo fix this
+ORB_THRESHOLD    = 200 # SURF feature point detection threshold
+QUEST_MAX_CORRESPS        = 50 # max num of feature points to use for pose est (lower value increases speed)
+QUEST_MIN_CORRESPS        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
+RANSAC_MIN_INLIERS   = 5 #todo fix this
+RANSAC_MAX_ITER       = 50 #todo fix this
+RANSAC_THRESHOLD    = 1.0000e-06
 
 def main():
   global fignum; fignum = int(0)
@@ -60,14 +59,14 @@ def main():
   fmatcher = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
 
   # initialize with the first image feature points
-  Im_p, kp_p, des_p = GetFeaturePoints(fdetector, 0, dset, surfThresh)
+  Im_p, kp_p, des_p = GetFeaturePoints(fdetector, 0, dset, ORB_THRESHOLD)
 
   ''' recover Pose using RANSAC and compare with ground truth '''
   for i in range(1, len(keyFrames)):
     print('\n\n\ -----------===========---------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
 
     # match features
-    Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
+    Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, ORB_THRESHOLD)
     if _show:
       imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
       plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
@@ -75,7 +74,7 @@ def main():
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
     print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
-    matches = matches[:maxPts]
+    matches = matches[:QUEST_MAX_CORRESPS]
     # imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
     # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
     # nprint('Im_n.shape', Im_n.shape)
@@ -87,7 +86,7 @@ def main():
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
-    if len(matches) < minPts: # skip frame
+    if len(matches) < QUEST_MIN_CORRESPS: # skip frame
       Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
@@ -98,16 +97,16 @@ def main():
 
         rquest = RQUEST(m1, m2,
                         QuEst, get_Txyz,
-                        maxIter,
-                        rThreshold,
-                        min_inliers,
+                        RANSAC_MAX_ITER,
+                        RANSAC_THRESHOLD,
+                        RANSAC_MIN_INLIERS,
                         nbug=NBUG,
                         return_all=True)
         q = rquest.get_best_fit()
 
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
-        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, minPts)
+        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, QUEST_MIN_CORRESPS)
         qs = QuEst(m=m1, n=m2)
         # m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
         # qs = QuEst(m=m1, n=m2)
