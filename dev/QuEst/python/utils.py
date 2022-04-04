@@ -24,6 +24,7 @@ def skew(v):
 
 
 def quat2np(q:np.quaternion,_dtype=np.float128):
+  q = q.normalized()
   w = np.float128(q.w)
   x = np.float128(q.x)
   y = np.float128(q.y)
@@ -73,15 +74,15 @@ def get_qErr_phi0X_np(qr:np.quaternion, Qs:np.ndarray, metric='phi03'):
 def get_ranks_dists(dists:np.ndarray):
   return sorted(range(dists.shape[0]), key=lambda i:dists[i])
 
-def phi03_dist(qr:np.quaternion, q:np.quaternion):
-  qr = quaternion.as_float_array(qr.normalized())
-  q = quaternion.as_float_array(q.normalized())
+def phi03_dist(qr:np.quaternion, q:np.quaternion,_dtype=np.float128):
+  qr = quat2np(qr)
+  q = quat2np(q)
   return (1/np.pi)*np.arccos(abs(qr @ q)) # divide by 1/pi to make range 0-1.
 
 def phi04_dist(qr:np.quaternion, q:np.quaternion):
   ''' estimates phi03_dist by replacing arccos and estimating it '''
-  qr = quaternion.as_float_array(qr.normalized())
-  q = quaternion.as_float_array(q.normalized())
+  qr = quat2np(qr)
+  q = quat2np(q)
   return (1/np.pi)*(1 - abs(qr @ q)) # divide by 1/pi to make range 0-1.
 
 def get_ranks_pureQuats(QErrs:np.ndarray):
@@ -129,8 +130,9 @@ def get_qDiff_advQ(qr:np.quaternion, q:np.quaternion, _dtype=np.float128):
   assigns the axis in a different way. I don't totally understand what they do,
   but you can see it involves SVD, which always returns orthogonal vectors so it
   won't return a 0 vector like a cross product. '''
-  v0 = quaternion.as_float_array(qr.normalized())
-  v1 = quaternion.as_float_array(q.normalized())
+  npprint('v0',v0)
+  v0 = quat2np(qr)
+  v1 = quat2np(q)
   npprint('v0',v0)
   npprint('v1',v1)
   st()

@@ -1,16 +1,18 @@
 ''' QuEst v07.08 '''
 
-
+''' public libraries '''
 import numpy as np
-import scipy.linalg as la
 import quaternion
+import scipy.linalg as la
+
+''' private libraries '''
 from quest_algs.coefs import CoefsVer3_1_1 as get_COEFS
-
-
+from utils import *
 
 ''' NBUG '''
 from pdb import set_trace as st
 from nbug import *
+
 
 def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   ''' QuEst (Quaternion Estimation) algorithm for 5 feature points
@@ -52,9 +54,9 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
                     19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
                     56], dtype=int).reshape(4,-1) - 1
 
-  npprint('m',m)
-  npprint('n',n)
-  st()
+  # npprint('m',m)
+  # npprint('n',n)
+  # st()
 
   # coefficient matrix in the linearized system of multi-nomials (Cf * V = 0)
   Cf = get_COEFS(m,n)
@@ -123,63 +125,58 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   qs = qs/Qnorm # match matlab format
   return quaternion.as_quat_array(qs.T).reshape(-1,1) #
 
-
-
 def get_qs_residues(m1, m2, qSols):
   ''' calculate the residue value |C x - c| for estimated quaternion solutions
   '''
-  # coefficinet matrix in the linearized system of multinomials (C * x = c)
+  # coefficinet matrix in the linearized system of multinomials (C@x=c)
   C0 = get_COEFS(m1,m2)
+  q1 = np.asarray(quat2np(qSols[0,0]))
+  q2 = np.asarray(quat2np(qSols[1,0]))
+  q3 = np.asarray(quat2np(qSols[2,0]))
+  q4 = np.asarray(quat2np(qSols[3,0]))
 
-
-  st()
-  q1 = qSols[0,:]
-  q2 = qSols[1,:]
-  q3 = qSols[2,:]
-  q4 = qSols[3,:]
-
-  xVec = [q1**4,
-          q1**3. * q2,
-          q1**2. * q2**2,
-          q1 * q2**3,
-          q2**4,
-          q1**3. *q3,
-          q1**2. *q2 *q3,
-          q1* q2**2. *q3,
-          q2**3. *q3,
-          q1**2. * q3**2,
-          q1*q2 * q3**2,
-          q2**2. * q3**2,
-          q1* q3**3,
-          q2* q3**3,
-          q3**4,
-          q1**3. *q4,
-          q1**2. *q2*q4,
-          q1*q2**2. *q4,
-          q2**3. *q4,
-          q1**2. *q3*q4,
-          q1*q2 * q3*q4,
-          q2**2. * q3*q4,
-          q1* q3**2. *q4,
-          q2* q3**2. *q4,
-          q3**3. *q4,
-          q1**2. *q4**2,
-          q1*q2 * q4**2,
-          q2**2. * q4**2,
-          q1*q3 * q4**2,
-          q2*q3 * q4**2,
-          q3**2. * q4**2,
-          q1 * q4**3,
-          q2 * q4**3,
-          q3 * q4**3,
-          q4**4]
-
-  npprint('xVec', xVec)
+  xVec = np.asarray([q1**4,
+                     q1**3. * q2,
+                     q1**2. * q2**2,
+                     q1 * q2**3,
+                     q2**4,
+                     q1**3. *q3,
+                     q1**2. *q2 *q3,
+                     q1* q2**2. *q3,
+                     q2**3. *q3,
+                     q1**2. * q3**2,
+                     q1*q2 * q3**2,
+                     q2**2. * q3**2,
+                     q1* q3**3,
+                     q2* q3**3,
+                     q3**4,
+                     q1**3. *q4,
+                     q1**2. *q2*q4,
+                     q1*q2**2. *q4,
+                     q2**3. *q4,
+                     q1**2. *q3*q4,
+                     q1*q2 * q3*q4,
+                     q2**2. * q3*q4,
+                     q1* q3**2. *q4,
+                     q2* q3**2. *q4,
+                     q3**3. *q4,
+                     q1**2. *q4**2,
+                     q1*q2 * q4**2,
+                     q2**2. * q4**2,
+                     q1*q3 * q4**2,
+                     q2*q3 * q4**2,
+                     q3**2. * q4**2,
+                     q1 * q4**3,
+                     q2 * q4**3,
+                     q3 * q4**3,
+                     q4**4], dtype=np.float128)
+  nprint('xVec', xVec)
+  npprint('C0',C0)
   st()
   # residues
-  residuMat = C0 * xVec;
+  residuMat = C0 @ xVec
 
-  residu = sum( abs(residuMat), 1);
+  residu = sum( abs(residuMat), 1)
 
   return residu
 # EOF

@@ -124,9 +124,9 @@ class QUEST_RANSAC:
     Copyright (c) 2016, Kaveh Fathian. The University of Texas at Dallas. '''
     m1 = data[:,:3].T
     m2 = data[:,3:].T
-    npprint('m1',m1)
-    npprint('m2',m2)
-    st()
+    # npprint('m1',m1)
+    # npprint('m2',m2)
+    # st()
     # est pose with QuEst
     qs = self.quest(m=m1, n=m2)
     npprint('qs', qs)
