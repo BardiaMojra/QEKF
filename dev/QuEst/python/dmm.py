@@ -10,7 +10,7 @@ import os
 # import csv
 
 ''' private mods '''
-from quest import *
+# from quest import *
 
 ''' NBUG '''
 from pdb import set_trace as st
@@ -21,6 +21,9 @@ from nbug import *
 matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
+''' module configs '''
+OUT_DIR = '../out00/'
+DATA_ROOT = '../Datasets/'
 class dmm:
   ''' data management module '''
   def __init__(self,

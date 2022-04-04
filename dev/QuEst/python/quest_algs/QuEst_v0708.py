@@ -51,6 +51,11 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
                     38, 9, 15, 25, 40, 18, 28, 43, 32, 47, 52, 10, 16, 26, 41,
                     19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
                     56], dtype=int).reshape(4,-1) - 1
+
+  npprint('m',m)
+  npprint('n',n)
+  st()
+
   # coefficient matrix in the linearized system of multi-nomials (Cf * V = 0)
   Cf = get_COEFS(m,n)
   numEq = Cf.shape[0]

@@ -25,7 +25,7 @@ or
 
 ''' general config '''
 NBUG          = True
-_show         = True
+_show         = False
 _save         = True
 _prt          = True
 # _START        = 0
@@ -68,8 +68,9 @@ def main():
 
     # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, surfThresh)
-    imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
-    plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+    if _show:
+      imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
+      plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
 
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
@@ -95,12 +96,13 @@ def main():
       if alg == 'QuEst_RANSAC_v0102':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, len(matches))
 
-        rquest = QUEST_RANSAC(m1, m2, QuEst
+        rquest = RQUEST(m1, m2, QuEst,
                                  maxIter,
                                  rThreshold,
                                  min_inliers,
-                                 debug=NBUG,
+                                 nbug=NBUG,
                                  return_all=True)
+        q = rquest.get_best_fit()
 
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':

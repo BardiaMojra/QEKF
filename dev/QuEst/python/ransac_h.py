@@ -39,10 +39,11 @@ class QUEST_RANSAC:
       inliers_min - the number of close data values required to assert that a model fits well to data
     return:
       bestfit - model parameters which best fit the data """
-  def __init__(self,m1,m2, quest_model, max_iters,threshold,min_inliers,\
+  def __init__(self,m1,m2, quest, max_iters,threshold,min_inliers,\
                nbug=True,return_all=True,_dtype=np.float128):
     self.m1 = m1  # inputs X
     self.m2 = m2  # outputs Y
+    self.quest = quest
     self.max_iters = max_iters
     self.threshold = threshold
     self.min_inliers = min_inliers
@@ -51,33 +52,45 @@ class QUEST_RANSAC:
     self.dtype = _dtype
 
   def get_best_fit(self):
-    st()
-
     # todo working here .........
+    data = np.concatenate((self.m1,self.m2), axis=0).T
+    npprint('data', data)
 
-
-    iterations = 0
     bestfit = None
     besterr = np.inf
     best_inlier_idxs = None
+
+
+
     for i in range(self.max_iters):
       #todo explore ways to get points with SOME distance from each other
       #todo test enforcing min distance between correspondences
-      maybe_idxs = self.random_partition(self.min_inliers,self.m1.shape[0])
+      maybe_idxs, else_idxs = self.random_partition(self.min_inliers,data.shape[0])
+      maybeinliers = data[maybe_idxs,:]
+      test_data = data[else_idxs,:]
 
-      maybeinliers = self.m1[:,maybe_idxs]
 
+
+      npprint('maybe_idxs', maybe_idxs)
+      # npprint('maybeinliers', maybeinliers)
+      # npprint('else_data', else_data)
 
 
       maybemodel = self.fit(maybeinliers)
-      alsoinliers,errs,bestM = self.get_error(maybemodel)
+      npprint('maybemodel', maybemodel)
 
+      st()
+      alsoinliers,errs,bestM = self.get_error(test_data, maybemodel)
+
+      st()
+      also_idxs = else_idxs[errs < self.threshold] # select indices of rows with accepted points
+      alsoinliers = data[also_idxs,:]
 
       if self.NBUG:
-        print ('test_err.min()'+errs.min())
-        print ('test_err.max()'+errs.max())
-        print ('np.mean(test_err)'+np.mean(errs))
-        print ('iteration: {}', iterations)
+        print('test_err.min()'+errs.min())
+        print('test_err.max()'+errs.max())
+        print('np.mean(test_err)'+np.mean(errs))
+        print('iteration: {}', i)
         print('len(alsoinliers): {}', len(alsoinliers))
         print('\n\n')
       if len(alsoinliers) > self.min_inliers:
@@ -98,7 +111,7 @@ class QUEST_RANSAC:
       return bestfit
 
 
-  def fit(self,m1,m2,_dtype=np.float128):
+  def fit(self,data,_dtype=np.float128):
     ''' pose estimation: estimates the relative rotation and translation
     between two camera views using the 5 point quaternion algorithm.
     Input:
@@ -109,13 +122,13 @@ class QUEST_RANSAC:
     Output:
       M      - A structure that contains the estimated pose.
     Copyright (c) 2016, Kaveh Fathian. The University of Texas at Dallas. '''
-    # A = np.vstack([data[:,i] for i in self.input_columns]).T
-    # B = np.vstack([data[:,i] for i in self.output_columns]).T
-    # npprint('A',A)
-    # npprint('',A)
-    # x,resids,rank,s = scipy.linalg.lstsq(A,B) # replace with QuEst
+    m1 = data[:,:3].T
+    m2 = data[:,3:].T
+    npprint('m1',m1)
+    npprint('m2',m2)
+    st()
     # est pose with QuEst
-    qs = QuEst(m=m1, n=m2)
+    qs = self.quest(m=m1, n=m2)
     npprint('qs', qs)
     st()
     # pose = QuEst_Ver1_1(A,B) # run QuEst algorithm
@@ -150,10 +163,13 @@ class QUEST_RANSAC:
     return M
 
 
-  def get_error(self, M:rmodel):
+  def get_error(self, test_data, maybemodel:rmodel):
     ''' use Sampson distance to compute the first order approximation
     geometric error of the fitted fundamental matrix given a set of matched
     correspondences '''
+
+    M = maybemodel
+
     # todo working here
     npprint('M.m1', M.m1)
     npprint('M.m2', M.m2)
@@ -174,6 +190,7 @@ class QUEST_RANSAC:
       # evaluate distances
       d =  m2tFm1 **2 /\
         (Fm1[0,:]**2 + Fm1[1,:]**2 + Ftm2[0,:]**2 + Ftm2[1,:]**2)
+
       inliers = np.where(abs(d) <  self.threshold)
       if len(inliers) > ninliers:  # record best solution
         ninliers = len(inliers)
@@ -199,8 +216,9 @@ class QUEST_RANSAC:
     """return n random rows of data (and also the other len(data)-n rows)"""
     all_idxs = np.arange( n_data )
     np.random.shuffle(all_idxs)
-    idxs = all_idxs[:n]
-    return idxs
+    rand_idxs = all_idxs[:n]
+    else_idxs = all_idxs[n:]
+    return rand_idxs, else_idxs
 
 
 

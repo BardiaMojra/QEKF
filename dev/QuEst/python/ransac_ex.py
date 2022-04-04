@@ -132,8 +132,7 @@ class LinearLeastSquaresModel:
     def fit(self, data):
         A = numpy.vstack([data[:,i] for i in self.input_columns]).T
         B = numpy.vstack([data[:,i] for i in self.output_columns]).T
-        npprint('A',A)
-        npprint('A',A)
+
 
         x,resids,rank,s = scipy.linalg.lstsq(A,B)
         return x
@@ -147,37 +146,37 @@ class LinearLeastSquaresModel:
 def test():
     # generate perfect input data
 
-    # n_samples = 500
-    # n_inputs = 1
-    # n_outputs = 1
-    # A_exact = 20*numpy.random.random((n_samples,n_inputs) )
-    # perfect_fit = 60*numpy.random.normal(size=(n_inputs,n_outputs) ) # the model
-    # B_exact = numpy.dot(A_exact,perfect_fit)
-    # assert B_exact.shape == (n_samples,n_outputs)
+    n_samples = 500
+    n_inputs = 1
+    n_outputs = 1
+    A_exact = 20*numpy.random.random((n_samples,n_inputs) )
+    perfect_fit = 60*numpy.random.normal(size=(n_inputs,n_outputs) ) # the model
+    B_exact = numpy.dot(A_exact,perfect_fit)
+    assert B_exact.shape == (n_samples,n_outputs)
 
-    # # add a little gaussian noise (linear least squares alone should handle this well)
-    # A_noisy = A_exact + numpy.random.normal(size=A_exact.shape )
-    # B_noisy = B_exact + numpy.random.normal(size=B_exact.shape )
+    # add a little gaussian noise (linear least squares alone should handle this well)
+    A_noisy = A_exact + numpy.random.normal(size=A_exact.shape )
+    B_noisy = B_exact + numpy.random.normal(size=B_exact.shape )
 
-    # if 1:
-    #     # add some outliers
-    #     n_outliers = 100
-    #     all_idxs = numpy.arange( A_noisy.shape[0] )
-    #     numpy.random.shuffle(all_idxs)
-    #     outlier_idxs = all_idxs[:n_outliers]
-    #     non_outlier_idxs = all_idxs[n_outliers:]
-    #     A_noisy[outlier_idxs] =  20*numpy.random.random((n_outliers,n_inputs) )
-    #     B_noisy[outlier_idxs] = 50*numpy.random.normal(size=(n_outliers,n_outputs) )
+    if 1:
+        # add some outliers
+        n_outliers = 100
+        all_idxs = numpy.arange( A_noisy.shape[0] )
+        numpy.random.shuffle(all_idxs)
+        outlier_idxs = all_idxs[:n_outliers]
+        non_outlier_idxs = all_idxs[n_outliers:]
+        A_noisy[outlier_idxs] =  20*numpy.random.random((n_outliers,n_inputs) )
+        B_noisy[outlier_idxs] = 50*numpy.random.normal(size=(n_outliers,n_outputs) )
 
-    # # setup model
-    # all_data = numpy.hstack( (A_noisy,B_noisy) )
-    # input_columns = range(n_inputs) # the first columns of the array
-    # output_columns = [n_inputs+i for i in range(n_outputs)] # the last columns of the array
-    # debug = False
-    # model = LinearLeastSquaresModel(input_columns,output_columns,debug=debug)
+    # setup model
+    all_data = numpy.hstack( (A_noisy,B_noisy) )
+    input_columns = range(n_inputs) # the first columns of the array
+    output_columns = [n_inputs+i for i in range(n_outputs)] # the last columns of the array
+    debug = False
+    model = LinearLeastSquaresModel(input_columns,output_columns,debug=debug)
 
-    # linear_fit,resids,rank,s = scipy.linalg.lstsq(all_data[:,input_columns],
-    #                                               all_data[:,output_columns])
+    linear_fit,resids,rank,s = scipy.linalg.lstsq(all_data[:,input_columns],
+                                                  all_data[:,output_columns])
 
     # run RANSAC algorithm
     ransac_fit, ransac_data = ransac(all_data,model,
