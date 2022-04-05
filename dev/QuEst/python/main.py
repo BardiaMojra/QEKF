@@ -24,23 +24,24 @@ or
 '''
 
 ''' general config '''
-NBUG          = True
-_show         = False
-_save         = True
-_prt          = True
-# _START        = 0
-# _END          = 150
-_ALGORITHMS   = ['QuEst_RANSAC_v0102']
-# _ALGORITHMS   = ['QuEst_v0708']
-_BENCHTYPE    = 'KITTI'
-_BENCHNUM     = 3
-skipFrame     = 0 # num of frames that are skiped between two key frames
-ORB_THRESHOLD    = 200 # SURF feature point detection threshold
-QUEST_MAX_CORRESPS        = 50 # max num of feature points to use for pose est (lower value increases speed)
-QUEST_MIN_CORRESPS        = 5 # min num of feature points required (6 to est a unique pose from RANSAC)
-RANSAC_MIN_INLIERS   = 5 #todo fix this
-RANSAC_MAX_ITER       = 50 #todo fix this
-RANSAC_THRESHOLD    = 1.0000e-06
+NBUG                = True
+_show               = False
+_save               = True
+_prt                = True
+# _START            = 0
+# _END              = 150
+_ALGORITHMS         = ['QuEst_RANSAC_v0102']
+# _ALGORITHMS         = ['QuEst_v0708']
+_BENCHTYPE          = 'KITTI'
+_BENCHNUM           = 3
+skipFrame           = 0 # skipped between two key frames
+ORB_THRESHOLD       = 200 # SURF feature point detection threshold
+QUEST_MAX_CORRESPS  = 50 # max correspondences for pose est
+QUEST_MIN_CORRESPS  = 5 # min correspondences for pose est
+RANSAC_MIN_INLIERS  = 5 #todo fix this
+RANSAC_MAX_ITER     = 50 #todo fix this
+# RANSAC_THRESHOLD    = 1.0e-6
+RANSAC_THRESHOLD    = 1.0e-3
 
 def main():
   global fignum; fignum = int(0)
