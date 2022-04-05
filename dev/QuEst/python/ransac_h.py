@@ -14,12 +14,13 @@ from quest import *
 from utils import *
 
 class rmodel(object):
-  def __init__(self,q,t,m1,m2,F):
-    self.q  = q
-    self.t  = t
-    self.m1 = m1
-    self.m2 = m2
-    self.F  = F
+  def __init__(self,q,t,idxs,F):
+    self.q        = q
+    self.t        = t
+    self.mod_idxs = idxs # indices of corresponding correspondences
+    self.F        = F # fundamental matrix corresponding to mod_idxs
+    self.errs     = None
+    self.inl_idxs = None
   # end of class rmodel(object): ------------------->> //
 
 class QUEST_RANSAC:
@@ -37,61 +38,61 @@ class QUEST_RANSAC:
       model fits well to data
     return:
       bestfit - model parameters which best fit the data """
-  def __init__(self,m1,m2, quest, get_Txyz, max_iters,threshold,min_inliers,\
+  def __init__(self,m1,m2, quest, get_Txyz, max_iters,threshold,num_corresps,\
                nbug=True,return_all=True,_dtype=np.float128):
     self.m1 = m1  # inputs X
     self.m2 = m2  # outputs Y
-    self.quest = quest
-    self.get_Txyz = get_Txyz
+    self.dat = np.concatenate((self.m1,self.m2), axis=0).T
+    self.quest = quest # func pointer
+    self.get_Txyz = get_Txyz # func pointer
     self.max_iters = max_iters
     self.threshold = threshold
-    self.min_inliers = min_inliers
+    self.num_corresps = num_corresps
     self.NBUG = nbug
     self.return_all = return_all
     self.dtype = _dtype
     # end of __init__
 
   def get_best_fit(self):
-    data = np.concatenate((self.m1,self.m2), axis=0).T
-    best_fit = None
-    best_err = np.inf
-    best_inlier_idxs = None
+    Best_M = None
+    B_err = np.inf
+    B_inl_idxs = None
 
     for i in range(self.max_iters):
       #todo explore ways to get points with SOME distance from each other
       #todo test enforcing min distance between correspondences
-      maybe_idxs, else_idxs = self.random_partition(self.min_inliers,data.shape[0])
-      maybeinliers = data[maybe_idxs,:]
-      test_data = data[else_idxs,:]
 
-      # npprint('maybe_idxs', maybe_idxs)
-      # npprint('maybeinliers', maybeinliers)
-      # npprint('else_data', else_data)
 
-      maybemodel = self.fit(maybeinliers)
-      errs, also_idxs, maybemodel = self.get_error(test_data, maybemodel)
+      mod_idxs, test_idxs = self.random_partition(self.num_corresps,self.dat.shape[0])
+      mod = self.fit(mod_idxs)
 
-      # npprint('test_data', test_data)
-      # npprint('maybeinliers', maybeinliers)
-      # npprint('also_idxs', also_idxs)
+      errs, inl_idxs, mod = self.get_error(test_idxs, mod)
 
-      alsoinliers = test_data[also_idxs,:]
+      npprint('mod_idxs', mod_idxs)
+      npprint('test_idxs', test_idxs)
+      npprint('inl_idxs', inl_idxs)
+
+      inl_dat = test_data[inl_idxs,:]
+
+
+
 
       if self.NBUG:
-        nprint('errs.min()',errs.min())
-        nprint('errs.max()',errs.max())
-        nprint('np.mean(errs)',np.mean(errs))
-        nprint('iteration: ', i)
-        nprint('len(alsoinliers): ', len(alsoinliers))
+        print(lhead+f'iter:  {i}')
+        print('errs.min(): {:0.10f}'.format(errs.min()))
+        print('errs.max(): {:0.10f}'.format(errs.max()))
+        print('np.mean(errs): {:0.10f}'.format(np.mean(errs)))
+        print(f'len(inl_idxs): ', len(inl_idxs))
+        print('\n\n')
 
       # todo working here .........
-      if len(alsoinliers) > self.min_inliers:
-        npprint('maybeinliers', maybeinliers)
-        npprint('alsoinliers', alsoinliers)
+      if len(inl_idxs) > len(B_inl_idxs):
+        # npprint('maybeinliers', maybeinliers)
+        # npprint('alsoinliers', alsoinliers)
 
-        st()
+        # st()
 
-        bet_dat = np.concatenate((maybeinliers,alsoinliers),axis=0)#.copy()
+        bet_dat = np.concatenate((mod_data,inl_dat),axis=0)#.copy()
         npprint('bet_dat', bet_dat)
 
         bet_mod = self.fit(bet_dat)
@@ -105,50 +106,51 @@ class QUEST_RANSAC:
         st()
 
 
-        if this_err < best_err:
-          best_fit = bet_mod
-          best_err = this_err
-          best_inlier_idxs = np.concatenate((maybe_idxs,also_idxs),axis=0)#.copy()
-          npprint('best_fit',best_fit)
-          npprint('best_err',best_err)
-          npprint('best_inlier_idxs',best_inlier_idxs)
+        if this_err < B_err:
+          Best_M = bet_mod
+          B_err = this_err
+          B_inl_idxs = np.concatenate((mod_idxs,inl_idxs),axis=0)#.copy()
+          npprint('best_fit',Best_M)
+          npprint('best_err',B_err)
+          npprint('best_inlier_idxs',B_inl_idxs)
         st()
       # end of for i in range(self.max_iters):
     st()
-    if best_fit is None:
+    if Best_M is None:
       raise ValueError("did not meet fit acceptance criteria")
     if self.return_all:
-      return best_fit, {'inliers':best_inlier_idxs}
+      return Best_M, {'inliers':B_inl_idxs}
     else:
-      return best_fit
+      return Best_M
 
-
-  def fit(self,data):
+  def fit(self,mod_idxs):
     ''' pose estimation: estimates the relative rotation and translation
-    between two camera views using the 5 point quaternion algorithm.
+      between two camera views using the 5 point quaternion algorithm.
       input:
-        data  - A structure
+        mod_idxs  - selected indices
       output:
-        M     - A structure that contains the estimated pose.
-    Copyright (c) 2016, Kaveh Fathian. The University of Texas at Dallas. '''
-    m1 = data[:,:3].T
-    m2 = data[:,3:].T
+        mod       - model object '''
+    m1 = self.dat[mod_idxs,:3].T
+    m2 = self.dat[mod_idxs,3:].T
 
     npprint('m1',m1)
     npprint('m2',m2)
-
-    #todo working here
     st()
+
     qs = self.quest(m=m1, n=m2) # est rotation with QuEst
     qs_residues = get_residues(m1,m2,qs) # Scoring function
-    idx = np.where(qs_residues==qs_residues.min())[0][0] # find best sol
+    idx = np.asarray(qs_residues==qs_residues.min()).nonzero()[0][0] # find best sol
+
+    nprint('idx',idx)
+    st()
+
     q = qs[idx,0]
     t, dep1, dep2, res = self.get_Txyz(m1,m2,q)
-    # make a fundamental matrix from the recovered rotation and translation
+    # fundamental matrix from recovered rotation and translation
     R = sc_R.from_quat(quat2arr(q)).as_matrix()
     Tx = skew(t/lalg.norm(t))
     F = Tx @ R # compute fundamental matrix
-    return rmodel(q=q,t=t,m1=m1,m2=m2,F=F)
+    return rmodel(q=q,t=t,idxs=mod_idxs,F=F)
 
   def get_error(self,dat,M:rmodel):
     ''' use Sampson distance to compute the first order approximation
@@ -199,7 +201,7 @@ class QUEST_RANSAC:
   def random_partition(self,n,n_data):
     #todo try loading sparse random data points
     """return n random rows of data (and also the other len(data)-n rows)"""
-    all_idxs = np.arange( n_data )
+    all_idxs = np.arange(n_data)
     np.random.shuffle(all_idxs)
     rand_idxs = all_idxs[:n]
     else_idxs = all_idxs[n:]

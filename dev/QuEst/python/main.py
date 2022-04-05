@@ -37,8 +37,7 @@ _BENCHNUM           = 3
 skipFrame           = 0 # skipped between two key frames
 ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_CORRESPS  = 50 # max correspondences for pose est
-QUEST_MIN_CORRESPS  = 5 # min correspondences for pose est
-RANSAC_MIN_INLIERS  = 5 #todo fix this
+QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
 RANSAC_MAX_ITER     = 50 #todo fix this
 # RANSAC_THRESHOLD    = 1.0e-6
 RANSAC_THRESHOLD    = 1.0e-3
@@ -87,7 +86,7 @@ def main():
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
-    if len(matches) < QUEST_MIN_CORRESPS: # skip frame
+    if len(matches) < QUEST_NUM_CORRESPS: # skip frame
       Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
@@ -100,14 +99,14 @@ def main():
                         QuEst, get_Txyz,
                         RANSAC_MAX_ITER,
                         RANSAC_THRESHOLD,
-                        RANSAC_MIN_INLIERS,
+                        QUEST_NUM_CORRESPS,
                         nbug=NBUG,
                         return_all=True)
         q = rquest.get_best_fit()
 
         tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
-        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, QUEST_MIN_CORRESPS)
+        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)
         qs = QuEst(m=m1, n=m2)
         # m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
         # qs = QuEst(m=m1, n=m2)
