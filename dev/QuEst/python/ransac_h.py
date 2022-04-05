@@ -136,6 +136,8 @@ class QUEST_RANSAC:
 
     npprint('m1',m1)
     npprint('m2',m2)
+
+    #todo working here
     st()
     qs = self.quest(m=m1, n=m2) # est rotation with QuEst
     qs_residues = get_residues(m1,m2,qs) # Scoring function
