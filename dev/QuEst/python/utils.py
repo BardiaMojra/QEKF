@@ -79,8 +79,8 @@ def get_ranks_dists(dists:np.ndarray):
   return sorted(range(dists.shape[0]), key=lambda i:dists[i])
 
 def phi03_dist(qr:np.quaternion, q:np.quaternion,_dtype=np.float128):
-  qr = quat2np(qr)
-  q = quat2np(q)
+  qr = quat2arr(qr)
+  q = quat2arr(q)
   return (1/np.pi)*np.arccos(abs(qr @ q)) # divide by 1/pi to make range 0-1.
 
 def phi04_dist(qr:np.quaternion, q:np.quaternion):

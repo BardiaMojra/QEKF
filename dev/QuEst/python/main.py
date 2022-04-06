@@ -102,9 +102,9 @@ def main():
                         QUEST_NUM_CORRESPS,
                         nbug=NBUG,
                         return_all=True)
-        q = rquest.get_best_fit()
+        mod, m_idxs, q, tOut, qs= rquest.get_best_fit()
 
-        tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
+        # tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)
         qs = QuEst(m=m1, n=m2)
