@@ -99,7 +99,8 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   # npprint('Vi_idx', Vi_idx)
   # npprint('Vr_idx', Vr_idx)
   Vi_all = Ve[:,Vi_idx] # extract all imaginary roots
-  Vi_idx = sorted(range(Vi_all.shape[1]), key= lambda x: Vi_all[0,:].real[x])
+  Vi_idx = sorted(range(Vi_all.shape[1]), key=lambda x:Vi_all[0,:].real[x])
+  # st()
   Vi_idx_keep = [Vi_idx[x] for x in range(0, len(Vi_idx), 2)]
   Vi = Vi_all[:, Vi_idx_keep]
   Vr = Ve[:, Vr_idx]
