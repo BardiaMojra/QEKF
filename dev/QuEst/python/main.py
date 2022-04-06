@@ -38,8 +38,8 @@ skipFrame           = 0 # skipped between two key frames
 ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_MKP       = 50 # max matched keypoints for pose est
 QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
-RANSAC_MAX_ITER     = 100
-RANSAC_THRESHOLD    = 1.0e-5
+RANSAC_MAX_ITER     = 50
+RANSAC_THRESHOLD    = 1.0e-6
 
 def main():
   global fignum; fignum = int(0)
@@ -92,9 +92,9 @@ def main():
     # recover pose and find error by comparing with the ground truth
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
-        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, len(matches))
+        matches, dat = prep_matches(dset, matches, kp_p, kp_n, len(matches))
 
-        rquest = RQUEST(m1, m2,
+        rquest = RQUEST(dat,
                         QuEst, get_Txyz,
                         RANSAC_MAX_ITER,
                         RANSAC_THRESHOLD,
@@ -105,12 +105,12 @@ def main():
 
         # tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
-        matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)
-        qs = QuEst(m=m1, n=m2)
+        matches, dat = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)
+        qs = QuEst(dat)
         # m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
         # qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr,qs)
-        tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
+        tOut, dep1, dep2, res = get_Txyz(dat,q)
       else:
         eprint(str('algorithm is not supported: '+alg))
       # find the closet quaternion and translation to the ground truth

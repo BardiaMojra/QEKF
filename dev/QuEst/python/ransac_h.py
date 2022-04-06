@@ -41,11 +41,12 @@ class QUEST_RANSAC:
       model fits well to data
     return:
       bestfit - model parameters which best fit the data """
-  def __init__(self,m1,m2, quest, get_Txyz, max_iters,threshold,num_corresps,\
+  def __init__(self, dat, quest, get_Txyz, max_iters,threshold,num_corresps,\
                nbug=True,return_all=True,_dtype=np.float128):
-    self.m1 = m1  # inputs X
-    self.m2 = m2  # outputs Y
-    self.dat = np.concatenate((self.m1,self.m2), axis=0).T
+    # self.m1 = m1  # inputs X
+    # self.m2 = m2  # outputs Y
+    # self.dat = np.concatenate((self.m1,self.m2), axis=0).T
+    self.dat = dat
     self.quest = quest # func pointer
     self.get_Txyz = get_Txyz # func pointer
     self.max_iters = max_iters
@@ -116,15 +117,18 @@ class QUEST_RANSAC:
         mod_idxs  - selected indices
       output:
         mod       - model object '''
-    m1 = self.dat[kp_idxs,:3].T
-    m2 = self.dat[kp_idxs,3:].T
-
+    # m1 = self.dat[:,:3].T
+    # m2 = self.dat[:,3:].T
+    # npprint('m1',m1)
+    # npprint('m2',m2)
+    # m1 = m1/np.sum(np.abs(m1), axis=0).reshape(1,-1)
+    # m2 = m2/np.sum(np.abs(m2), axis=0).reshape(1,-1)
     # npprint('m1',m1)
     # npprint('m2',m2)
     # st()
 
-    qs = self.quest(m=m1, n=m2) # est rotation with QuEst
-    qs_residues = get_residues(m1,m2,qs) # Scoring function
+    qs = self.quest(self.dat[kp_idxs,:]) # est rotation with QuEst
+    qs_residues = get_residues(self.dat[kp_idxs,:],qs) # Scoring function
     idx = np.asarray(qs_residues==qs_residues.min()).nonzero()[0][0] # find best sol
 
     nprint('idx',idx)
@@ -133,7 +137,7 @@ class QUEST_RANSAC:
     # st()
 
     q = qs[idx,0]
-    t, dep1, dep2, res = self.get_Txyz(m1,m2,q)
+    t, dep1, dep2, res = self.get_Txyz(self.dat[kp_idxs,:],q)
     # fundamental matrix from recovered rotation and translation
     R = sc_R.from_quat(quat2arr(q)).as_matrix()
     Tx = skew(t/lalg.norm(t))

@@ -205,12 +205,12 @@ class Dmatch_obj(object):
     self.numPoints = numPoints
 
   def prt(self):
-    nprint('p1', self.p1)
-    nprint('p2', self.p2)
-    nprint('m1', self.m1)
-    nprint('m2', self.m2)
-    nprint('m1u', self.m1u)
-    nprint('m2u', self.m2u)
+    npprint('p1', self.p1)
+    npprint('p2', self.p2)
+    npprint('m1', self.m1)
+    npprint('m2', self.m2)
+    npprint('m1u', self.m1u)
+    npprint('m2u', self.m2u)
     nprint('numPoints', self.numPoints)
     return
   # end of class Dmatch_obj(object): ------------------->> //
@@ -254,17 +254,30 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
     p_n = kp_n[m.trainIdx].pt
     p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
     p2 = np.asarray([p_n[0],p_n[1],1], dtype=_dtype).copy().reshape(-1,3)
-    mat.append(np.concatenate((p1,p2,queryIdx,trainIdx), axis=1))
+    mat.append(np.concatenate((p1,p2,queryIdx,trainIdx),axis=1)) # not used
   mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
   p1 = mat[:,0:3]
   p2 = mat[:,3:6]
-  m1 = sc.linalg.pinv(dat.K) @ p1.T
-  m2 = sc.linalg.pinv(dat.K) @ p2.T
-  m1u = m1/np.sqrt(sum(m1**2))
-  m2u = m2/np.sqrt(sum(m2**2))
+  m1 = np.absolute(sc.linalg.pinv(dat.K) @ p1.T)
+  m2 = np.absolute(sc.linalg.pinv(dat.K) @ p2.T)
+  m1_rsum = m1.sum(axis=1)
+  m2_rsum = m2.sum(axis=1)
+  m1u = m1/m1_rsum[:,np.newaxis]
+  m2u = m2/m2_rsum[:,np.newaxis]
+  # m1u = m1/np.sqrt(np.sum(m1**2,axis=0))
+  # m2u = m2/np.sqrt(np.sum(m2**2,axis=0))
+
+  # npprint('np.sum(m1**2,axis=0)',np.sum(m1**2,axis=0))
+  # npprint('np.sum(m2**2,axis=0)',np.sum(m2**2,axis=0))
+  # npprint('m1', m1)
+  # npprint('m2', m2)
+  # npprint('m1u',m1u)
+  # npprint('m2u',m2u)
+  # st()
+  # npprint('mat',mat)
   mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
-  # mats.prt() # keep
-  return mats, m1, m2
+  mats.prt() # keep
+  return mats, np.concatenate((m1u,m2u), axis=0).T
 
 def retKPs_pxl(matches:Dmatch_obj):
   kps1 = matches.p1[:,:2].astype(np.int64).copy()

@@ -20,7 +20,7 @@ def get_Txyz_np(kps1,kps2,qs,_dtype=np.float128):
 
   return
 
-def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
+def get_Txyz_v0100(dat,q,_dtype=np.float128):
   ''' recover translation and depths given the rotation and feature point
   coordinates
   Inputs:
@@ -40,12 +40,15 @@ def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
   NOTE: T, Z1, and Z2 are recovered up to a common scale factor.
   Copyright (C) 2017, by Kaveh Fathian.'''
   # if input is quaternion transform it into the rotation matrix
+  # m1 = dat[:,]
+  m1 = dat[:,:3].T
+  m2 = dat[:,3:].T
   if isinstance(q, np.quaternion):
     q_arr = np.asarray([q.w,q.x,q.y,q.z], dtype=_dtype)
     R = sc_R.from_quat(q_arr).as_matrix()
   # npprint('R', R)
 
-  numKP = kps1.shape[1]
+  numKP = m1.shape[1]
 
   C = np.zeros((3*numKP,2*numKP+3), dtype=_dtype)
   for i in range(numKP):
@@ -55,8 +58,8 @@ def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
     # npprint('C', C)
     # npprint('kps1', kps1)
     # npprint('kps2', kps2)
-    A = R @ kps1[:,i].reshape(-1,1)
-    B = -kps2[:,i].reshape(-1,1)
+    A = R @ m1[:,i].reshape(-1,1)
+    B = -m2[:,i].reshape(-1,1)
     # npprint('A', A)
     # npprint('B', B)
     a1,a2,b1,b2 = i*3,(i+1)*3,i*2+3,i*2+5
@@ -91,5 +94,7 @@ def get_Txyz_v0100(kps1,kps2,q,_dtype=np.float128):
   # npprint('S[-1]', S[-1])
   # st()
   return t,z1,z2,S[-1]
+
+
 
   # EOF

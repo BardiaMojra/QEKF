@@ -14,7 +14,7 @@ from pdb import set_trace as st
 from nbug import *
 
 
-def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
+def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   ''' QuEst (Quaternion Estimation) algorithm for 5 feature points
   NOTE: Include the folder "Helpers" in Matlab path before execution.
   Inputs: #todo update the comments -- now input is Nx3 (numpy style instead matlab)
@@ -54,6 +54,11 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
                     19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
                     56], dtype=int).reshape(4,-1) - 1
 
+  npprint('dat', dat)
+  m = dat[:,:3].T
+  n = dat[:,3:].T
+  npprint('m',m)
+  npprint('n',n)
   # npprint('m',m)
   # npprint('n',n)
   # st()
@@ -91,13 +96,15 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   Vi_idx = list()
   Vr_idx = list()
   for i in range(Ve_img.shape[1]):
+    npprint('Ve_img[:,i]', Ve_img[:,i])
     if (sum(abs(Ve_img[:,i]))) > ZERO_ROOT_THRESHOLD: Vi_idx.append(i)
     else: Vr_idx.append(i)
   # indices should be a complement
-  Vi_idx = np.asarray(Vi_idx)
-  Vr_idx = np.asarray(Vr_idx)
+  Vi_idx = np.asarray(Vi_idx, dtype=np.int64)
+  Vr_idx = np.asarray(Vr_idx, dtype=np.int64)
   # npprint('Vi_idx', Vi_idx)
   # npprint('Vr_idx', Vr_idx)
+  # st()
   Vi_all = Ve[:,Vi_idx] # extract all imaginary roots
   Vi_idx = sorted(range(Vi_all.shape[1]), key=lambda x:Vi_all[0,:].real[x])
   # st()
@@ -126,9 +133,14 @@ def QuEst_5Pt_Ver7_8(m,n,_dtype=np.float128):
   qs = qs/Qnorm # match matlab format
   return quaternion.as_quat_array(qs.T).reshape(-1,1) #
 
-def get_qs_residues(m1, m2, qSols):
+def get_qs_residues(dat, qSols):
   ''' calculate the residue value |C x - c| for estimated quaternion solutions
   '''
+  npprint('dat', dat)
+  m1 = dat[:,:3].T
+  m2 = dat[:,3:].T
+  npprint('m1',m1)
+  npprint('m2',m2)
   # coefficinet matrix in the linearized system of multinomials (C@x=c)
   C0 = get_COEFS(m1,m2)
 
