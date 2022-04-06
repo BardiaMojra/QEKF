@@ -38,6 +38,7 @@ skipFrame           = 0 # skipped between two key frames
 ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_CORRESPS  = 50 # max correspondences for pose est
 QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
+QUEST_MPASS         = 10
 RANSAC_MAX_ITER     = 50
 RANSAC_THRESHOLD    = 1.0e-5
 
@@ -94,7 +95,7 @@ def main():
       if alg == 'QuEst_RANSAC_v0102':
         matches, m1, m2 = prep_matches(dset, matches, kp_p, kp_n, len(matches))
 
-        rquest = RQUEST(m1, m2,
+        rquest = RQUEST(m1[:,:QUEST_MPASS], m2[:,:QUEST_MPASS],
                         QuEst, get_Txyz,
                         RANSAC_MAX_ITER,
                         RANSAC_THRESHOLD,
