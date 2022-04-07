@@ -20,6 +20,8 @@ numMatch = size(p1, 1);  % Number of matched feature points
 numPts = min(numMatch, maxPts);
 p1 = p1(1:numPts, :);
 p2 = p2(1:numPts, :);
+
+% pad with a col of 1s and transpose
 p11 = double( [p1 ones(numPts, 1)].' );
 p21 = double( [p2 ones(numPts, 1)].' );
 % Point coordinates on image plane
@@ -44,10 +46,18 @@ outpath = ['./out/KITTI/feature_matches/matches_fig_' num2str(i, '%02d') '.png']
 % set(gcf, 'Position', [100 100 150 150]);
 saveas(gcf, outpath); 
 close
-% save the matched data points 
-dat = cat(2,m1,m2)
-outpath = ['./out/KITTI/feature_matches/matches_dat_' num2str(i, '%02d') '.txt'];
-writematrix(dat,outpath,'Delimiter',' ')  
+
+
+% save the matched data points in pixels (padded with row of 1s)
+dat = cat(2,p11,p21);
+outpath = ['./out/KITTI/feature_matches/matches_dat_p11p21_' num2str(i, '%02d') '.txt'];
+writematrix(dat,outpath,'Delimiter',' ') 
+
+
+% save the matched data points in unit frame lengths 
+dat = cat(2,m1,m2);
+outpath = ['./out/KITTI/feature_matches/matches_dat_m1m2_' num2str(i, '%02d') '.txt'];
+writematrix(dat,outpath,'Delimiter',' ') 
 
 matches.p1 = p1;
 matches.p2 = p2;
