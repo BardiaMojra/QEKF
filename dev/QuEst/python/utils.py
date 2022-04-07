@@ -236,7 +236,7 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
       nprint('dscs.shape', dscs.shape)
       dscs = np.concatenate([dscs, np.zeros(minFeat - dscs.shape[0])], axis=0)
       nprint('dscs.shape', dscs.shape)
-      st()
+      # st()
     # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
     # plt.imshow(imageKeys); plt.show(); cv.waitKey(); st(); plt.close()
   except cv.error as e:
@@ -276,7 +276,7 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
   # st()
   # npprint('mat',mat)
   mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
-  mats.prt() # keep
+  # mats.prt() # keep
   return mats, np.concatenate((m1u,m2u), axis=0).T
 
 def retKPs_pxl(matches:Dmatch_obj):

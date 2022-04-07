@@ -39,7 +39,7 @@ ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_MKP       = 50 # max matched keypoints for pose est
 QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
 RANSAC_MAX_ITER     = 50
-RANSAC_THRESHOLD    = 1.0e-6
+RANSAC_THRESHOLD    = 1.0e-5
 
 def main():
   global fignum; fignum = int(0)
@@ -61,21 +61,19 @@ def main():
   Im_p, kp_p, des_p = GetFeaturePoints(fdetector, 0, dset, ORB_THRESHOLD)
 
   ''' recover Pose using RANSAC and compare with ground truth '''
-  for i in range(1, len(keyFrames)):
+  for i in range(2, len(keyFrames)):
     print('\n\n\ -----------===========---------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
-
-    # match features
     Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, ORB_THRESHOLD)
     if _show:
-      imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0), 4)
+      imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0),4)
       plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
 
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
     print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
     matches = matches[:QUEST_MAX_MKP]
-    # imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
-    # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
+    imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
+    plt.imshow(imageKeys); plt.show(); cv.waitKey(0);
     # nprint('Im_n.shape', Im_n.shape)
 
     # get ground truth
@@ -122,8 +120,8 @@ def main():
       T_err = get_TransError(tr, t)
       # st()
       dlog.log_state(i,q,qs,qr,t,tr,Q_err,T_err,alg)
-      # dlog.prt_log()
-      # st()
+      dlog.prt_log()
+      st()
 
 
     # end of for alg ----

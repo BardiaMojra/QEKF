@@ -95,13 +95,14 @@ class QUEST_RANSAC:
         npprint('B_inl_idxs',B_inl_idxs)
         # npprint('B_dists',B_dists)
         # st()
-      if self.NBUG:
+      if self.NBUG and len(inl_idxs)>0:
         print(lhead+f'iter:  {i}')
-        print('dists.min(): {:0.10f}'.format(dists.min()))
-        print('dists.max(): {:0.10f}'.format(dists.max()))
-        print('np.mean(dists): {:0.10f}'.format(np.mean(dists)))
+        print('dists[inl_idx].min(): {:0.10f}'.format(dists[inl_idxs].min()))
+        print('dists[inl_idx].max(): {:0.10f}'.format(dists[inl_idxs].max()))
+        print('np.mean(dists): {:0.10f}'.format(np.mean(dists[inl_idxs])))
         print(f'len(inl_idxs): ', len(inl_idxs))
         print('\n\n')
+        st()
       # end of for i in range(self.max_iters):
     if B_mod is None:
       raise ValueError("did not meet fit acceptance criteria")
@@ -130,6 +131,10 @@ class QUEST_RANSAC:
     qs = self.quest(self.dat[kp_idxs,:]) # est rotation with QuEst
     qs_residues = get_residues(self.dat[kp_idxs,:],qs) # Scoring function
     idx = np.asarray(qs_residues==qs_residues.min()).nonzero()[0][0] # find best sol
+
+    #todo test with this for finding the best q solution
+    # q, q_idx = get_closestQuat(qr,qs)
+
 
     nprint('idx',idx)
     nprint('qs[idx,0]',qs[idx,0])

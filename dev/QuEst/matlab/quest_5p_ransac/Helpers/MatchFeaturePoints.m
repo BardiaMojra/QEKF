@@ -12,7 +12,7 @@ matchedPoints2 = vp2(indexPairs(:,2));
 
 p1 = matchedPoints1.Location;
 p2 = matchedPoints2.Location;     
-% figure; im = showMatchedFeatures(Ip,In,p1,p2);
+figure; im = showMatchedFeatures(Ip,In,p1,p2);
 % outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png'];
 % imwrite(im, outpath);
 % Feature points
@@ -31,15 +31,23 @@ m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1)));
 m2u = bsxfun(@rdivide, m2, sqrt(sum(m2.^2,1)));
 
 % % Display images with matched feature points    
-% imshow(In);
-% hold on;
-% plot(p1(:,1), p1(:,2), 'g+');
-% plot(p2(:,1), p2(:,2), 'yo');    
-% for j = 1 : numPts
-%     plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'g');
-% end
-% drawnow;    
-% hold off;
+imshow(In);
+hold on;
+plot(p1(:,1), p1(:,2), 'g+');
+plot(p2(:,1), p2(:,2), 'yo');    
+for j = 1 : numPts
+    plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'g');
+end
+drawnow;    
+hold off;
+outpath = ['./out/KITTI/feature_matches/matches_fig_' num2str(i, '%02d') '.png'];
+% set(gcf, 'Position', [100 100 150 150]);
+saveas(gcf, outpath); 
+close
+% save the matched data points 
+dat = cat(2,m1,m2)
+outpath = ['./out/KITTI/feature_matches/matches_dat_' num2str(i, '%02d') '.txt'];
+writematrix(dat,outpath,'Delimiter',' ')  
 
 matches.p1 = p1;
 matches.p2 = p2;

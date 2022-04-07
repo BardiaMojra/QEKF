@@ -54,17 +54,16 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
                     19, 29, 44, 33, 48, 53, 20, 30, 45, 34, 49, 54, 35, 50, 55,
                     56], dtype=int).reshape(4,-1) - 1
 
-  npprint('dat', dat)
+  # npprint('dat', dat)
   m = dat[:,:3].T
   n = dat[:,3:].T
-  npprint('m',m)
-  npprint('n',n)
   # npprint('m',m)
   # npprint('n',n)
   # st()
 
   # coefficient matrix in the linearized system of multi-nomials (Cf * V = 0)
   Cf = get_COEFS(m,n)
+
   numEq = Cf.shape[0]
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_dtype)
@@ -96,8 +95,10 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   Vi_idx = list()
   Vr_idx = list()
   for i in range(Ve_img.shape[1]):
-    npprint('Ve_img[:,i]', Ve_img[:,i])
-    if (sum(abs(Ve_img[:,i]))) > ZERO_ROOT_THRESHOLD: Vi_idx.append(i)
+    # npprint('Ve_img[:,i]', Ve_img[:,i])
+    Ve_img_sum = (sum(abs(Ve_img[:,i])))
+
+    if Ve_img_sum > ZERO_ROOT_THRESHOLD: Vi_idx.append(i)
     else: Vr_idx.append(i)
   # indices should be a complement
   Vi_idx = np.asarray(Vi_idx, dtype=np.int64)
@@ -136,7 +137,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
 def get_qs_residues(dat, qSols):
   ''' calculate the residue value |C x - c| for estimated quaternion solutions
   '''
-  npprint('dat', dat)
+  # npprint('dat', dat)
   m1 = dat[:,:3].T
   m2 = dat[:,3:].T
   npprint('m1',m1)
@@ -144,10 +145,8 @@ def get_qs_residues(dat, qSols):
   # coefficinet matrix in the linearized system of multinomials (C@x=c)
   C0 = get_COEFS(m1,m2)
 
-  # st()
   qs_np = quats2np(qSols,axis=1).T
-  # nsprint('qs_np',qs_np)
-  # st()
+  nsprint('qs_np',qs_np)
 
   q1 = qs_np[0,:]
   q2 = qs_np[1,:]
@@ -158,6 +157,7 @@ def get_qs_residues(dat, qSols):
   # nsprint('q2',q2)
   # nsprint('q3',q3)
   # nsprint('q4',q4)
+  # vector of moninals
   xVec = np.asarray([q1**4,
                      q1**3. * q2,
                      q1**2. * q2**2,
