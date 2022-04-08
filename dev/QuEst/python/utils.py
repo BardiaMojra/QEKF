@@ -175,6 +175,16 @@ def get_fignum_str(fignum):
   ''' usage: fignum+=1;get_fignum_str(fignum) '''
   return 'fig_%03i' % fignum
 
+def show_image_w_kps(im,kps):
+  imageKeys = cv.drawKeypoints(im,kps,None,(255,0,0),4)
+  plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
+  return imageKeys
+
+def show_image_w_mats(im_p,kp_p,im_n,kp_n,matches):
+  imageKeys = cv.drawMatches(im_p,kp_p,im_n,kp_n,matches,None,flags=4)
+  plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
+  return
+
 def write_image(num:int, image, outDir):
   assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
   figname = get_fignum_str(num)
@@ -182,17 +192,6 @@ def write_image(num:int, image, outDir):
   cv.imwrite(figname, image)
   prt_file_save(shead+'saving figure: '+figname)
   return
-
-def load_matlab_kps(i, matlab_coefs_outPath,_dtype=np.float128):
-  fname_01 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp01.txt'
-  fname_02 = matlab_coefs_outPath+'keypoints_epoch'+str(i).zfill(3)+'_kp02.txt'
-  # nprint('fname_01', fname_01)
-  # nprint('fname_02', fname_02)
-  kp1 = np.loadtxt(fname_01, delimiter=',', dtype=_dtype)
-  kp2 = np.loadtxt(fname_02, delimiter=',', dtype=_dtype)
-  # npprint('kp1', kp1)
-  # npprint('kp2', kp2)
-  return kp1, kp2
 
 class Dmatch_obj(object):
   def __init__(self, p1, p2, m1, m2, m1u, m2u, numPoints):
@@ -205,8 +204,8 @@ class Dmatch_obj(object):
     self.numPoints = numPoints
 
   def prt(self):
-    npprint('p1', self.p1)
-    npprint('p2', self.p2)
+    nprint('p1', self.p1)
+    nprint('p2', self.p2)
     npprint('m1', self.m1)
     npprint('m2', self.m2)
     npprint('m1u', self.m1u)
@@ -254,30 +253,37 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
     p_n = kp_n[m.trainIdx].pt
     p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
     p2 = np.asarray([p_n[0],p_n[1],1], dtype=_dtype).copy().reshape(-1,3)
-    mat.append(np.concatenate((p1,p2,queryIdx,trainIdx),axis=1)) # not used
+    mat.append(np.concatenate((p1,p2,queryIdx,trainIdx),axis=1)) # Idx not used
   mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
   p1 = mat[:,0:3]
   p2 = mat[:,3:6]
-  m1 = np.absolute(sc.linalg.pinv(dat.K) @ p1.T)
+  m1 = np.absolute(sc.linalg.pinv(dat.K) @ p1.T) #
   m2 = np.absolute(sc.linalg.pinv(dat.K) @ p2.T)
   m1_rsum = m1.sum(axis=1)
   m2_rsum = m2.sum(axis=1)
   m1u = m1/m1_rsum[:,np.newaxis]
   m2u = m2/m2_rsum[:,np.newaxis]
-  # m1u = m1/np.sqrt(np.sum(m1**2,axis=0))
-  # m2u = m2/np.sqrt(np.sum(m2**2,axis=0))
-
-  # npprint('np.sum(m1**2,axis=0)',np.sum(m1**2,axis=0))
-  # npprint('np.sum(m2**2,axis=0)',np.sum(m2**2,axis=0))
-  # npprint('m1', m1)
-  # npprint('m2', m2)
-  # npprint('m1u',m1u)
-  # npprint('m2u',m2u)
-  # st()
-  # npprint('mat',mat)
   mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
   # mats.prt() # keep
   return mats, np.concatenate((m1u,m2u), axis=0).T
+
+def load_matlab_matches(i,_dtype=np.float128):
+  path = '../matlab/quest_5p_ransac/out/KITTI/feature_matches/matches_dat_m1m2_'
+  dpath = path+str(i).zfill(2)+'.txt'
+  dat = np.loadtxt(dpath, delimiter=' ', dtype=_dtype)
+  npprint('dat', dat)
+  # st()
+  m1 = dat[:,:3].T
+  m2 = dat[:,3:].T
+
+  m1_rsum = m1.sum(axis=1)
+  m2_rsum = m2.sum(axis=1)
+  m1u = m1/m1_rsum[:,np.newaxis]
+  m2u = m2/m2_rsum[:,np.newaxis]
+  mats = Dmatch_obj(None,None,m1,m2,m1u,m2u,dat.shape[0])
+  mats.prt() # keep
+  return mats, np.concatenate((m1u,m2u), axis=0).T
+
 
 def retKPs_pxl(matches:Dmatch_obj):
   kps1 = matches.p1[:,:2].astype(np.int64).copy()
@@ -302,7 +308,6 @@ def RelativeGroundTruth(i, dset):
     # [q2, t2] = InterpPoseVer1_1(ftime,dataset.times, Q_gt, T_gt); % Interpolate data to find the pose of the current camera frame
   else:
     assert False, 'unknown benchtype '+bench
-
   if bench == 'KITTI' or  bench == 'ICL' or  bench ==  'TUM':
     # relative rotation between two frames (^2R_1 : rotation of frame 1
     # given in frame 2)

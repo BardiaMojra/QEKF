@@ -12,7 +12,6 @@ from utils import *
 ''' NBUG libraries '''
 from nbug import *
 from pdb import set_trace as st
-matlab_coefs_outPath = '../matlab/quest_5p_ransac/out/KITTI/keypoints/'
 
 
 ''' #todo
@@ -28,8 +27,12 @@ NBUG                = True
 _show               = False
 _save               = True
 _prt                = True
+
+LOAD_MATLAB_MATCHES = True
+
 # _START            = 0
 # _END              = 150
+
 _ALGORITHMS         = ['QuEst_RANSAC_v0102']
 # _ALGORITHMS         = ['QuEst_v0708']
 _BENCHTYPE          = 'KITTI'
@@ -41,6 +44,8 @@ QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
 RANSAC_MAX_ITER     = 50
 RANSAC_THRESHOLD    = 1.0e-5
 
+
+
 def main():
   global fignum; fignum = int(0)
 
@@ -50,36 +55,32 @@ def main():
             #  start=_START,
             #  end=_END,
             )
-
-  numImag = len(dset.fnames) # total number of images
-  keyFrames = [i for i in range(skipFrame+1, numImag, skipFrame+1)]
+  END_FRAME =len(dset.fnames)
+  # numImag = len(dset.fnames) # total number of images
+  # keyFrames = [i for i in range(skipFrame+1, numImag, skipFrame+1)]
 
   fdetector = cv.ORB_create()
   fmatcher = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
 
   # initialize with the first image feature points
-  Im_p, kp_p, des_p = GetFeaturePoints(fdetector, 0, dset, ORB_THRESHOLD)
+  Im_p, kp_p, des_p = GetFeaturePoints(fdetector,0,dset,ORB_THRESHOLD)
 
   ''' recover Pose using RANSAC and compare with ground truth '''
-  for i in range(2, len(keyFrames)):
-    print('\n\n\ -----------===========---------->>>>>: '+str(i)+'/'+str(len(keyFrames)))
-    Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, ORB_THRESHOLD)
-    if _show:
-      imageKeys = cv.drawKeypoints(Im_p,kp_p, None, (255,0,0),4)
-      plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
+  for i in range(2,END_FRAME):
+    print('\n\n --------===========-------->>>>>: '+str(i)+'/'+str(END_FRAME))
 
+    ''' extract features '''
+    Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, ORB_THRESHOLD)
+    if _show: show_image_w_kps(Im_n,kp_n)
+
+    ''' match features '''
     matches = fmatcher.match(des_p, des_n)
     matches = sorted(matches, key = lambda x:x.distance)
     print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
     matches = matches[:QUEST_MAX_MKP]
-    imageKeys = cv.drawMatches(Im_p,kp_p,Im_n,kp_n,matches,None,flags=4)
-    plt.imshow(imageKeys); plt.show(); cv.waitKey(0);
-    # nprint('Im_n.shape', Im_n.shape)
+    if _show: show_image_w_mats(Im_p,kp_p,Im_n,kp_n,matches)
 
-    # get ground truth
     qr, tr = RelativeGroundTruth(i, dset)
-    # nprint('qr', qr)
-    # nprint('tr', tr)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
@@ -90,8 +91,10 @@ def main():
     # recover pose and find error by comparing with the ground truth
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
-        matches, dat = prep_matches(dset, matches, kp_p, kp_n, len(matches))
-
+        if NBUG and LOAD_MATLAB_MATCHES:
+          matches, dat = load_matlab_matches(i)
+        else:
+          matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
         rquest = RQUEST(dat,
                         QuEst, get_Txyz,
                         RANSAC_MAX_ITER,
@@ -105,7 +108,7 @@ def main():
       elif alg == 'QuEst_v0708':
         matches, dat = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)
         qs = QuEst(dat)
-        # m1, m2 = load_matlab_kps(i, matlab_coefs_outPath)
+        # dat = load_matlab_kps(i)
         # qs = QuEst(m=m1, n=m2)
         q, q_idx = get_closestQuat(qr,qs)
         tOut, dep1, dep2, res = get_Txyz(dat,q)
@@ -120,9 +123,6 @@ def main():
       T_err = get_TransError(tr, t)
       # st()
       dlog.log_state(i,q,qs,qr,t,tr,Q_err,T_err,alg)
-      dlog.prt_log()
-      st()
-
 
     # end of for alg ----
 
@@ -132,9 +132,6 @@ def main():
     # npprint('matches.p2', matches.p2)
     # st()
     # kps1, kps2 = retKPs_pxl(matches)
-
-
-
 
     # imageKeys = cv.drawMatches(Im_p,kps1,Im_n,kps2,matches,None,flags=4)
     # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
@@ -152,7 +149,7 @@ def main():
   ''' end processing '''
 
   ''' print results '''
-  dlog.prt_log()
+  # dlog.prt_log()
   dlog.prt_stats()
 
 

@@ -85,6 +85,11 @@ class dlm:
     return
 
   def prt_stats(self):
+    npprint('self.q_hist', self.q_hist)
+    npprint('self.qr_hist', self.qr_hist)
+    npprint('self.Qerr_hist', self.Qerr_hist)
+    npprint('self.Terr_hist', self.Terr_hist)
+    print('\n\n add NVM stat logger....\n\n')
     print('\n >> results and statistics << ')
     tbprint('rotation error mean',   np.mean(self.Qerr_hist))
     tbprint('rotation error std',    np.std(self.Qerr_hist))
@@ -101,13 +106,13 @@ class dlm:
     assert self.enabled, '\n\ndata logger is DISABLED!\n\n'
     npprint('self.i_hist', self.i_hist)
     npprint('self.q_hist', self.q_hist)
-    npprint('self.qs_hist', self.qs_hist)
+    # npprint('self.qs_hist', self.qs_hist)
     npprint('self.qr_hist', self.qr_hist)
     npprint('self.t_hist', self.t_hist)
     npprint('self.tr_hist', self.tr_hist)
     npprint('self.Qerr_hist', self.Qerr_hist)
     npprint('self.Terr_hist', self.Terr_hist)
-    npprint('self.alg_hist', self.alg_hist)
+    # npprint('self.alg_hist', self.alg_hist)
     return
 
 def concat_w_padding(qs_h:np.ndarray,qs:np.ndarray,_axis=0):

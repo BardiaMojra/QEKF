@@ -102,7 +102,7 @@ class QUEST_RANSAC:
         print('np.mean(dists): {:0.10f}'.format(np.mean(dists[inl_idxs])))
         print(f'len(inl_idxs): ', len(inl_idxs))
         print('\n\n')
-        st()
+        # st()
       # end of for i in range(self.max_iters):
     if B_mod is None:
       raise ValueError("did not meet fit acceptance criteria")
