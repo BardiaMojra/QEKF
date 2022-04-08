@@ -83,7 +83,7 @@ def main():
     for alg in _ALGORITHMS:
       if alg == 'QuEst_RANSAC_v0102':
         if NBUG and LOAD_MATLAB_MATCHES:
-          matches, dat = load_matlab_matches(i)
+          matches, dat = load_matlab_matches(i,dset.K)
         else:
           matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
 

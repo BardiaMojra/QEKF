@@ -195,24 +195,44 @@ def write_image(num:int, image, outDir):
 
 class Dmatch_obj(object):
   def __init__(self,dat,K):
-    p1 = dat[:,0:3]
-    p2 = dat[:,3:6]
 
-    m1 = np.absolute(sc.linalg.pinv(K) @ p1.T) #
-    m2 = np.absolute(sc.linalg.pinv(K) @ p2.T)
-    m1_rsum = m1.sum(axis=0)
-    m2_rsum = m2.sum(axis=0)
-    nprint('m1_rsum',m1_rsum)
-    nprint('m2_rsum',m2_rsum)
+    npprint('dat',dat)
+    p1  = dat[:,0:2].T
+    p2  = dat[:,3:5].T
+    p11 = dat[:,0:3].T
+    p21 = dat[:,3:6].T
 
+    npprint('p1',p1)
+    npprint('p2',p2)
     st()
 
+
+    m1 = np.absolute(sc.linalg.solve(K,p11))
+    m2 = np.absolute(sc.linalg.solve(K,p21))
+    npprint('m1',m1)
+    npprint('m2',m2)
+    st()
+
+    m1_rsum = m1.sum(axis=0)
+    m2_rsum = m2.sum(axis=0)
+
+    npprint('m1_rsum',m1_rsum)
+    npprint('m2_rsum',m2_rsum)
+    st()
 
     m1u = m1/m1_rsum[:,np.newaxis]
     m2u = m2/m2_rsum[:,np.newaxis]
 
-    np.concatenate((m1u,m2u), axis=0).T
+    npprint('m1u',m1u)
+    npprint('m2u',m2u)
+    st()
 
+    self.ndat = np.concatenate((m1u,m2u), axis=0).T
+    self.dat = np.concatenate((m1,m2), axis=0).T
+
+    npprint('self.ndat',self.ndat)
+    npprint('self.dat',self.dat)
+    st()
 
     self.p1 = p1
     self.p2 = p2
@@ -220,7 +240,7 @@ class Dmatch_obj(object):
     self.m2 = m2
     self.m1u = m1u
     self.m2u = m2u
-    self.numPoints = numPoints
+    self.numPoints = p1.shape[0]
 
   def prt(self):
     nprint('p1', self.p1)
@@ -262,14 +282,12 @@ def GetFeaturePoints(alg,i:int,dat:dmm,threshold:int,minFeat=64,_show=False):
     assert 0, 'Error: '+e
   return image, kps, dscs
 
-def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
+def prep_matches(dat, matches, kp_p, kp_n, minPts, _dtype=np.float128):
   ''' convert cv.DMatch obj to np.ndarray and python obj '''
   matches = sorted(matches, key = lambda x:x.distance)
   matches = matches[:minPts]
   mat = list()
   for m in matches:
-    # queryIdx = np.asarray(m.queryIdx, dtype=_dtype).copy().reshape(-1,1)
-    # trainIdx = np.asarray(m.trainIdx, dtype=_dtype).copy().reshape(-1,1)
     p_p = kp_p[m.queryIdx].pt
     p_n = kp_n[m.trainIdx].pt
     p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
@@ -281,11 +299,11 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
   # return mats, mats.dat # return data (not normalized)
   return mats, mats.ndat # return norm-data
 
-def load_matlab_matches(i,_dtype=np.float128):
-  path = '../matlab/quest_5p_ransac/out/KITTI/feature_matches/matches_dat_m1m2_'
+def load_matlab_matches(i,K,_dtype=np.float128):
+  path = '../matlab/quest_5p_ransac/out/KITTI/feature_matches/matches_p11p21_'
   dpath = path+str(i).zfill(2)+'.txt'
   dat = np.loadtxt(dpath, delimiter=' ', dtype=_dtype)
-  mats = Dmatch_obj(dat,dat.K)
+  mats = Dmatch_obj(dat,K)
   # mats.prt() # keep
   # return mats, mats.dat # return data (not normalized)
   return mats, mats.ndat # return norm-data
