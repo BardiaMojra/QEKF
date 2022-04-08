@@ -216,6 +216,8 @@ class Dmatch_obj(object):
     m1_rsum = m1.sum(axis=0)
     m2_rsum = m2.sum(axis=0)
 
+
+    #todo working here .....................
     npprint('m1_rsum',m1_rsum)
     npprint('m2_rsum',m2_rsum)
     st()
