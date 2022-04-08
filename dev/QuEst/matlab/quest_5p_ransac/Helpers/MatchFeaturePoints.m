@@ -42,22 +42,21 @@ for j = 1 : numPts
 end
 drawnow;    
 hold off;
-outpath = ['./out/KITTI/feature_matches/matches_fig_' num2str(i, '%02d') '.png'];
+path = ['./out/KITTI/feature_matches/matches_fig_' num2str(i, '%02d') '.png'];
 % set(gcf, 'Position', [100 100 150 150]);
-saveas(gcf, outpath); 
+saveas(gcf, path); 
 close
-
 
 % save the matched data points in pixels (padded with row of 1s)
 dat = cat(2,p11',p21');
-outpath = ['./out/KITTI/feature_matches/matches_dat_p11p21_' num2str(i, '%02d') '.txt'];
-writematrix(dat,outpath,'Delimiter',' ') 
+path = ['./out/KITTI/feature_matches/matches_p11p21_' num2str(i, '%02d') '.txt'];
+writematrix(dat,path,'Delimiter',' ') 
 
 
-% save the matched data points in unit frame lengths 
-dat = cat(2,m1',m2');
-outpath = ['./out/KITTI/feature_matches/matches_dat_m1m2_' num2str(i, '%02d') '.txt'];
-writematrix(dat,outpath,'Delimiter',' ') 
+% % save the matched data points in unit frame lengths 
+% dat = cat(2,m1',m2');
+% path = ['./out/KITTI/feature_matches/matches_dat_m1m2_' num2str(i, '%02d') '.txt'];
+% writematrix(dat,path,'Delimiter',' ') 
 
 matches.p1 = p1;
 matches.p2 = p2;

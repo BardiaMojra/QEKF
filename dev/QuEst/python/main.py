@@ -76,7 +76,6 @@ def main():
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
     if len(matches) < QUEST_NUM_CORRESPS: # skip frame
-
       Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
@@ -87,6 +86,7 @@ def main():
           matches, dat = load_matlab_matches(i)
         else:
           matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
+
         st()
         rquest = RQUEST(dat,
                         QuEst, get_Txyz,
@@ -96,9 +96,8 @@ def main():
                         nbug=NBUG,
                         return_all=True)
         st()
-        mod, m_idxs, q, tOut, qs= rquest.get_best_fit()
+        mod,m_idxs,q,tOut,qs= rquest.get_best_fit()
 
-        # tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
       elif alg == 'QuEst_v0708':
         matches, dat = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)
         qs = QuEst(dat)
@@ -109,6 +108,7 @@ def main():
       else:
         eprint(str('algorithm is not supported: '+alg))
       # find the closet quaternion and translation to the ground truth
+      #todo investigate this
       # t = FindClosetTrans(tr, [tOut,-tOut]);
       t = -tOut
       # calcualte the estimate error

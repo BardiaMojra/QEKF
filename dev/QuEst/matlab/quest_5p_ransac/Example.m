@@ -85,7 +85,7 @@ for i = keyFrames
     % Feature points matching    
     [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points           
     matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
-%     matches = Load_MatchFeaturePoints( dataset, i); % Match feature points
+%     matches = LoadMatches(i); % Match feature points
     
     % Relative ground truth 
     [relPose, posp] = RelativeGroundTruth(i, posp, dataset);
@@ -103,7 +103,6 @@ for i = keyFrames
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
     % Recover pose and find error by comparing with the ground truth     
     for mthd = 1 : numMethods        
-        
         if strcmp(algorithms{mthd}, 'QuEst_RANSAC_v0102') % RANSAC with QuEst algorithm
             [M, inliers] = QuEst_RANSAC_Ver1_2(matches.m1, matches.m2, ranThresh);   
             q = M.Q;

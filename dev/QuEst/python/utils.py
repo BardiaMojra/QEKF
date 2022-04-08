@@ -194,7 +194,26 @@ def write_image(num:int, image, outDir):
   return
 
 class Dmatch_obj(object):
-  def __init__(self, p1, p2, m1, m2, m1u, m2u, numPoints):
+  def __init__(self,dat,K):
+    p1 = dat[:,0:3]
+    p2 = dat[:,3:6]
+
+    m1 = np.absolute(sc.linalg.pinv(K) @ p1.T) #
+    m2 = np.absolute(sc.linalg.pinv(K) @ p2.T)
+    m1_rsum = m1.sum(axis=0)
+    m2_rsum = m2.sum(axis=0)
+    nprint('m1_rsum',m1_rsum)
+    nprint('m2_rsum',m2_rsum)
+
+    st()
+
+
+    m1u = m1/m1_rsum[:,np.newaxis]
+    m2u = m2/m2_rsum[:,np.newaxis]
+
+    np.concatenate((m1u,m2u), axis=0).T
+
+
     self.p1 = p1
     self.p2 = p2
     self.m1 = m1
@@ -210,7 +229,7 @@ class Dmatch_obj(object):
     npprint('m2', self.m2)
     npprint('m1u', self.m1u)
     npprint('m2u', self.m2u)
-    nprint('numPoints', self.numPoints)
+    print('numPoints: ', self.numPoints)
     return
   # end of class Dmatch_obj(object): ------------------->> //
 
@@ -244,46 +263,41 @@ def GetFeaturePoints(alg,i:int,dat:dmm,threshold:int,minFeat=64,_show=False):
   return image, kps, dscs
 
 def prep_matches(dat, matches, kp_p, kp_n, minPts=5, _dtype=np.float128):
+  ''' convert cv.DMatch obj to np.ndarray and python obj '''
   matches = sorted(matches, key = lambda x:x.distance)
   matches = matches[:minPts]
   mat = list()
   for m in matches:
-    queryIdx = np.asarray(m.queryIdx, dtype=_dtype).copy().reshape(-1,1)
-    trainIdx = np.asarray(m.trainIdx, dtype=_dtype).copy().reshape(-1,1)
+    # queryIdx = np.asarray(m.queryIdx, dtype=_dtype).copy().reshape(-1,1)
+    # trainIdx = np.asarray(m.trainIdx, dtype=_dtype).copy().reshape(-1,1)
     p_p = kp_p[m.queryIdx].pt
     p_n = kp_n[m.trainIdx].pt
     p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
     p2 = np.asarray([p_n[0],p_n[1],1], dtype=_dtype).copy().reshape(-1,3)
-    mat.append(np.concatenate((p1,p2,queryIdx,trainIdx),axis=1)) # Idx not used
+    mat.append(np.concatenate((p1,p2),axis=1)) # Idx not used
   mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
-  p1 = mat[:,0:3]
-  p2 = mat[:,3:6]
-  m1 = np.absolute(sc.linalg.pinv(dat.K) @ p1.T) #
-  m2 = np.absolute(sc.linalg.pinv(dat.K) @ p2.T)
-  m1_rsum = m1.sum(axis=1)
-  m2_rsum = m2.sum(axis=1)
-  m1u = m1/m1_rsum[:,np.newaxis]
-  m2u = m2/m2_rsum[:,np.newaxis]
-  mats = Dmatch_obj(p1, p2, m1, m2, m1u, m2u, p1.shape[0])
+  mats = Dmatch_obj(mat,dat.K)
   # mats.prt() # keep
-  return mats, np.concatenate((m1u,m2u), axis=0).T
+  # return mats, mats.dat # return data (not normalized)
+  return mats, mats.ndat # return norm-data
 
 def load_matlab_matches(i,_dtype=np.float128):
   path = '../matlab/quest_5p_ransac/out/KITTI/feature_matches/matches_dat_m1m2_'
   dpath = path+str(i).zfill(2)+'.txt'
   dat = np.loadtxt(dpath, delimiter=' ', dtype=_dtype)
-  npprint('dat', dat)
-  # st()
-  m1 = dat[:,:3].T
-  m2 = dat[:,3:].T
-  m1_rsum = m1.sum(axis=1)
-  m2_rsum = m2.sum(axis=1)
-  m1u = m1/m1_rsum[:,np.newaxis]
-  m2u = m2/m2_rsum[:,np.newaxis]
-  mats = Dmatch_obj(None,None,m1,m2,m1u,m2u,dat.shape[0])
-  mats.prt() # keep
-  return mats, np.concatenate((m1u,m2u), axis=0).T
+  mats = Dmatch_obj(dat,dat.K)
+  # mats.prt() # keep
+  # return mats, mats.dat # return data (not normalized)
+  return mats, mats.ndat # return norm-data
 
+
+def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n):
+  matches = fmatcher.match(des_p, des_n)
+  matches = sorted(matches, key = lambda x:x.distance)
+  print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
+  matches = matches[:QUEST_MAX_MKP]
+  if _show: show_image_w_mats(Im_p,kp_p,Im_n,kp_n,matches)
+  return matches
 
 def retKPs_pxl(matches:Dmatch_obj):
   kps1 = matches.p1[:,:2].astype(np.int64).copy()
@@ -338,14 +352,5 @@ def RelativeGroundTruth(i, dset):
   dset.q0 = q2;
   dset.t0 = t2;
   return qr, tr
-
-
-def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n):
-  matches = fmatcher.match(des_p, des_n)
-  matches = sorted(matches, key = lambda x:x.distance)
-  print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
-  matches = matches[:QUEST_MAX_MKP]
-  if _show: show_image_w_mats(Im_p,kp_p,Im_n,kp_n,matches)
-  return matches
 
 # EOF
