@@ -71,6 +71,9 @@ class QUEST_RANSAC:
       npprint('mod_idxs', mod_idxs)
       npprint('test_idxs', test_idxs)
       npprint('inl_idxs', inl_idxs)
+
+      st()
+
       # inl_dat = test_data[inl_idxs,:]
       if len(inl_idxs) > len(B_inl_idxs):
         print(lhead+'new model found...\n')

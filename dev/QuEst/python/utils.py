@@ -214,7 +214,7 @@ class Dmatch_obj(object):
     return
   # end of class Dmatch_obj(object): ------------------->> //
 
-def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
+def GetFeaturePoints(alg,i:int,dat:dmm,threshold:int,minFeat=64,_show=False):
   f = dat.imgpath+dat.fnames[i]
   img = cv.imread(f, 0) # read image in gray scale (0)
   h, w = img.shape[:2] # not sure why
@@ -238,6 +238,7 @@ def GetFeaturePoints(alg, i:int, dat:dmm, threshold:int, minFeat=64):
       # st()
     # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
     # plt.imshow(imageKeys); plt.show(); cv.waitKey(); st(); plt.close()
+    if _show: show_image_w_kps(image,kps)
   except cv.error as e:
     assert 0, 'Error: '+e
   return image, kps, dscs
@@ -275,7 +276,6 @@ def load_matlab_matches(i,_dtype=np.float128):
   # st()
   m1 = dat[:,:3].T
   m2 = dat[:,3:].T
-
   m1_rsum = m1.sum(axis=1)
   m2_rsum = m2.sum(axis=1)
   m1u = m1/m1_rsum[:,np.newaxis]
@@ -340,5 +340,12 @@ def RelativeGroundTruth(i, dset):
   return qr, tr
 
 
+def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n):
+  matches = fmatcher.match(des_p, des_n)
+  matches = sorted(matches, key = lambda x:x.distance)
+  print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
+  matches = matches[:QUEST_MAX_MKP]
+  if _show: show_image_w_mats(Im_p,kp_p,Im_n,kp_n,matches)
+  return matches
 
 # EOF

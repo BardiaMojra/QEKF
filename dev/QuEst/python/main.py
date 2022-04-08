@@ -63,28 +63,20 @@ def main():
   fmatcher = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
 
   # initialize with the first image feature points
-  Im_p, kp_p, des_p = GetFeaturePoints(fdetector,0,dset,ORB_THRESHOLD)
+  Im_p,kp_p,des_p = GetFeaturePoints(fdetector,0,dset,ORB_THRESHOLD,_show=_show)
 
   ''' recover Pose using RANSAC and compare with ground truth '''
   for i in range(2,END_FRAME):
     print('\n\n --------===========-------->>>>>: '+str(i)+'/'+str(END_FRAME))
 
-    ''' extract features '''
-    Im_n, kp_n, des_n = GetFeaturePoints(fdetector, i, dset, ORB_THRESHOLD)
-    if _show: show_image_w_kps(Im_n,kp_n)
-
-    ''' match features '''
-    matches = fmatcher.match(des_p, des_n)
-    matches = sorted(matches, key = lambda x:x.distance)
-    print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
-    matches = matches[:QUEST_MAX_MKP]
-    if _show: show_image_w_mats(Im_p,kp_p,Im_n,kp_n,matches)
-
-    qr, tr = RelativeGroundTruth(i, dset)
+    Im_n,kp_n,des_n = GetFeaturePoints(fdetector,i,dset,ORB_THRESHOLD,_show=_show)
+    matches = match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n)
+    qr, tr = RelativeGroundTruth(i,dset)
 
     # In case there are not enough matched points move to the next iteration
     # (This should be checked after 'RelativeGroundTruth')
     if len(matches) < QUEST_NUM_CORRESPS: # skip frame
+
       Im_p = Im_n; kp_p = kp_n
       print(lhead+'not enough matched feature points. Frame skipped!'+stail)
       continue
@@ -95,6 +87,7 @@ def main():
           matches, dat = load_matlab_matches(i)
         else:
           matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
+        st()
         rquest = RQUEST(dat,
                         QuEst, get_Txyz,
                         RANSAC_MAX_ITER,
@@ -102,6 +95,7 @@ def main():
                         QUEST_NUM_CORRESPS,
                         nbug=NBUG,
                         return_all=True)
+        st()
         mod, m_idxs, q, tOut, qs= rquest.get_best_fit()
 
         # tOut, dep1, dep2, res = get_Txyz(m1,m2,q)
@@ -117,28 +111,12 @@ def main():
       # find the closet quaternion and translation to the ground truth
       # t = FindClosetTrans(tr, [tOut,-tOut]);
       t = -tOut
-      # st()
       # calcualte the estimate error
       Q_err = phi03_dist(qr, q)
       T_err = get_TransError(tr, t)
       # st()
       dlog.log_state(i,q,qs,qr,t,tr,Q_err,T_err,alg)
-
     # end of for alg ----
-
-    # display images with matched feature points
-    # plt.imshow(Im_p); plt.show()
-    # npprint('matches.p1', matches.p1)
-    # npprint('matches.p2', matches.p2)
-    # st()
-    # kps1, kps2 = retKPs_pxl(matches)
-
-    # imageKeys = cv.drawMatches(Im_p,kps1,Im_n,kps2,matches,None,flags=4)
-    # plt.imshow(imageKeys); plt.show(); cv.waitKey(0); st(); plt.close()
-    # Im_match = cv.drawMatches(Im_n, kp_n, Im_p, kp_p, matches, None,\
-      # flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    # fignum+=1; write_image(fignum, imageKeys, dmm.outDir)
-    # st()
 
     # store the current image for the next iteration
     #todo: test this, keep reference at t=0, instead of frame by frame
@@ -146,22 +124,13 @@ def main():
     kp_p = kp_n
   print('end of quest data iterator ----->>')
 
-  ''' end processing '''
-
-  ''' print results '''
   # dlog.prt_log()
   dlog.prt_stats()
-
-
-
-  print('\\------>>>>')
   st()
-
   return # end of main
 
 
 if __name__ == "__main__":
-
   main()
   print('---------   End   ---------')
   exit()
