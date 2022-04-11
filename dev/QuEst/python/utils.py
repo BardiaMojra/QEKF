@@ -195,47 +195,16 @@ def write_image(num:int, image, outDir):
 
 class Dmatch_obj(object):
   def __init__(self,dat,K):
-
-    npprint('dat',dat)
     p1  = dat[:,0:2].T
     p2  = dat[:,3:5].T
     p11 = dat[:,0:3].T
     p21 = dat[:,3:6].T
-
-    npprint('p1',p1)
-    npprint('p2',p2)
-    st()
-
-
-    m1 = np.absolute(sc.linalg.solve(K,p11))
-    m2 = np.absolute(sc.linalg.solve(K,p21))
-    npprint('m1',m1)
-    npprint('m2',m2)
-    st()
-
-    m1_rsum = m1.sum(axis=0)
-    m2_rsum = m2.sum(axis=0)
-
-
-    #todo working here .....................
-    npprint('m1_rsum',m1_rsum)
-    npprint('m2_rsum',m2_rsum)
-    st()
-
-    m1u = m1/m1_rsum[:,np.newaxis]
-    m2u = m2/m2_rsum[:,np.newaxis]
-
-    npprint('m1u',m1u)
-    npprint('m2u',m2u)
-    st()
-
-    self.ndat = np.concatenate((m1u,m2u), axis=0).T
+    m1 = sc.linalg.solve(K,p11)
+    m2 = sc.linalg.solve(K,p21)
+    m1u = m1/np.sqrt((m1**2).sum(axis=0)[:,np.newaxis].T)
+    m2u = m2/np.sqrt((m2**2).sum(axis=0)[:,np.newaxis].T)
+    self.ndat = np.concatenate((m1u,m2u), axis=0).T # unit norm coords
     self.dat = np.concatenate((m1,m2), axis=0).T
-
-    npprint('self.ndat',self.ndat)
-    npprint('self.dat',self.dat)
-    st()
-
     self.p1 = p1
     self.p2 = p2
     self.m1 = m1
@@ -243,6 +212,7 @@ class Dmatch_obj(object):
     self.m1u = m1u
     self.m2u = m2u
     self.numPoints = p1.shape[0]
+    # end of __init__
 
   def prt(self):
     nprint('p1', self.p1)
@@ -298,18 +268,15 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts, _dtype=np.float128):
   mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
   mats = Dmatch_obj(mat,dat.K)
   # mats.prt() # keep
-  # return mats, mats.dat # return data (not normalized)
-  return mats, mats.ndat # return norm-data
+  return mats, mats.ndat # return unit norm coord data
 
 def load_matlab_matches(i,K,_dtype=np.float128):
   path = '../matlab/quest_5p_ransac/out/KITTI/feature_matches/matches_p11p21_'
   dpath = path+str(i).zfill(2)+'.txt'
   dat = np.loadtxt(dpath, delimiter=' ', dtype=_dtype)
   mats = Dmatch_obj(dat,K)
-  # mats.prt() # keep
-  # return mats, mats.dat # return data (not normalized)
-  return mats, mats.ndat # return norm-data
-
+  mats.prt() # keep
+  return mats, mats.ndat # return unit norm coord data
 
 def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n):
   matches = fmatcher.match(des_p, des_n)

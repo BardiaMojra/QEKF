@@ -47,25 +47,6 @@ Idx = [ 1     2     5    11    21     3     6    12    22     8    14    24    1
 
 
 %% Construct coefficient matrix
-
-
-% outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png']
-% imwrite(im, outpath);
-% precision = 32;
-% nbugOut_root = './out/KITTI/keypoints/keypoints_epoch';
-% kp1_path = [nbugOut_root num2str(i,'%03d') '_kp01.txt'];
-% kp2_path = [nbugOut_root num2str(i,'%03d') '_kp02.txt'];
-% A_path = [nbugOut_root num2str(i,'%03d') '_A.txt'];
-
-% kp1 = m(:,1:5);
-% kp2 = n(:,1:5);
-
-% store keypoints with full precision to be compared python implimintation 
-% dlmwrite(kp1_path, kp1, 'delimiter', ',', 'precision', precision);
-% dlmwrite(kp2_path, kp2, 'delimiter', ',', 'precision', precision);
-
-
-
 % Coefficinet matrix in the linearized system of multinomials (Cf * V = 0)
 % Cf = CoefsVer3_1_1(kp1, kp2);
 Cf = CoefsVer3_1_1(m,n);

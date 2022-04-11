@@ -46,7 +46,17 @@ class QUEST_RANSAC:
     # self.m1 = m1  # inputs X
     # self.m2 = m2  # outputs Y
     # self.dat = np.concatenate((self.m1,self.m2), axis=0).T
-    self.dat = dat
+    npprint('dat',dat)
+    st()
+
+
+    m1u = dat[:,:3].T/np.abs(dat[:,:3].T).sum(axis=0)[:,np.newaxis]
+    m2u = dat[:,3:].T/np.abs(dat[:,3:].T).sum(axis=0)[:,np.newaxis]
+    npprint('m1u',m1u)
+    npprint('m2u',m2u)
+    st()
+
+    self.dat = np.concatenate((m1u,m2u), axis=0).T
     self.quest = quest # func pointer
     self.get_Txyz = get_Txyz # func pointer
     self.max_iters = max_iters
@@ -67,6 +77,7 @@ class QUEST_RANSAC:
       st()
 
       mod_idxs, test_idxs = self.random_partition(self.num_corresps,self.dat.shape[0])
+
       mod = self.fit(mod_idxs)
       dists, inl_idxs, mod = self.get_error(test_idxs, mod)
       if len(inl_idxs) > len(B_inl_idxs):

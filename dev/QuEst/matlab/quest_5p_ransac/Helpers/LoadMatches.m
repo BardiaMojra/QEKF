@@ -18,15 +18,11 @@ p2  = p11p21(:,4:5)';
 % m2 = m1m2(:,4:6)';
 % Point coordinates on image plane
 m1 = K \ p11;
-m2 = K \ p21 ;
+m2 = K \ p21;
 
-
-
-AA = sqrt(sum(m1.^2,1));
-BB = sqrt(sum(m2.^2,1));
 % unit norm coordinates
-m1u = bsxfun(@rdivide, m1, AA); 
-m2u = bsxfun(@rdivide, m2, BB);
+m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1))); 
+m2u = bsxfun(@rdivide, m2, sqrt(sum(m2.^2,1)));
 
 matches.p1 = p1;
 matches.p2 = p2;

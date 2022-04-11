@@ -87,7 +87,6 @@ def main():
         else:
           matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
 
-        st()
         rquest = RQUEST(dat,
                         QuEst, get_Txyz,
                         RANSAC_MAX_ITER,
@@ -95,7 +94,6 @@ def main():
                         QUEST_NUM_CORRESPS,
                         nbug=NBUG,
                         return_all=True)
-        st()
         mod,m_idxs,q,tOut,qs= rquest.get_best_fit()
 
       elif alg == 'QuEst_v0708':
