@@ -1,7 +1,7 @@
 %% RANSAC Implementation of QuEst
 %
 % Run this script to see how the RANSAC implementation of the QuEst 
-% algorithm can be used to estimate the realtive pose between keyframes in 
+% algorithm can be used to estimate the relative pose between keyframes in 
 % the TUM image dataset.
 %
 % TUM dataset: https://vision.in.tum.de/data/datasets/rgbd-dataset. 
@@ -86,7 +86,8 @@ for i = keyFrames
     [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points           
 %     matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
     matches = LoadMatches(i,dataset.K); % Match feature points
-    
+    m_dat = cat(2,matches.m1',matches.m2');
+    dispn(m_dat,6); % must match python dat
     % Relative ground truth 
     [relPose, posp] = RelativeGroundTruth(i, posp, dataset);
     

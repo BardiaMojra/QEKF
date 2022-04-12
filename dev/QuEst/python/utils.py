@@ -201,26 +201,27 @@ class Dmatch_obj(object):
     p21 = dat[:,3:6].T
     m1 = sc.linalg.solve(K,p11)
     m2 = sc.linalg.solve(K,p21)
-    m1u = m1/np.sqrt((m1**2).sum(axis=0)[:,np.newaxis].T)
-    m2u = m2/np.sqrt((m2**2).sum(axis=0)[:,np.newaxis].T)
-    self.ndat = np.concatenate((m1u,m2u), axis=0).T # unit norm coords
+    # m1u = m1/np.sqrt((m1**2).sum(axis=0)[:,np.newaxis].T)
+    # m2u = m2/np.sqrt((m2**2).sum(axis=0)[:,np.newaxis].T)
     self.dat = np.concatenate((m1,m2), axis=0).T
     self.p1 = p1
     self.p2 = p2
     self.m1 = m1
     self.m2 = m2
-    self.m1u = m1u
-    self.m2u = m2u
-    self.numPoints = p1.shape[0]
+    # self.m1u = m1u
+    # self.m2u = m2u
+    self.numPoints = p1.shape[1]
+
     # end of __init__
 
   def prt(self):
-    nprint('p1', self.p1)
-    nprint('p2', self.p2)
-    npprint('m1', self.m1)
-    npprint('m2', self.m2)
-    npprint('m1u', self.m1u)
-    npprint('m2u', self.m2u)
+    # nprint('p1', self.p1)
+    # nprint('p2', self.p2)
+    # npprint('m1', self.m1)
+    # npprint('m2', self.m2)
+    npprint('self.dat(obj):', self.dat)
+    # npprint('m1u', self.m1u)
+    # npprint('m2u', self.m2u)
     print('numPoints: ', self.numPoints)
     return
   # end of class Dmatch_obj(object): ------------------->> //
@@ -268,15 +269,15 @@ def prep_matches(dat, matches, kp_p, kp_n, minPts, _dtype=np.float128):
   mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
   mats = Dmatch_obj(mat,dat.K)
   # mats.prt() # keep
-  return mats, mats.ndat # return unit norm coord data
+  return mats, mats.dat # return unit norm coord data
 
 def load_matlab_matches(i,K,_dtype=np.float128):
   path = '../matlab/quest_5p_ransac/out/KITTI/feature_matches/matches_p11p21_'
   dpath = path+str(i).zfill(2)+'.txt'
   dat = np.loadtxt(dpath, delimiter=' ', dtype=_dtype)
   mats = Dmatch_obj(dat,K)
-  mats.prt() # keep
-  return mats, mats.ndat # return unit norm coord data
+  # mats.prt() # keep
+  return mats, mats.dat # return unit norm coord data
 
 def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n):
   matches = fmatcher.match(des_p, des_n)

@@ -43,24 +43,18 @@ class QUEST_RANSAC:
       bestfit - model parameters which best fit the data """
   def __init__(self, dat, quest, get_Txyz, max_iters,threshold,num_corresps,\
                nbug=True,return_all=True,_dtype=np.float128):
-    # self.m1 = m1  # inputs X
-    # self.m2 = m2  # outputs Y
-    # self.dat = np.concatenate((self.m1,self.m2), axis=0).T
-    npprint('dat',dat)
-    st()
-
-
-    m1u = dat[:,:3].T/np.abs(dat[:,:3].T).sum(axis=0)[:,np.newaxis]
-    m2u = dat[:,3:].T/np.abs(dat[:,3:].T).sum(axis=0)[:,np.newaxis]
-    npprint('m1u',m1u)
-    npprint('m2u',m2u)
-    st()
-
-    self.dat = np.concatenate((m1u,m2u), axis=0).T
+    dat_ = np.absolute(dat) # keep it this way
+    m1s = (dat_[:,:3].T).sum(axis=0)
+    m2s = (dat_[:,3:].T).sum(axis=0)
+    m1u = dat[:,:3]/m1s[:,None]
+    m2u = dat[:,3:]/m2s[:,None]
+    # npprint('m1u',m1u); npprint('m2u',m2u); st()
+    ''' Data integrity: matches line 64 of QuEst_RANSAC_Ver1_2.m '''
+    self.dat = np.concatenate((m1u,m2u), axis=1)
     self.quest = quest # func pointer
     self.get_Txyz = get_Txyz # func pointer
     self.max_iters = max_iters
-    self.threshold = threshold
+    self.threshold = threshold # ransac inlier threshold
     self.num_corresps = num_corresps
     self.NBUG = nbug
     self.return_all = return_all
@@ -74,10 +68,13 @@ class QUEST_RANSAC:
       #todo explore ways to get points with SOME distance from each other
       #todo test enforcing min distance between correspondences
 
-      st()
-
       mod_idxs, test_idxs = self.random_partition(self.num_corresps,self.dat.shape[0])
+      # npprint('mod_idxs',mod_idxs)
+      # npprint('test_idxs',test_idxs)
+      # st()
 
+
+      #todo we here
       mod = self.fit(mod_idxs)
       dists, inl_idxs, mod = self.get_error(test_idxs, mod)
       if len(inl_idxs) > len(B_inl_idxs):
@@ -105,10 +102,8 @@ class QUEST_RANSAC:
   def fit(self,kp_idxs):
     ''' pose estimation: estimates the relative rotation and translation
       between two camera views using the 5 point quaternion algorithm.
-      input:
-        mod_idxs  - selected indices
-      output:
-        mod       - model object '''
+      input:    mod_idxs  - selected indices
+      output:   mod       - model object '''
     # m1 = self.dat[:,:3].T
     # m2 = self.dat[:,3:].T
     # npprint('m1',m1)
@@ -116,8 +111,10 @@ class QUEST_RANSAC:
     # m1 = m1/np.sum(np.abs(m1), axis=0).reshape(1,-1)
     # m2 = m2/np.sum(np.abs(m2), axis=0).reshape(1,-1)
     # npprint('m1',m1)
-    # npprint('m2',m2)
-    # st()
+    npprint('self.dat',self.dat)
+    npprint('self.dat[kp_idxs,:]',self.dat[kp_idxs,:])
+
+    st()
 
     qs = self.quest(self.dat[kp_idxs,:]) # est rotation with QuEst
     qs_residues = get_residues(self.dat[kp_idxs,:],qs) # Scoring function
@@ -191,7 +188,7 @@ class QUEST_RANSAC:
     #todo try loading sparse random data points
     """return n random rows of data (and also the other len(data)-n rows)"""
     all_idxs = np.arange(n_data)
-    np.random.shuffle(all_idxs)
+    # np.random.shuffle(all_idxs)
     rand_idxs = all_idxs[:n]
     else_idxs = all_idxs[n:]
     return rand_idxs, else_idxs

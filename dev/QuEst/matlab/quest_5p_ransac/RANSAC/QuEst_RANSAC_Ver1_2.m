@@ -385,7 +385,7 @@ while N > trialcount
             ind = randsample(npts, s);
         end
         
-        ind = [1,2,3,4,5,6];
+        ind = [1,2,3,4,5,6]; % nbug 
 
         % Test that these points are not a degenerate configuration.
         degenerate = feval(degenfn, x(:,ind));

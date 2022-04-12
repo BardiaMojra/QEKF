@@ -57,11 +57,13 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # npprint('dat', dat)
   m = dat[:,:3].T
   n = dat[:,3:].T
-  npprint('m',m)
-  npprint('n',n)
-  st()
+  # npprint('m',m)
+  # npprint('n',n)
+  # st()
+  ''' Data integrity: matches line 64 of QuEst_RANSAC_Ver1_2.m '''
 
   # coefficient matrix in the linearized system of multi-nomials (Cf * V = 0)
+  #todo we here
   Cf = get_COEFS(m,n)
 
   numEq = Cf.shape[0]

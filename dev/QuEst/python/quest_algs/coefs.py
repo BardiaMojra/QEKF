@@ -25,6 +25,9 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
     Ver 3_1_1:
       - Based on Ver3_1, without the unit norm coefficient vector appended at
       the end. '''
+  print('in CoefsVer3_1_1()')
+  st()
+  #todo we here
   numPts = m1.shape[1]
   idx1 = np.zeros((int(sc.special.binom(numPts,2))-1, 2), dtype=int)
   cntr = 0
