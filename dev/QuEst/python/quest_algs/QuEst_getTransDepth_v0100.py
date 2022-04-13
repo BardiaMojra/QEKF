@@ -93,6 +93,13 @@ def get_Txyz_v0100(dat,q,_dtype=np.float128):
   # npprint('z2', z2)
   # npprint('S[-1]', S[-1])
   # st()
+
+  write_np2txt(t,fname='nbug_QuEst_T_python.txt')
+  write_np2txt(z1,fname='nbug_QuEst_Z1_python.txt')
+  write_np2txt(z2,fname='nbug_QuEst_Z2_python.txt')
+  write_np2txt(S[-1],fname='nbug_QuEst_qt_Res_python.txt')
+
+
   return t,z1,z2,S[-1]
 
 

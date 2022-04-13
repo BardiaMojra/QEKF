@@ -179,6 +179,8 @@ pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5));  % QuEst algorithm
 
 % Pick the best pose solution
 res = QuatResidueVer3_1(x1, x2, pose.Q); % Scoring function
+
+
 [resMin,mIdx] = min(abs(res)); 
 q = pose.Q(:,mIdx); 
 t = pose.T(:,mIdx);
@@ -187,6 +189,9 @@ t = pose.T(:,mIdx);
 R = Q2R(q);
 Tx = Skew(t/norm(t));    
 F = Tx * R; 
+
+path = '../../mout/nbug_PoseEst_F_matlab.txt';
+writematrix(F,path,'Delimiter',' ');
 
 M.Q  = q;
 M.t  = t;
@@ -420,7 +425,7 @@ while N > trialcount
     % the most inliers.  After this call M will be a non-cell object
     % representing only one model.
     [inliers, M] = feval(distfn, M, x, t);
-
+    dispn(inliers, 6)
     % Find the number of inliers to this model.
     ninliers = length(inliers);
 

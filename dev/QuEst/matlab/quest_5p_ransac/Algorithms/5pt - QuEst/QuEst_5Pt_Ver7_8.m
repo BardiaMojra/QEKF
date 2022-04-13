@@ -67,10 +67,17 @@ writematrix(A,path,'Delimiter',' ');
 [~,~,V] = svd(A,0);
 N = V(:,37:56);
 
+path = '../../mout/nbug_QuEst_V_matlab.txt';
+writematrix(V,path,'Delimiter',' ');
+path = '../../mout/nbug_QuEst_N_matlab.txt';
+writematrix(N,path,'Delimiter',' ');
+
+
 idx = Idx(1,:);   A0 = N(idx,:);
 idx = Idx(2,:);   A1 = N(idx,:);
 idx = Idx(3,:);   A2 = N(idx,:);
 idx = Idx(4,:);   A3 = N(idx,:);
+
 
 B = A0 \ [A1, A2, A3];
 
@@ -79,12 +86,40 @@ B2 = B(:,21:40);
 B3 = B(:,41:60);
 
 
+path = '../../mout/nbug_QuEst_A0_matlab.txt';
+writematrix(A0,path,'Delimiter',' ');
+
+path = '../../mout/nbug_QuEst_A1_matlab.txt';
+writematrix(A1,path,'Delimiter',' ');
+
+path = '../../mout/nbug_QuEst_A2_matlab.txt';
+writematrix(A2,path,'Delimiter',' ');
+
+path = '../../mout/nbug_QuEst_A3_matlab.txt';
+writematrix(A3,path,'Delimiter',' ');
+
+path = '../../mout/nbug_QuEst_B_matlab.txt';
+writematrix(B,path,'Delimiter',' ');
+
+
+
 %% Find eigenvectors
 
 % Initial guess for the common eigenvectors
 [V1, ~] = eig(B1); 
 [V2, ~] = eig(B2);
 [V3, ~] = eig(B3);
+
+
+path = '../../mout/nbug_QuEst_V1_matlab.txt';
+writematrix(V1,path,'Delimiter',' ');
+
+path = '../../mout/nbug_QuEst_V2_matlab.txt';
+writematrix(V2,path,'Delimiter',' ');
+
+path = '../../mout/nbug_QuEst_V3_matlab.txt';
+writematrix(V3,path,'Delimiter',' ');
+
 
 Ve = [V1, V2, V3];
 % #todo for now remove all the imaginary solutions 
@@ -97,6 +132,9 @@ Vi = Viall(:,srtIdx(1:2:end)); % Keep only one complex eigenvector
 Vr = Ve(:,~imagIdx);
 V0 = real([Vi, Vr]);           % Use only the real parts
 
+path = '../../mout/nbug_QuEst_V0_matlab.txt';
+writematrix(V0,path,'Delimiter',' ');
+
 
 %% Extract quaternion elements
 
@@ -105,6 +143,10 @@ X5 = N * V0;
 
 % Correct the sign of each column s.t. the first element (i.e., w^5) is always positive
 X5 = bsxfun(@times, sign(X5(1,:)), X5);
+
+path = '../../mout/nbug_QuEst_X5_matlab.txt';
+writematrix(X5,path,'Delimiter',' ');
+
 
 % Recover quaternion elements  
 w = nthroot(X5(1,:),5);
@@ -118,9 +160,13 @@ Q = [w;
      y;
      z];
 
+path = '../../mout/nbug_QuEst_Q_matlab.txt';
+writematrix(V0,path,'Delimiter',' ');
 
 % Normalize s.t. each column of Q has norm 1
 QNrm = sqrt(sum(Q.^2,1));
 Q = bsxfun(@rdivide, Q, QNrm);
+path = '../../mout/nbug_QuEst_Qs_matlab.txt';
+writematrix(Q,path,'Delimiter',' ');
 
 

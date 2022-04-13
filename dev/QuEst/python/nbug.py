@@ -75,4 +75,6 @@ def write_np2txt(ndarr:np.ndarray,fname:str,_dir:str='../pout/',_sep:str=' ',_pr
     dirFname = '../pout/nbug_CoefsVer311_C_python.txt'
     write_np2txt(C,dirFname,' ') '''
   df = pd.DataFrame(data=ndarr.astype(np.float128))
-  df.to_csv(_dir+fname,sep=_sep,header=False,float_format='%.20f',index=False)
+  df.to_csv(_dir+fname,sep=_sep,header=False,
+            # float_format='%.20f',
+            index=False)

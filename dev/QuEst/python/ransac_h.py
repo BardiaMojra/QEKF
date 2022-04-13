@@ -77,6 +77,9 @@ class QUEST_RANSAC:
       #todo we here
       mod = self.fit(mod_idxs)
       dists, inl_idxs, mod = self.get_error(test_idxs, mod)
+
+      st()
+
       if len(inl_idxs) > len(B_inl_idxs):
         print(lhead+'new model found...\n')
         B_mod = mod
@@ -118,6 +121,8 @@ class QUEST_RANSAC:
 
     qs = self.quest(self.dat[kp_idxs,:]) # est rotation with QuEst
     qs_residues = get_residues(self.dat[kp_idxs,:],qs) # Scoring function
+    write_np2txt(qs_residues,fname='nbug_QuEst_Qs_residues_python.txt')
+
     idx = np.asarray(qs_residues==qs_residues.min()).nonzero()[0][0] # find best sol
 
     #todo test with this for finding the best q solution
@@ -129,11 +134,16 @@ class QUEST_RANSAC:
     # st()
 
     q = qs[idx,0]
+    write_np2txt(quaternion.as_float_array(q),fname='nbug_QuEst_Q_python.txt')
+
     t, dep1, dep2, res = self.get_Txyz(self.dat[kp_idxs,:],q) # est trans
+    # write_np2txt(t,fname='nbug_QuEst_T_python.txt')
 
     R = sc_R.from_quat(quat2arr(q)).as_matrix() # compute rot mat
     Tx = skew(t/lalg.norm(t))
     F = Tx @ R # compute essential matrix
+    write_np2txt(F,fname='nbug_PseEst_F_python.txt')
+
     return rmodel(q=q,t=t,idxs=kp_idxs,F=F,qs=qs,residues=qs_residues,q_idx=idx)
 
   def get_error(self,test_idx,mod:rmodel):

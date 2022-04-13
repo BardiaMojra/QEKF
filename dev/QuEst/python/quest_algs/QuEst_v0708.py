@@ -68,16 +68,25 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   numEq = Cf.shape[0]
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_dtype)
+
+  #todo: bug here
   for i in range(1,5):
     idx = Idx[i-1,:]
     A[(i-1)*numEq : i*numEq, idx] = Cf
+    npprint('A',A)
+
+
+  #A = A.T # correction
 
   #todo working here ....................
-  write_np2txt(A,fname='nbug_QuEst_A_python.txt')
-  npprint('A',A)
+  write_np2txt(A,fname='nbug_QuEst_A_python.txt') # match
+  # npprint('A',A)
   st()
   # find bases for the null space of A
   U,S,V = la.svd(A)
+
+  write_np2txt(V,fname='nbug_QuEst_V_python.txt')
+
   N = V.T[:,36:56].copy()
   idx = Idx[0,:];   A0 = N[idx,:]
   idx = Idx[1,:];   A1 = N[idx,:]
@@ -91,11 +100,26 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # nsprint('B1', B1)
   # nsprint('B2', B2)
   # nsprint('B3', B3)
+
+  write_np2txt(A0,fname='nbug_QuEst_A0_python.txt')
+  write_np2txt(A1,fname='nbug_QuEst_A1_python.txt')
+  write_np2txt(A2,fname='nbug_QuEst_A2_python.txt')
+  write_np2txt(A3,fname='nbug_QuEst_A3_python.txt')
+  write_np2txt(B,fname='nbug_QuEst_B_python.txt')
+
+
+
   # compute eigenvectors - initial guess
-  evals, evecs1 = la.eig(B1)
-  evals, evecs2 = la.eig(B2)
-  evals, evecs3 = la.eig(B3)
-  Ve = np.concatenate((evecs1,evecs2,evecs3), axis=1)
+  evals, V1 = la.eig(B1)
+  evals, V2 = la.eig(B2)
+  evals, V3 = la.eig(B3)
+
+  write_np2txt(V1,fname='nbug_QuEst_V1_python.txt')
+  write_np2txt(V2,fname='nbug_QuEst_V2_python.txt')
+  write_np2txt(V3,fname='nbug_QuEst_V3_python.txt')
+
+
+  Ve = np.concatenate((V1,V2,V3), axis=1)
   Ve_img = Ve.imag
   # get idx of img roots w magnitude greater than ZERO_ROOT_THRESHOLD
   Vi_idx = list()
@@ -123,6 +147,8 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
     nprint('using imaginary roots', Vi_idx_keep)
   else:
     V0 = Vr
+
+
   ''' extract quaternion elements in order to obtained relative rotation '''
   X5 = N @ V0 # degree 5 monomial solution vectors
   # correct quat sign i.e. w is always positive
@@ -138,6 +164,12 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   qs = np.float128(qs)
   Qnorm = np.sqrt(np.sum(qs**2, axis=0)).reshape(1,-1)
   qs = qs/Qnorm # match matlab format
+
+  write_np2txt(V0,fname='nbug_QuEst_V0_python.txt')
+  write_np2txt(X5,fname='nbug_QuEst_X5_python.txt')
+  write_np2txt(qs,fname='nbug_QuEst_Qs_python.txt')
+
+
   return quaternion.as_quat_array(qs.T).reshape(-1,1) #
 
 def get_qs_residues(dat, qSols):

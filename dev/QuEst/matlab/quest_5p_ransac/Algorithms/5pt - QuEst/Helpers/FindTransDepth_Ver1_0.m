@@ -93,79 +93,21 @@ for k = 1 : numInp
     T(:,k) = t;
     Z1(:,k) = z1;
     Z2(:,k) = z2;
-    Res(:,k) = Sd(end);
+    Res(:,k) = Sd(end); 
 end
 
 
+path = '../../mout/nbug_QuEst_T_matlab.txt';
+writematrix(T,path,'Delimiter',' ');
 
+path = '../../mout/nbug_QuEst_Z1_matlab.txt';
+writematrix(Z1,path,'Delimiter',' ');
 
+path = '../../mout/nbug_QuEst_Z2_matlab.txt';
+writematrix(Z2,path,'Delimiter',' ');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+path = '../../mout/nbug_QuEst_qt_Res_matlab.txt';
+writematrix(Res,path,'Delimiter',' ');
 
 
 
