@@ -85,13 +85,13 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
                         b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,\
                         _dtype=_dtype);
 
-  nprint('numEq', numEq)
-  npprint('coefsND[:numEq,:]', coefsND[:numEq,:])
-  st()
+  # nprint('numEq', numEq)
+  # npprint('coefsND[:numEq,:]', coefsND[:numEq,:])
+  # st()
 
   # matrix of all coefficients, coefs = (num1 * den2)  -  (den1 * num2)
   C = coefsND[:numEq,:] - coefsND[numEq:2*numEq,:]
-  npprint('C', C)
+  # npprint('C', C)
 
   # dirFname = '../pout/nbug_CoefsVer311_C_python.txt'
   # write_np2txt(C,dirFname,' ')

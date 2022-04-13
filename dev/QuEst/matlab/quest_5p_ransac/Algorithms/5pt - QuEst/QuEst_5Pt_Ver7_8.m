@@ -52,26 +52,45 @@ Idx = [ 1     2     5    11    21     3     6    12    22     8    14    24    1
 Cf = CoefsVer3_1_1(m,n);
 % Cf = CoefsVer3_1_1_mex(m,n);
 
+path = '../../mout/QuEst_Cf_ml.txt';
+writematrix(Cf,path,'Delimiter',' ');
+
 numEq = size(Cf,1);
 % A is the coefficient matrix such that A * X = 0
 A = zeros(4*numEq,56);
 for i = 1 : 4
     idx = Idx(i,:);
     A((i-1)*numEq+1 : i*numEq, idx) = Cf;
+    path = '../../mout/QuEst_A_ml.txt';
+    writematrix(A,path,'Delimiter',' ');
 end
 
-path = '../../mout/nbug_QuEst_A_matlab.txt';
+path = '../../mout/QuEst_A_ml.txt';
 writematrix(A,path,'Delimiter',' ');
+path = '../../mout/QuEst_Idx_ml.txt';
+writematrix(Idx,path,'Delimiter',' ');
+
 
 % Find bases for the null space of A
-[~,~,V] = svd(A,0);
+[~,S,V] = svd(A,0);
 N = V(:,37:56);
 
-path = '../../mout/nbug_QuEst_V_matlab.txt';
+path = '../../mout/QuEst_V_ml.txt';
 writematrix(V,path,'Delimiter',' ');
-path = '../../mout/nbug_QuEst_N_matlab.txt';
-writematrix(N,path,'Delimiter',' ');
 
+path = '../../mout/QuEst_V_fi10_ml.txt';
+writematrix(V(1:10,:),path,'Delimiter',' ');
+
+path = '../../mout/QuEst_V_la10_ml.txt';
+writematrix(V(47:56,:),path,'Delimiter',' ');
+
+path = '../../mout/QuEst_N_ml.txt';
+writematrix(N,path,'Delimiter',' ');
+path = '../../mout/QuEst_Idx_ml.txt';
+writematrix(Idx,path,'Delimiter',' ');
+
+path = '../../mout/QuEst_S_ml.txt';
+writematrix(S,path,'Delimiter',' ');
 
 idx = Idx(1,:);   A0 = N(idx,:);
 idx = Idx(2,:);   A1 = N(idx,:);
@@ -86,19 +105,19 @@ B2 = B(:,21:40);
 B3 = B(:,41:60);
 
 
-path = '../../mout/nbug_QuEst_A0_matlab.txt';
+path = '../../mout/QuEst_A0_ml.txt';
 writematrix(A0,path,'Delimiter',' ');
 
-path = '../../mout/nbug_QuEst_A1_matlab.txt';
+path = '../../mout/QuEst_A1_ml.txt';
 writematrix(A1,path,'Delimiter',' ');
 
-path = '../../mout/nbug_QuEst_A2_matlab.txt';
+path = '../../mout/QuEst_A2_ml.txt';
 writematrix(A2,path,'Delimiter',' ');
 
-path = '../../mout/nbug_QuEst_A3_matlab.txt';
+path = '../../mout/QuEst_A3_ml.txt';
 writematrix(A3,path,'Delimiter',' ');
 
-path = '../../mout/nbug_QuEst_B_matlab.txt';
+path = '../../mout/QuEst_B_ml.txt';
 writematrix(B,path,'Delimiter',' ');
 
 

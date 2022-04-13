@@ -70,11 +70,11 @@ def pstail():
 def pattn():
   print(attn)
 
-def write_np2txt(ndarr:np.ndarray,fname:str,_dir:str='../pout/',_sep:str=' ',_prt:bool=True):
+def write_np2txt(ndarr:np.ndarray,fname:str,_dir:str='../pout/',
+                 _sep:str=' ',_prt:bool=True,_dtype=None):
   ''' example:
     dirFname = '../pout/nbug_CoefsVer311_C_python.txt'
     write_np2txt(C,dirFname,' ') '''
-  df = pd.DataFrame(data=ndarr.astype(np.float128))
-  df.to_csv(_dir+fname,sep=_sep,header=False,
-            # float_format='%.20f',
-            index=False)
+  if _dtype==None: df = pd.DataFrame(data=ndarr)
+  else: df = pd.DataFrame(data=ndarr.astype(_dtype))
+  df.to_csv(_dir+fname,sep=_sep,header=False,index=False)
