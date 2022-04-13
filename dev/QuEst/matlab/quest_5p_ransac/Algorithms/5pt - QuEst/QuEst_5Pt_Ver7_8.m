@@ -60,8 +60,8 @@ for i = 1 : 4
     A((i-1)*numEq+1 : i*numEq, idx) = Cf;
 end
 
-% write matrix A for debugging purposes 
-% dlmwrite(A_path, A, 'delimiter', ',', 'precision', precision);
+path = '../../mout/nbug_QuEst_A_matlab.txt';
+writematrix(A,path,'Delimiter',' ');
 
 % Find bases for the null space of A
 [~,~,V] = svd(A,0);

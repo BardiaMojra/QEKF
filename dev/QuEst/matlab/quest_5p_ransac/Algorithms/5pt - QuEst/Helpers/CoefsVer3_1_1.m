@@ -38,8 +38,6 @@ for i = 1 : numPts-2
    end
 end
 
-
-
 mx1 = m1(1,idxBin1(1,:)).';    my1 = m1(2,idxBin1(1,:)).';
 nx1 = m2(1,idxBin1(1,:)).';    ny1 = m2(2,idxBin1(1,:)).';
 mx2 = m1(1,idxBin1(2,:)).';    my2 = m1(2,idxBin1(2,:)).';
@@ -48,12 +46,10 @@ nx2 = m2(1,idxBin1(2,:)).';    ny2 = m2(2,idxBin1(2,:)).';
 s1  = m1(3,idxBin1(1,:)).';      r1  = m2(3,idxBin1(1,:)).'; 
 s2  = m1(3,idxBin1(2,:)).';      r2  = m2(3,idxBin1(2,:)).';
 
-
 % coefsN = num1
 coefsN = coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2);
 % coefsD = den1
 coefsD = coefsDenVer2_0(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2);
-
 
 %%
 % Total number of equations
@@ -111,6 +107,7 @@ coefsND = coefsNumDen(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,...
 % coefs = (num1 * den2)  -  (den1 * num2)
 C = coefsND(1:numEq,:) - coefsND(numEq+1:2*numEq,:);
 
+% dat = cat(2,p11',p21');
 
 end
 

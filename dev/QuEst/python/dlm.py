@@ -8,9 +8,9 @@ from nbug import *
 
 
 ''' config '''
-_prec       = 6 # nprt precision
-np.set_printoptions(precision=_prec)
-pd.set_option('display.float_format', lambda x: f'%.{_prec}f' % x)
+# _prec       = 6 # nprt precision
+# np.set_printoptions(precision=_prec)
+# pd.set_option('display.float_format', lambda x: f'%.{_prec}f' % x)
 
 
 class dlm:

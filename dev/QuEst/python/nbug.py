@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 ''' NBUG config '''
-_prec       = 10 # nprt precision
+# _prec       = 10 # nprt precision
 nprt_en     = True #False
 nprt_en2    = True
 
@@ -19,8 +19,9 @@ ltail       = '\n\n'
 stail       = ''
 attn        = 'here ----------- <<<<<\n\n'
 
-np.set_printoptions(precision=_prec)
-pd.set_option('display.float_format', lambda x: f'%.{_prec}f' % x)
+# np.set_printoptions(precision=_prec)
+# pd.set_option("display.precision", _prec)
+# pd.option_context('display.float_format', '{:0.10f}'.format)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -43,7 +44,9 @@ def npprint(string:str, ndarr:np.ndarray, N=None, labels=None):
   if nprt_en is True:
     shape = str(ndarr.shape)
     print(shead+string+': '+shape)
-    df = pd.DataFrame(ndarr, columns=labels)
+    # pd.set_option("display.precision", _prec)
+    # pd.option_context('display.float_format', '{:0.10f}'.format)
+    df = pd.DataFrame(ndarr.astype(np.float128), columns=labels)
     if isinstance(N,int): pp(df.head(N)); print(stail)
     else: pp(df); print(stail)
 
@@ -66,3 +69,10 @@ def pstail():
 
 def pattn():
   print(attn)
+
+def write_np2txt(ndarr:np.ndarray,fname:str,_dir:str='../pout/',_sep:str=' ',_prt:bool=True):
+  ''' example:
+    dirFname = '../pout/nbug_CoefsVer311_C_python.txt'
+    write_np2txt(C,dirFname,' ') '''
+  df = pd.DataFrame(data=ndarr.astype(np.float128))
+  df.to_csv(_dir+fname,sep=_sep,header=False,float_format='%.20f',index=False)

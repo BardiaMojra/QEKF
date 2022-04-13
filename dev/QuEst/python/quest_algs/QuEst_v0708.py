@@ -63,7 +63,6 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   ''' Data integrity: matches line 64 of QuEst_RANSAC_Ver1_2.m '''
 
   # coefficient matrix in the linearized system of multi-nomials (Cf * V = 0)
-  #todo we here
   Cf = get_COEFS(m,n)
 
   numEq = Cf.shape[0]
@@ -72,6 +71,11 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   for i in range(1,5):
     idx = Idx[i-1,:]
     A[(i-1)*numEq : i*numEq, idx] = Cf
+
+  #todo working here ....................
+  write_np2txt(A,fname='nbug_QuEst_A_python.txt')
+  npprint('A',A)
+  st()
   # find bases for the null space of A
   U,S,V = la.svd(A)
   N = V.T[:,36:56].copy()

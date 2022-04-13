@@ -61,7 +61,7 @@ minPts  = 6;    % Minimum number of feature points required (6 to estimate a uni
 %% Preallocate
 
 numImag     = length(dataset.fnames);       % Total number of images
-keyFrames   = [2+skipFrame : 1+skipFrame : numImag]; 
+keyFrames   = 2+skipFrame : 1+skipFrame : numImag; 
 numKeyFrames = length(keyFrames);           % Number of key frames
 
 % Preallocate pose estimation variables 
@@ -86,8 +86,8 @@ for i = keyFrames
     [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points           
 %     matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
     matches = LoadMatches(i,dataset.K); % Match feature points
-    m_dat = cat(2,matches.m1',matches.m2');
-    dispn(m_dat,6); % must match python dat
+%     m_dat = cat(2,matches.m1',matches.m2');
+%     dispn(m_dat,6); % must match python dat
     % Relative ground truth 
     [relPose, posp] = RelativeGroundTruth(i, posp, dataset);
     

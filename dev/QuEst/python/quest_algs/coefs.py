@@ -25,9 +25,6 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
     Ver 3_1_1:
       - Based on Ver3_1, without the unit norm coefficient vector appended at
       the end. '''
-  print('in CoefsVer3_1_1()')
-  st()
-  #todo we here
   numPts = m1.shape[1]
   idx1 = np.zeros((int(sc.special.binom(numPts,2))-1, 2), dtype=int)
   cntr = 0
@@ -44,12 +41,11 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   s1  = m1[2,idx1[0,:]].reshape(-1,1); r1  = m2[2,idx1[0,:]].reshape(-1,1);
   s2  = m1[2,idx1[1,:]].reshape(-1,1); r2  = m2[2,idx1[1,:]].reshape(-1,1);
 
-  # get coefficients for numerator (cN) and denominator (cD)
-  cN = coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2,_dtype=_dtype)
-  cD = coefsDenVer2_0(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2,_dtype=_dtype)
 
-  # npprint('coefsN', coefsN)
-  # npprint('coefsD', coefsD)
+  # get coefficients for numerator (cN) and denominator (cD)
+  cN = get_coefsNum(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2,_dtype=_dtype)
+  cD = get_coefsDen(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2,_dtype=_dtype)
+
 
   # total number of equations
   numEq = int(sc.special.binom(numPts,3))
@@ -85,28 +81,24 @@ def CoefsVer3_1_1(m1, m2, _dtype=np.float64):
   b9  = np.concatenate((cD[idx2[1,:],8],cN[idx2[1,:],8]),axis=0).reshape(-1,1)
   b10 = np.concatenate((cD[idx2[1,:],9],cN[idx2[1,:],9]),axis=0).reshape(-1,1)
 
-  # npprint('b2', b2)
-  # npprint('b1', b1)
-
-  # st()
-
-  # coefsND = [num1 * den2;
-  #            den1 * num2];
   coefsND = coefsNumDen(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,\
                         b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,\
                         _dtype=_dtype);
 
-  # nprint('numEq', numEq)
-  # npprint('coefsND[:numEq,:]', coefsND[:numEq,:])
-  # st()
-  # matrix of all coefficients
-  # coefs = (num1 * den2)  -  (den1 * num2)
+  nprint('numEq', numEq)
+  npprint('coefsND[:numEq,:]', coefsND[:numEq,:])
+  st()
+
+  # matrix of all coefficients, coefs = (num1 * den2)  -  (den1 * num2)
   C = coefsND[:numEq,:] - coefsND[numEq:2*numEq,:]
-  # npprint('C', C)
+  npprint('C', C)
+
+  # dirFname = '../pout/nbug_CoefsVer311_C_python.txt'
+  # write_np2txt(C,dirFname,' ')
   # st()
   return C
 
-def coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2, _dtype=np.float64):
+def get_coefsNum(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2, _dtype=np.float64):
   t2  = mx1 * my2 * r2
   t3  = mx2 * ny2 * s1
   t4  = my1 * nx2 * s2
@@ -134,7 +126,7 @@ def coefsNumVer2_0(mx1,mx2,my1,my2,nx2,ny2,r2,s1,s2, _dtype=np.float64):
     dtype=_dtype)
   return coefsN
 
-def coefsDenVer2_0(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2,_dtype=np.float64):
+def get_coefsDen(mx2,my2,nx1,nx2,ny1,ny2,r1,r2,s2,_dtype=np.float64):
   t2  = mx2 * ny1 * r2
   t3  = my2 * nx2 * r1
   t4  = nx1 * ny2 * s2

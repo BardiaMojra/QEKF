@@ -22,7 +22,7 @@ matplotlib.pyplot.ion()
 plt.style.use('ggplot')
 
 ''' module configs '''
-OUT_DIR = '../out00/'
+OUT_DIR = '../pout/'
 DATA_ROOT = '../Datasets/'
 class dmm:
   ''' data management module '''
