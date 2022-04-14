@@ -97,7 +97,8 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   write_np2txt(N,fname='QuEst_N_py.txt')
 
   # nsprint('N',N)
-  # st()
+  show_eigenVal_energies(S)
+  st()
 
 
   idx = Idx[0,:];   A0 = N[idx,:]

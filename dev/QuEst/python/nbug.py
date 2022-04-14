@@ -78,3 +78,4 @@ def write_np2txt(ndarr:np.ndarray,fname:str,_dir:str='../pout/',
   if _dtype==None: df = pd.DataFrame(data=ndarr)
   else: df = pd.DataFrame(data=ndarr.astype(_dtype))
   df.to_csv(_dir+fname,sep=_sep,header=False,index=False)
+  return

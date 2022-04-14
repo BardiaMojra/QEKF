@@ -15,13 +15,48 @@ from pdb import set_trace as st
 # matplotlib.pyplot.ion()
 # plt.style.use('ggplot')
 
+''' miscellaneous utils '''
+def prt_file_save(string, *args):
+  print(shead+(string+' ')); print(*args);
 
-def skew(v):
-  if len(v) == 4: v = v[:3]/v[3]
-  skv = np.roll(np.roll(np.diag(v.flatten()),1,1),-1,0)
-  return skv - skv.T
+def get_fignum_str(fignum):
+  ''' usage: fignum+=1;get_fignum_str(fignum) '''
+  return 'fig_%03i' % fignum
+
+''' visualization utils '''
+def show_eigenVal_energies(S:np.ndarray,_save=False,outDir=None):
+  im1 = plt.figure(1)
+  plt.semilogy(S)
+  plt.title('Singular Values')
+  plt.show(); cv.waitKey(0)
+
+  im2 = plt.figure(2)
+  plt.plot(np.cumsum(S)/np.sum(S))
+  plt.title('Singular Values: Cumulative Energy')
+  plt.show(); cv.waitKey(0)
+  return
+
+def show_image_w_features(im,kps):
+  imageKeys = cv.drawKeypoints(im,kps,None,(255,0,0),4)
+  plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
+  return imageKeys
+
+def show_image_w_matches(im_p,kp_p,im_n,kp_n,matches):
+  imageKeys = cv.drawMatches(im_p,kp_p,im_n,kp_n,matches,None,flags=4)
+  plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
+  return
+
+def write_image(num:int, image, outDir):
+  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
+  figname = get_fignum_str(num)
+  figname = outDir+'_'+figname+'.png'
+  cv.imwrite(figname, image)
+  prt_file_save(shead+'saving figure: '+figname)
+  return
 
 
+
+''' array utils '''
 def quat2arr(q:np.quaternion,_dtype=np.float128):
   q = q.normalized()
   w = np.float128(q.w)
@@ -45,6 +80,13 @@ def quats2np(qs:np.ndarray,axis=0,_dtype=np.float128):
   if axis: qs_np = np.asarray(qs_np,_dtype).reshape(-1,4)
   else: qs_np = np.asarray(qs_np,_dtype).reshape(1,-1)
   return qs_np
+
+
+''' computation utils '''
+def skew(v):
+  if len(v) == 4: v = v[:3]/v[3]
+  skv = np.roll(np.roll(np.diag(v.flatten()),1,1),-1,0)
+  return skv - skv.T
 
 def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   ''' compute quaternion error and rank using designated metric.
@@ -168,30 +210,6 @@ def get_TransError(tr:np.ndarray,t:np.ndarray):
   tn = t/np.sqrt(sum(t**2))
   return (1/np.pi) * np.arccos(trn @ tn)
 
-def prt_file_save(string, *args):
-  print(shead+(string+' ')); print(*args);
-
-def get_fignum_str(fignum):
-  ''' usage: fignum+=1;get_fignum_str(fignum) '''
-  return 'fig_%03i' % fignum
-
-def show_image_w_kps(im,kps):
-  imageKeys = cv.drawKeypoints(im,kps,None,(255,0,0),4)
-  plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
-  return imageKeys
-
-def show_image_w_mats(im_p,kp_p,im_n,kp_n,matches):
-  imageKeys = cv.drawMatches(im_p,kp_p,im_n,kp_n,matches,None,flags=4)
-  plt.imshow(imageKeys); plt.show(); cv.waitKey(0)
-  return
-
-def write_image(num:int, image, outDir):
-  assert os.path.exists(outDir), lhead+'DO NOT EXIST: '+outDir+stail
-  figname = get_fignum_str(num)
-  figname = outDir+'_'+figname+'.png'
-  cv.imwrite(figname, image)
-  prt_file_save(shead+'saving figure: '+figname)
-  return
 
 class Dmatch_obj(object):
   def __init__(self,dat,K):
@@ -250,7 +268,7 @@ def GetFeaturePoints(alg,i:int,dat:dmm,threshold:int,minFeat=64,_show=False):
       # st()
     # imageKeys = cv.drawKeypoints(image, kps, None, (255,0,0), 4)
     # plt.imshow(imageKeys); plt.show(); cv.waitKey(); st(); plt.close()
-    if _show: show_image_w_kps(image,kps)
+    if _show: show_image_w_features(image,kps)
   except cv.error as e:
     assert 0, 'Error: '+e
   return image, kps, dscs
@@ -284,7 +302,7 @@ def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n)
   matches = sorted(matches, key = lambda x:x.distance)
   print(lhead+'found '+str(len(matches))+' matched correspondences...'+stail)
   matches = matches[:QUEST_MAX_MKP]
-  if _show: show_image_w_mats(Im_p,kp_p,Im_n,kp_n,matches)
+  if _show: show_image_w_matches(Im_p,kp_p,Im_n,kp_n,matches)
   return matches
 
 def retKPs_pxl(matches:Dmatch_obj):
