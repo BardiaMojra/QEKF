@@ -114,10 +114,10 @@ class QUEST_RANSAC:
     # m1 = m1/np.sum(np.abs(m1), axis=0).reshape(1,-1)
     # m2 = m2/np.sum(np.abs(m2), axis=0).reshape(1,-1)
     # npprint('m1',m1)
-    npprint('self.dat',self.dat)
-    npprint('self.dat[kp_idxs,:]',self.dat[kp_idxs,:])
+    # npprint('self.dat',self.dat)
+    # npprint('self.dat[kp_idxs,:]',self.dat[kp_idxs,:])
 
-    st()
+    # st()
 
     qs = self.quest(self.dat[kp_idxs,:]) # est rotation with QuEst
     qs_residues = get_residues(self.dat[kp_idxs,:],qs) # Scoring function

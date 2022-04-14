@@ -40,7 +40,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
     -  Slightly slower, but has better accuracy '''
 
   ''' config '''
-  ZERO_ROOT_THRESHOLD = _dtype(2.220446049250313080847263336181640625e-15)
+  ZERO_THRESHOLD = _dtype(2.220446049250313080847263336181640625e-15)
   NO_IMAGINARY_ROOTS = False
   # constants
   Idx = np.asarray([1, 2, 5, 11, 21, 3, 6, 12, 22, 8, 14, 24, 17, 27, 31, 4, 7,
@@ -81,24 +81,28 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # npprint('A',A)
   # find bases for the null space of A
   # U,s,VT = la.svd(A, lapack_driver='gesvd')
-  U,s,VT = la.svd(A, lapack_driver='gesdd')
+  U,s,VT = la.svd(A,full_matrices=False, lapack_driver='gesdd')
   S = np.diag(s)
   V = VT.T
 
+  nsprint('U',U)
   nsprint('S',S)
-  nsprint('V',V)
+  nsprint('V.T',V.T)
+  A_rcon = U @ S @ V.T
+  A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
   #todo working here ....................
   write_np2txt(V[:10,:],fname='QuEst_V_fi10_gesdd_py.txt')
   write_np2txt(V[-10:,:],fname='QuEst_V_la10_gesdd_py.txt')
   write_np2txt(V,fname='QuEst_V_gesdd_py.txt')
   write_np2txt(S,fname='QuEst_S_gesdd_py.txt')
+  write_np2txt(A_rcon,fname='QuEst_A_rcon_py.txt')
 
   N = V[:,36:]
   write_np2txt(N,fname='QuEst_N_py.txt')
 
   # nsprint('N',N)
-  show_eigenVal_energies(S)
-  st()
+  # show_eigenVal_energies(S)
+  # st()
 
 
   idx = Idx[0,:];   A0 = N[idx,:]
@@ -131,7 +135,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   write_np2txt(V2,fname='QuEst_V2_py.txt')
   write_np2txt(V3,fname='QuEst_V3_py.txt')
 
-  st()
+  # st()
 
   Ve = np.concatenate((V1,V2,V3), axis=1)
   Ve_img = Ve.imag
