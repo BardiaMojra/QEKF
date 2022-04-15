@@ -64,8 +64,8 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
 
   # coefficient matrix in the linearized system of multi-nomials (Cf * V = 0)
   Cf = get_COEFS(m,n)
-  write_np2txt(Cf,fname='QuEst_Cf_py.txt')
-  write_np2txt(Idx+1,fname='QuEst_Idx_py.txt',_dtype=int)
+  # write_np2txt(Cf,fname='QuEst_Cf_py.txt')
+  # write_np2txt(Idx+1,fname='QuEst_Idx_py.txt',_dtype=int)
   numEq = Cf.shape[0]
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_dtype)
@@ -77,7 +77,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
 
   #A = A.T # correction
 
-  write_np2txt(A,fname='QuEst_A_py.txt') # matched matlab
+  # write_np2txt(A,fname='QuEst_A_py.txt') # matched matlab
   # npprint('A',A)
   # find bases for the null space of A
   # U,s,VT = la.svd(A, lapack_driver='gesvd')
@@ -85,20 +85,21 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   S = np.diag(s)
   V = VT.T
 
-  nsprint('U',U)
-  nsprint('S',S)
-  nsprint('V.T',V.T)
-  A_rcon = U @ S @ V.T
-  A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
+  # nsprint('U',U)
+  # nsprint('S',S)
+  # nsprint('V.T',V.T)
+  # nsprint('V',V)
+  # A_rcon = U @ S @ V.T
+  # A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
   #todo working here ....................
-  write_np2txt(V[:10,:],fname='QuEst_V_fi10_gesdd_py.txt')
-  write_np2txt(V[-10:,:],fname='QuEst_V_la10_gesdd_py.txt')
-  write_np2txt(V,fname='QuEst_V_gesdd_py.txt')
-  write_np2txt(S,fname='QuEst_S_gesdd_py.txt')
-  write_np2txt(A_rcon,fname='QuEst_A_rcon_py.txt')
+  # write_n0p2txt(V[:10,:],fname='QuEst_V_fi10_gesdd_py.txt')
+  # write_np2txt(V[-10:,:],fname='QuEst_V_la10_gesdd_py.txt')
+  # write_np2txt(V,fname='QuEst_V_gesdd_py.txt')
+  # write_np2txt(S,fname='QuEst_S_gesdd_py.txt')
+  # write_np2txt(A_rcon,fname='QuEst_A_rcon_py.txt')
 
-  N = V[:,36:]
-  write_np2txt(N,fname='QuEst_N_py.txt')
+  N = V[:,-20:]
+  # write_np2txt(N,fname='QuEst_N_py.txt')
 
   # nsprint('N',N)
   # show_eigenVal_energies(S)
@@ -109,21 +110,27 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   idx = Idx[1,:];   A1 = N[idx,:]
   idx = Idx[2,:];   A2 = N[idx,:]
   idx = Idx[3,:];   A3 = N[idx,:]
+  # st()
   A_ = np.concatenate((A1, A2, A3), axis=1)
-  B = la.solve(A0.T.dot(A0), A0.T.dot(A_)) # perform a left matrix division
+
+  B = la.pinv(A0) @ A_# perform a left matrix division
+  # nsprint('B', B)
+  # npprint('B', B)
+
   B1 = B[:, 0:20].copy()
   B2 = B[:,20:40].copy()
   B3 = B[:,40:60].copy()
   # nsprint('B1', B1)
   # nsprint('B2', B2)
   # nsprint('B3', B3)
+  # st()
+  # write_np2txt(A0,fname='QuEst_A0_py.txt')
+  # write_np2txt(A1,fname='QuEst_A1_py.txt')
+  # write_np2txt(A2,fname='QuEst_A2_py.txt')
+  # write_np2txt(A3,fname='QuEst_A3_py.txt')
+  # write_np2txt( B,fname='QuEst_B_py.txt')
 
-  write_np2txt(A0,fname='QuEst_A0_py.txt')
-  write_np2txt(A1,fname='QuEst_A1_py.txt')
-  write_np2txt(A2,fname='QuEst_A2_py.txt')
-  write_np2txt(A3,fname='QuEst_A3_py.txt')
-  write_np2txt( B,fname='QuEst_B_py.txt')
-
+  # st()
 
 
   # compute eigenvectors - initial guess
@@ -131,9 +138,9 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   evals, V2 = la.eig(B2)
   evals, V3 = la.eig(B3)
 
-  write_np2txt(V1,fname='QuEst_V1_py.txt')
-  write_np2txt(V2,fname='QuEst_V2_py.txt')
-  write_np2txt(V3,fname='QuEst_V3_py.txt')
+  # write_np2txt(V1,fname='QuEst_V1_py.txt')
+  # write_np2txt(V2,fname='QuEst_V2_py.txt')
+  # write_np2txt(V3,fname='QuEst_V3_py.txt')
 
   # st()
 
@@ -146,7 +153,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
     # npprint('Ve_img[:,i]', Ve_img[:,i])
     Ve_img_sum = (sum(abs(Ve_img[:,i])))
 
-    if Ve_img_sum > ZERO_ROOT_THRESHOLD: Vi_idx.append(i)
+    if Ve_img_sum > ZERO_THRESHOLD: Vi_idx.append(i)
     else: Vr_idx.append(i)
   # indices should be a complement
   Vi_idx = np.asarray(Vi_idx, dtype=np.int64)
@@ -183,9 +190,9 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   Qnorm = np.sqrt(np.sum(qs**2, axis=0)).reshape(1,-1)
   qs = qs/Qnorm # match matlab format
 
-  write_np2txt(V0,fname='QuEst_V0_py.txt')
-  write_np2txt(X5,fname='QuEst_X5_py.txt')
-  write_np2txt(qs,fname='QuEst_Qs_py.txt')
+  # write_np2txt(V0,fname='QuEst_V0_py.txt')
+  # write_np2txt(X5,fname='QuEst_X5_py.txt')
+  # write_np2txt(qs,fname='QuEst_Qs_py.txt')
 
 
   return quaternion.as_quat_array(qs.T).reshape(-1,1) #

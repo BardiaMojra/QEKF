@@ -28,7 +28,8 @@ _show               = False
 _save               = True
 _prt                = True
 
-LOAD_MATLAB_MATCHES = True
+LOAD_MATLAB_MATCHES = False
+LOCK_RANSAC         = False
 
 # _START            = 0
 # _END              = 150
@@ -42,7 +43,7 @@ ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_MKP       = 50 # max matched keypoints for pose est
 QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
 RANSAC_MAX_ITER     = 50
-RANSAC_THRESHOLD    = 1.0e-5
+RANSAC_THRESHOLD    = 1.0e-3
 
 
 
@@ -85,6 +86,7 @@ def main():
         if NBUG and LOAD_MATLAB_MATCHES:
           matches, dat = load_matlab_matches(i,dset.K)
         else:
+
           matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
 
         rquest = RQUEST(dat,
@@ -93,7 +95,8 @@ def main():
                         RANSAC_THRESHOLD,
                         QUEST_NUM_CORRESPS,
                         nbug=NBUG,
-                        return_all=True)
+                        return_all=True,
+                        lock=LOCK_RANSAC)
         mod,m_idxs,q,tOut,qs= rquest.get_best_fit()
 
       elif alg == 'QuEst_v0708':

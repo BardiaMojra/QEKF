@@ -42,7 +42,7 @@ class QUEST_RANSAC:
     return:
       bestfit - model parameters which best fit the data """
   def __init__(self, dat, quest, get_Txyz, max_iters,threshold,num_corresps,\
-               nbug=True,return_all=True,_dtype=np.float128):
+               nbug=True,return_all=True,_dtype=np.float128,lock=False):
     dat_ = np.absolute(dat) # keep it this way
     m1s = (dat_[:,:3].T).sum(axis=0)
     m2s = (dat_[:,3:].T).sum(axis=0)
@@ -59,6 +59,7 @@ class QUEST_RANSAC:
     self.NBUG = nbug
     self.return_all = return_all
     self.dtype = _dtype
+    self.lock = lock
     # end of __init__
 
   def get_best_fit(self):
@@ -78,7 +79,7 @@ class QUEST_RANSAC:
       mod = self.fit(mod_idxs)
       dists, inl_idxs, mod = self.get_error(test_idxs, mod)
 
-      st()
+      # st()
 
       if len(inl_idxs) > len(B_inl_idxs):
         print(lhead+'new model found...\n')
@@ -93,7 +94,7 @@ class QUEST_RANSAC:
         print('np.mean(dists): {:0.10f}'.format(np.mean(dists[inl_idxs])))
         print(f'len(inl_idxs): ', len(inl_idxs))
         print('\n\n')
-        st()
+        # st()
       # end of for i in range(self.max_iters):
     if B_mod is None:
       raise ValueError("did not meet fit acceptance criteria")
@@ -134,7 +135,7 @@ class QUEST_RANSAC:
     # st()
 
     q = qs[idx,0]
-    write_np2txt(quaternion.as_float_array(q),fname='nbug_QuEst_Q_python.txt')
+    # write_np2txt(quaternion.as_float_array(q),fname='nbug_QuEst_Q_python.txt')
 
     t, dep1, dep2, res = self.get_Txyz(self.dat[kp_idxs,:],q) # est trans
     # write_np2txt(t,fname='nbug_QuEst_T_python.txt')
@@ -142,7 +143,7 @@ class QUEST_RANSAC:
     R = sc_R.from_quat(quat2arr(q)).as_matrix() # compute rot mat
     Tx = skew(t/lalg.norm(t))
     F = Tx @ R # compute essential matrix
-    write_np2txt(F,fname='nbug_PseEst_F_python.txt')
+    # write_np2txt(F,fname='nbug_PseEst_F_python.txt')
 
     return rmodel(q=q,t=t,idxs=kp_idxs,F=F,qs=qs,residues=qs_residues,q_idx=idx)
 
@@ -198,7 +199,8 @@ class QUEST_RANSAC:
     #todo try loading sparse random data points
     """return n random rows of data (and also the other len(data)-n rows)"""
     all_idxs = np.arange(n_data)
-    # np.random.shuffle(all_idxs)
+    if self.lock == False:
+      np.random.shuffle(all_idxs)
     rand_idxs = all_idxs[:n]
     else_idxs = all_idxs[n:]
     return rand_idxs, else_idxs
