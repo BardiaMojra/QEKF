@@ -77,11 +77,11 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
 
   #A = A.T # correction
 
-  # write_np2txt(A,fname='QuEst_A_py.txt') # matched matlab
+  write_np2txt(A,fname='QuEst_A_py.txt') # matched matlab
   # npprint('A',A)
   # find bases for the null space of A
-  # U,s,VT = la.svd(A, lapack_driver='gesvd')
-  U,s,VT = la.svd(A,full_matrices=False, lapack_driver='gesdd')
+  # U,s,VT = la.svd(A)
+  U,s,VT = la.svd(A,full_matrices=False, lapack_driver='gesvd')
   S = np.diag(s)
   V = VT.T
 
@@ -89,19 +89,25 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # nsprint('S',S)
   # nsprint('V.T',V.T)
   # nsprint('V',V)
-  # A_rcon = U @ S @ V.T
-  # A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
+  A_rcon = U @ S @ V.T
+  A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
   #todo working here ....................
-  # write_n0p2txt(V[:10,:],fname='QuEst_V_fi10_gesdd_py.txt')
-  # write_np2txt(V[-10:,:],fname='QuEst_V_la10_gesdd_py.txt')
-  # write_np2txt(V,fname='QuEst_V_gesdd_py.txt')
-  # write_np2txt(S,fname='QuEst_S_gesdd_py.txt')
-  # write_np2txt(A_rcon,fname='QuEst_A_rcon_py.txt')
+  write_np2txt(V[:,-10:],fname='QuEst_V_right10_gesvd_py.txt')
+  # write_np2txt(V[:,:],fname='QuEst_V_la10_gesvd_py.txt')
+  write_np2txt(V,fname='QuEst_V_gesvd_py.txt')
+  write_np2txt(S,fname='QuEst_S_gesvd_py.txt')
+  write_np2txt(A_rcon,fname='QuEst_A_rcon_gesvd_py.txt')
+
+  aa = np.asarray([[11,12,13,14,15],[21,22,23,24,25],[31,32,33,34,35]])
+  aa = aa.reshape((3,5))
+  npprint('aa',aa)
+  st()
+
 
   N = V[:,-20:]
-  # write_np2txt(N,fname='QuEst_N_py.txt')
+  nsprint('N',N)
+  write_np2txt(N,fname='QuEst_N_py.txt')
 
-  # nsprint('N',N)
   # show_eigenVal_energies(S)
   # st()
 
@@ -124,11 +130,11 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # nsprint('B2', B2)
   # nsprint('B3', B3)
   # st()
-  # write_np2txt(A0,fname='QuEst_A0_py.txt')
-  # write_np2txt(A1,fname='QuEst_A1_py.txt')
-  # write_np2txt(A2,fname='QuEst_A2_py.txt')
-  # write_np2txt(A3,fname='QuEst_A3_py.txt')
-  # write_np2txt( B,fname='QuEst_B_py.txt')
+  write_np2txt(A0,fname='QuEst_A0_py.txt')
+  write_np2txt(A1,fname='QuEst_A1_py.txt')
+  write_np2txt(A2,fname='QuEst_A2_py.txt')
+  write_np2txt(A3,fname='QuEst_A3_py.txt')
+  write_np2txt( B,fname='QuEst_B_py.txt')
 
   # st()
 
@@ -138,9 +144,9 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   evals, V2 = la.eig(B2)
   evals, V3 = la.eig(B3)
 
-  # write_np2txt(V1,fname='QuEst_V1_py.txt')
-  # write_np2txt(V2,fname='QuEst_V2_py.txt')
-  # write_np2txt(V3,fname='QuEst_V3_py.txt')
+  write_np2txt(V1,fname='QuEst_V1_py.txt')
+  write_np2txt(V2,fname='QuEst_V2_py.txt')
+  write_np2txt(V3,fname='QuEst_V3_py.txt')
 
   # st()
 
@@ -194,7 +200,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # write_np2txt(X5,fname='QuEst_X5_py.txt')
   # write_np2txt(qs,fname='QuEst_Qs_py.txt')
 
-
+  st()
   return quaternion.as_quat_array(qs.T).reshape(-1,1) #
 
 def get_qs_residues(dat, qSols):

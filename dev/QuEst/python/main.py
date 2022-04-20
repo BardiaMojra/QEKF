@@ -28,8 +28,8 @@ _show               = False
 _save               = True
 _prt                = True
 
-LOAD_MATLAB_MATCHES = False
-LOCK_RANSAC         = False
+LOAD_MATLAB_MATCHES = True
+LOCK_RANSAC         = True
 
 # _START            = 0
 # _END              = 150
@@ -86,7 +86,6 @@ def main():
         if NBUG and LOAD_MATLAB_MATCHES:
           matches, dat = load_matlab_matches(i,dset.K)
         else:
-
           matches, dat = prep_matches(dset,matches,kp_p,kp_n,len(matches))
 
         rquest = RQUEST(dat,
@@ -97,7 +96,8 @@ def main():
                         nbug=NBUG,
                         return_all=True,
                         lock=LOCK_RANSAC)
-        mod,m_idxs,q,tOut,qs= rquest.get_best_fit()
+
+        mod,m_idxs,q,tOut,qs = rquest.get_best_fit()
 
       elif alg == 'QuEst_v0708':
         matches, dat = prep_matches(dset, matches, kp_p, kp_n, QUEST_NUM_CORRESPS)

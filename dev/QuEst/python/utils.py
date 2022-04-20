@@ -276,15 +276,19 @@ def GetFeaturePoints(alg,i:int,dat:dmm,threshold:int,minFeat=64,_show=False):
 def prep_matches(dat, matches, kp_p, kp_n, minPts, _dtype=np.float128):
   ''' convert cv.DMatch obj to np.ndarray and python obj '''
   matches = sorted(matches, key = lambda x:x.distance)
-  matches = matches[:minPts]
+  # st()
+  mpts_min = min(minPts,matches.__len__())
+  matches = matches[:mpts_min]
+  # mat = np.zeros((mpts_min,6))
   mat = list()
   for m in matches:
     p_p = kp_p[m.queryIdx].pt
     p_n = kp_n[m.trainIdx].pt
     p1 = np.asarray([p_p[0],p_p[1],1], dtype=_dtype).copy().reshape(-1,3)
     p2 = np.asarray([p_n[0],p_n[1],1], dtype=_dtype).copy().reshape(-1,3)
-    mat.append(np.concatenate((p1,p2),axis=1)) # Idx not used
-  mat = np.asarray(mat,dtype=_dtype).reshape(-1,8)
+    mat.append(np.concatenate((p1,p2),axis=1))
+  mat = np.asarray(mat,dtype=_dtype)
+  mat = mat.reshape(-1,6)
   mats = Dmatch_obj(mat,dat.K)
   # mats.prt() # keep
   return mats, mats.dat # return unit norm coord data
