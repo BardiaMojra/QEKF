@@ -42,8 +42,8 @@ skipFrame           = 0 # skipped between two key frames
 ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_MKP       = 50 # max matched keypoints for pose est
 QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
-RANSAC_MAX_ITER     = 50
-RANSAC_THRESHOLD    = 1.0e-3
+RANSAC_MAX_ITER     = 100
+RANSAC_THRESHOLD    = 1.0e-2
 
 
 

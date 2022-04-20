@@ -81,31 +81,37 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # npprint('A',A)
   # find bases for the null space of A
   # U,s,VT = la.svd(A)
-  U,s,VT = la.svd(A,full_matrices=False, lapack_driver='gesvd')
-  S = np.diag(s)
-  V = VT.T
+  # U,s,VT = la.svd(A,full_matrices=False, lapack_driver='gesvd')
+  # S = np.diag(s)
+  # V = VT.T
+
+
+  S,V = la.eigh(A.T @ A)
+  indx = np.argsort(S)[::-1]
+  S = S[indx]
+  V = V[:,indx]
 
   # nsprint('U',U)
   # nsprint('S',S)
   # nsprint('V.T',V.T)
   # nsprint('V',V)
-  A_rcon = U @ S @ V.T
-  A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
+  # A_rcon = S @ V.T
+  # A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
   #todo working here ....................
-  write_np2txt(V[:,-10:],fname='QuEst_V_right10_gesvd_py.txt')
+  # write_np2txt(V[:,-10:],fname='QuEst_V_right10_gesvd_py.txt')
   # write_np2txt(V[:,:],fname='QuEst_V_la10_gesvd_py.txt')
-  write_np2txt(V,fname='QuEst_V_gesvd_py.txt')
-  write_np2txt(S,fname='QuEst_S_gesvd_py.txt')
-  write_np2txt(A_rcon,fname='QuEst_A_rcon_gesvd_py.txt')
+  # write_np2txt(V,fname='QuEst_V_gesvd_py.txt')
+  # write_np2txt(S,fname='QuEst_S_gesvd_py.txt')
+  # write_np2txt(A_rcon,fname='QuEst_A_rcon_gesvd_py.txt')
 
-  aa = np.asarray([[11,12,13,14,15],[21,22,23,24,25],[31,32,33,34,35]])
-  aa = aa.reshape((3,5))
-  npprint('aa',aa)
-  st()
+  # aa = np.asarray([[11,12,13,14,15],[21,22,23,24,25],[31,32,33,34,35]])
+  # aa = aa.reshape((3,5))
+  # npprint('aa',aa)
+  # st()
 
 
   N = V[:,-20:]
-  nsprint('N',N)
+  # nsprint('N',N)
   write_np2txt(N,fname='QuEst_N_py.txt')
 
   # show_eigenVal_energies(S)
@@ -200,7 +206,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # write_np2txt(X5,fname='QuEst_X5_py.txt')
   # write_np2txt(qs,fname='QuEst_Qs_py.txt')
 
-  st()
+  # st()
   return quaternion.as_quat_array(qs.T).reshape(-1,1) #
 
 def get_qs_residues(dat, qSols):
@@ -209,13 +215,13 @@ def get_qs_residues(dat, qSols):
   # npprint('dat', dat)
   m1 = dat[:,:3].T
   m2 = dat[:,3:].T
-  npprint('m1',m1)
-  npprint('m2',m2)
+  # npprint('m1',m1)
+  # npprint('m2',m2)
   # coefficinet matrix in the linearized system of multinomials (C@x=c)
   C0 = get_COEFS(m1,m2)
 
   qs_np = quats2np(qSols,axis=1).T
-  nsprint('qs_np',qs_np)
+  # nsprint('qs_np',qs_np)
 
   q1 = qs_np[0,:]
   q2 = qs_np[1,:]

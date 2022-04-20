@@ -129,13 +129,13 @@ class QUEST_RANSAC:
     #todo test with this for finding the best q solution
     # q, q_idx = get_closestQuat(qr,qs)
 
-    nprint('idx',idx)
-    nprint('qs[idx,0]',qs[idx,0])
-    nprint('res',qs_residues[idx])
+    # nprint('idx',idx)
+    # nprint('qs[idx,0]',qs[idx,0])
+    # nprint('res',qs_residues[idx])
     # st()
 
     q = qs[idx,0]
-    # write_np2txt(quaternion.as_float_array(q),fname='nbug_QuEst_Q_python.txt')
+    # write_np2txt(quaternion.as_float_array(q),fname='QuEst_Q_py.txt')
 
     t, dep1, dep2, res = self.get_Txyz(self.dat[kp_idxs,:],q) # est trans
     # write_np2txt(t,fname='nbug_QuEst_T_python.txt')
