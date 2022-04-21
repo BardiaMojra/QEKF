@@ -1,6 +1,7 @@
 
 import sys
 # import pdb
+import os
 from pprint import pprint as pp
 import numpy as np
 import pandas as pd
@@ -70,12 +71,15 @@ def pstail():
 def pattn():
   print(attn)
 
-def write_np2txt(ndarr:np.ndarray,fname:str,_dir:str='../pout/',
-                 _sep:str=' ',_prt:bool=True,_dtype=None):
-  ''' example:
-    dirFname = '../pout/nbug_CoefsVer311_C_python.txt'
-    write_np2txt(C,dirFname,' ') '''
-  if _dtype==None: df = pd.DataFrame(data=ndarr)
-  else: df = pd.DataFrame(data=ndarr.astype(_dtype))
+def write_np2txt(ndarr:np.ndarray,fname:str,
+                 _dir:str='../pout/',_sep:str=' ',_prt=False):
+  ''' example: write_np2txt(A0,fname='QuEst_A0_py.txt') '''
+  df = pd.DataFrame(data=ndarr)
   df.to_csv(_dir+fname,sep=_sep,header=False,index=False)
   return
+
+def load_txt2np(fname:str,_dir:str='../mout/',_sep:str=' ',_prt=False):
+  assert os.path.exists(_dir+fname)
+  ndarr = np.loadtxt(_dir+fname, delimiter=_sep)
+  if _prt: npprint(fname,ndarr)
+  return ndarr

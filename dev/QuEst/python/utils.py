@@ -91,8 +91,7 @@ def skew(v):
 def get_closestQuat(qr:quaternion, Qs, metric:str='phi03'):
   ''' compute quaternion error and rank using designated metric.
       more on the metrics could be found in [1].
-      [1]: 'Metrics for 3D Rotations: Comparison and Analysis'
-      '''
+      [1]: 'Metrics for 3D Rotations: Comparison and Analysis' '''
   if metric == 'pureQ':
     dists = get_qErr_simpDiff_np(qr, Qs) # compute error for quat solutions
     ranks = get_ranks_pureQuats(dists)
@@ -300,6 +299,8 @@ def load_matlab_matches(i,K,_dtype=np.float128):
   mats = Dmatch_obj(dat,K)
   # mats.prt() # keep
   return mats, mats.dat # return unit norm coord data
+
+
 
 def match_features(fmatcher,des_p,des_n,QUEST_MAX_MKP,_show,Im_p,kp_p,Im_n,kp_n):
   matches = fmatcher.match(des_p, des_n)

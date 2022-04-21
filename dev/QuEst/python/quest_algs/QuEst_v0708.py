@@ -84,7 +84,7 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # S = np.diag(s)
   # V = VT.T
 
-
+  # alternate method to SVD
   S,V = la.eigh(A.T @ A)
   indx = np.argsort(S)[::-1]
   S = S[indx]
@@ -102,7 +102,6 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # nsprint('V',V)
   # A_rcon = S @ V.T
   # A_rcon = np.where(A_rcon>ZERO_THRESHOLD,A_rcon,0)
-  #todo working here ....................
   # write_np2txt(V[:,-10:],fname='QuEst_V_right10_gesvd_py.txt')
   # write_np2txt(V[:,:],fname='QuEst_V_la10_gesvd_py.txt')
   # write_np2txt(V,fname='QuEst_V_gesvd_py.txt')
@@ -119,9 +118,10 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # nsprint('N',N)
   write_np2txt(N,fname='QuEst_N_py.txt')
 
-  show_eigenVal_energies(S)
-  st()
+  # show_eigenVal_energies(S)
+  # st()
 
+  N = load_txt2np('QuEst_N_ml.txt')
 
   idx = Idx[0,:];   A0 = N[idx,:]
   idx = Idx[1,:];   A1 = N[idx,:]
@@ -131,35 +131,33 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   A_ = np.concatenate((A1, A2, A3), axis=1)
 
   B = la.pinv(A0) @ A_# perform a left matrix division
-  # nsprint('B', B)
-  # npprint('B', B)
+
 
   B1 = B[:, 0:20].copy()
   B2 = B[:,20:40].copy()
   B3 = B[:,40:60].copy()
-  # nsprint('B1', B1)
-  # nsprint('B2', B2)
-  # nsprint('B3', B3)
-  # st()
-  write_np2txt(A0,fname='QuEst_A0_py.txt')
-  write_np2txt(A1,fname='QuEst_A1_py.txt')
-  write_np2txt(A2,fname='QuEst_A2_py.txt')
-  write_np2txt(A3,fname='QuEst_A3_py.txt')
-  write_np2txt( B,fname='QuEst_B_py.txt')
-
-  # st()
-
 
   # compute eigenvectors - initial guess
   evals, V1 = la.eig(B1)
   evals, V2 = la.eig(B2)
   evals, V3 = la.eig(B3)
 
+
+  # nsprint('B', B)
+  # npprint('B', B)
+  # nsprint('B1', B1)
+  # nsprint('B2', B2)
+  # nsprint('B3', B3)
+
   write_np2txt(V1,fname='QuEst_V1_py.txt')
   write_np2txt(V2,fname='QuEst_V2_py.txt')
   write_np2txt(V3,fname='QuEst_V3_py.txt')
-
-  # st()
+  write_np2txt(A0,fname='QuEst_A0_py.txt')
+  write_np2txt(A1,fname='QuEst_A1_py.txt')
+  write_np2txt(A2,fname='QuEst_A2_py.txt')
+  write_np2txt(A3,fname='QuEst_A3_py.txt')
+  write_np2txt( B,fname='QuEst_B_py.txt')
+  st()
 
   Ve = np.concatenate((V1,V2,V3), axis=1)
   Ve_img = Ve.imag

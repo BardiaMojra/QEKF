@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
+
+
+from pdb import set_trace as st
 
 ''' private modules '''
 from utils import *
-from pdb import set_trace as st
 from nbug import *
 
 
@@ -84,6 +87,48 @@ class dlm:
       self.alg_hist = np.concatenate((self.alg_hist, alg), axis=0)
     return
 
+  def get_stats(self,write_to_file=True, output_dir:str=None,
+                save_en:bool=True, prt_en:bool=True):
+
+
+    dt = datetime.now().strftime("%d/%m/%Y %H:%M:%S") # dd/mm/YY H:M:S
+
+    stats_df = pd.DataFrame([dt,
+                            np.mean(self.Qerr_hist),
+                            np.std(self.Qerr_hist),
+                            np.median(self.Qerr_hist),
+                            np.quantile(self.Qerr_hist, 0.25),
+                            np.quantile(self.Qerr_hist, 0.75),
+                            np.mean(self.Terr_hist),
+                            np.std(self.Terr_hist),
+                            np.median(self.Terr_hist),
+                            np.quantile(self.Terr_hist, 0.25),
+                            np.quantile(self.Terr_hist, 0.75)],
+                            columns =[ 'date and time'
+                                       'rot err mean',
+                                       'rot err std',
+                                       'rot err median',
+                                       'rot 25% quantile',
+                                       'rot 75% quantile',
+                                       'trans err mean',
+                                       'trans err std',
+                                       'trans err median',
+                                       'trans 25% quantile',
+                                       'trans 75% quantile'])
+
+    if save_en==True and  output_dir is not None:
+      fname = output_dir+'_stats.txt'
+      with open(fname, 'a+') as f:
+        st()
+        L1_str = shead+f"{stats_df}"
+        # L2_str = shead+f"L2 (total): {res['L2'].sum()}"
+        f.write(L1_str)
+        # f.write(L2_str+'\n\n')
+        f.close()
+
+    return stats_df
+
+
   def prt_stats(self):
     npprint('self.q_hist', self.q_hist)
     npprint('self.qr_hist', self.qr_hist)
@@ -91,6 +136,7 @@ class dlm:
     npprint('self.Terr_hist', self.Terr_hist)
     print('\n\n add NVM stat logger....\n\n')
     print('\n >> results and statistics << ')
+    stats = self.get_stats()
     tbprint('rotation error mean',   np.mean(self.Qerr_hist))
     tbprint('rotation error std',    np.std(self.Qerr_hist))
     tbprint('rotation error median', np.median(self.Qerr_hist))
@@ -101,6 +147,7 @@ class dlm:
     tbprint('translation error median', np.median(self.Terr_hist))
     tbprint('translation 25% quantile', np.quantile(self.Terr_hist, 0.25))
     tbprint('translation 75% quantile', np.quantile(self.Terr_hist, 0.75))
+
 
   def prt_log(self):
     assert self.enabled, '\n\ndata logger is DISABLED!\n\n'

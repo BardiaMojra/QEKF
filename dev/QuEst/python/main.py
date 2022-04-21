@@ -7,6 +7,7 @@
 from quest import *
 from dlm import *
 from dmm import *
+from losses import *
 from utils import *
 
 ''' NBUG libraries '''
@@ -43,7 +44,7 @@ ORB_THRESHOLD       = 200 # SURF feature point detection threshold
 QUEST_MAX_MKP       = 50 # max matched keypoints for pose est
 QUEST_NUM_CORRESPS  = 5 # min num correspondences for pose est
 RANSAC_MAX_ITER     = 100
-RANSAC_THRESHOLD    = 1.0e-2
+RANSAC_THRESHOLD    = 1.0e-3
 
 
 
@@ -127,6 +128,22 @@ def main():
 
   # dlog.prt_log()
   dlog.prt_stats()
+  errors = {'rotation error':dlog.Qerr_hist, 'translation error':dlog.Terr_hist}
+  err_df = pd.DataFrame(errors, index=dlog.i_hist)
+  losses_df = get_losses(err_df, dset.outDir)
+
+  # fignum+=1;
+  # plot_df(df=losses_df,
+  #         rows=losses_df.shape[1],
+  #         cols=1,
+  #         title='losses',
+  #         show=_show,
+  #         fignum=fignum,
+  #         output_dir=dset.outDir)
+
+  # print losses
+  print_losses(losses_df)
+
   st()
   return # end of main
 
