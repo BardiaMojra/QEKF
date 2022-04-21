@@ -27,12 +27,12 @@ def get_fignum_str(fignum):
 def show_eigenVal_energies(S:np.ndarray,_save=False,outDir=None):
   im1 = plt.figure(1)
   plt.semilogy(S)
-  plt.title('Singular Values')
+  plt.title('Eigen Values')
   plt.show(); cv.waitKey(0)
 
   im2 = plt.figure(2)
   plt.plot(np.cumsum(S)/np.sum(S))
-  plt.title('Singular Values: Cumulative Energy')
+  plt.title('Eigen Values: Cumulative Energy')
   plt.show(); cv.waitKey(0)
   return
 

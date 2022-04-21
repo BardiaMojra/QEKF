@@ -70,12 +70,11 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # A is the coefficient matrix such that A * X = 0
   A = np.zeros((4*numEq,56), dtype=_dtype)
 
-  #todo: bug here
+
   for i in range(1,5):
     idx = Idx[i-1,:]
     A[(i-1)*numEq : i*numEq, idx] = Cf
 
-  #A = A.T # correction
 
   write_np2txt(A,fname='QuEst_A_py.txt') # matched matlab
   # npprint('A',A)
@@ -91,6 +90,12 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   S = S[indx]
   V = V[:,indx]
 
+  # both Vs are in orthonormal form
+  assert np.all(np.isclose(np.linalg.norm(V,axis=1), np.ones(V.shape[0])))
+  assert np.all(np.isclose(np.linalg.norm(V,axis=0), np.ones(V.shape[1])))
+  # assert np.all(np.isclose(S1,S2))
+  # assert np.all(np.isclose(V1,V2))
+  write_np2txt(V,fname='QuEst_V_eigh_py.txt')
   # nsprint('U',U)
   # nsprint('S',S)
   # nsprint('V.T',V.T)
@@ -114,8 +119,8 @@ def QuEst_5Pt_Ver7_8(dat,_dtype=np.float128):
   # nsprint('N',N)
   write_np2txt(N,fname='QuEst_N_py.txt')
 
-  # show_eigenVal_energies(S)
-  # st()
+  show_eigenVal_energies(S)
+  st()
 
 
   idx = Idx[0,:];   A0 = N[idx,:]
