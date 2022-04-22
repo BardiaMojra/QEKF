@@ -27,15 +27,11 @@ _dataDir = '../../data/'
 
 
 ''' dataset config '''
-# Axyz_labels   = ['Ax','Ay','Az']
-# Vxyz_labels   = ['Vx','Vy','Vz']
 Vxyz_labels   = ['vx','vy','vz']
 Txyz_labels   = ['Tx','Ty','Tz']
-# Arpy_labels   = ['Ar','Ap','Ay']
 Wrpy_labels   = ['wr','wp','wy']
-# Qxyzw_labels  = ['Qx','Qy','Qz','Qw']
 Qxyzw_labels  = ['qx','qy','qz','qw']
-vicon_labels = ['Qx_gt','Qy_gt','Qz_gt','Qw_gt','Tx_gt','Ty_gt','Tz_gt']
+vicon_labels  = ['Qx_gt','Qy_gt','Qz_gt','Qw_gt','Tx_gt','Ty_gt','Tz_gt']
 _X_LABELS  = Txyz_labels+Vxyz_labels+Qxyzw_labels
 _Z_LABELS  = Txyz_labels+Vxyz_labels+Qxyzw_labels
 _U_LABELS  = ['wr','wp','wy']# aVel (ang vel Omega)
