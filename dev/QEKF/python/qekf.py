@@ -42,15 +42,15 @@ class QEKF(object):
     # nprint('self.x_TVQxyz', self.x_TVQxyz)
     self.P = np.eye(dim_x) * P_est_0  # uncertainty covariance
     self.F = np.eye(dim_x) # state transition matrix
-    self.R = np.eye(dim_z) # state uncertainty
+
     self.Q_c = np.eye(dim_x) # process uncertainty
     # self.y_TVQxyz = np.zeros((dim_z, 1)) # residual
     self.T_ = deltaT #time-period
     self.K = np.zeros((dim_x,1)) # kalman gain
     self.K_scale = K_scale
     self.S = np.zeros((dim_z, dim_z))   # system uncertainty
-    self.SI = np.zeros((dim_z, dim_z))  # inverse system uncertainty
-    self.L = None
+    # self.SI = np.zeros((dim_z, dim_z))  # inverse system uncertainty
+    self.L = np.eye(self.dim_x)
     self._I = np.eye(dim_x)
     self.C = np.zeros((3,3)) # rotation matrix
     self.H = np.zeros((dim_z, dim_x)) #3x10

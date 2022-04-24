@@ -84,8 +84,8 @@ for i = keyFrames
         
     % Feature points matching    
     [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points           
-%     matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
-    matches = LoadMatches(i,dataset.K); % Match feature points
+    matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
+%     matches = LoadMatches(i,dataset.K); % Match feature points
 %     m_dat = cat(2,matches.m1',matches.m2');
 %     dispn(m_dat,6); % must match python dat
     % Relative ground truth 

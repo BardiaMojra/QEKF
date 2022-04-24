@@ -1,56 +1,45 @@
 % QEKF matlab implimentation
 % 
-
+% 1  'dataset-iphone1_clean'
+% 2  'bigC_06-Aug2021'
+% 3  'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'
+% 4  'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'
+% 5  'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'
+% 6  'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'
 
 % general config
-NBUG          = True
-prt_output    = True
-show_         = True
-save_         = True
-prt_          = True
-START_        = 0
-END_          = 150
-TEST_MODE_    = 'all'; TEST_ID_ = None
-TEST_ID_      = 1; TEST_MODE_ = 'single'
+NBUG          = True;
+prt_output    = True;
+show_         = True;
+save_         = True;
+prt_          = True;
+START_        = 0;
+END_          = 150;
+% TEST_MODE_    = 'all'; TEST_ID_ = 'None';
+TEST_ID_      = 1; TEST_MODE_ = 'single';
 
 % module config
 % warning('off','all'); % Ignore warnings for Matlab version compatibility
 
 
 % init dataset object
-dset = dmm(name=data,
-             VestScale=1,
-             data_rate_inv=1/10,
-            #  start=_START,
-            #  end=_END,
-             prt=_prt)
+dset = dmm(datName);
 
-  dset.format_data()
+% plot data
 
-  fignum+=1;
-  dset.plot(df=dset.df,
-            labels=dset.df.columns,
-            fignum=fignum,
-            title=data,
-            show=_show)
-
-  fignum+=1;
-  dset.plot_trans_3d(title='Measured Translation',
-                     fignum=fignum,
-                     show=_show)
-
-  # init QEKF object
-  qekf = QEKF(dim_x=9, # Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
-              dim_z=9, # Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
-              dim_u=6, # Axyz, Wrpy
-              deltaT=dset.data_rate_inv,
-              Q_T_xyz=1.0e-5, # process noise covar
-              Q_V_xyz=1.5e-2,
-              Q_quat_xyz=0.5e-3,
-              R_noise=1e-6, # measurement noise covar
-              P_est_0=1e-4,
-              IC=dset.z_TVQxyzw_np[0],
-              K_scale=1.0)
+% init and run qekf
+qekf_obj = qekf(dset, % dataset
+                9, % dim_x Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
+                9, % dim_z Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
+                6, % dim_u  Axyz, Wrpy
+                dset.data_rate_inv, % data rate
+                1.0e-5, % Q_T_xyz - process noise covar
+                1.5e-2, % Q_V_xyz
+                0.5e-3, % Q_quat_xyz
+                1e-6, % R_noise - measurement noise covar
+                1e-4, % P_est_0
+                dset.z_TVQxyzw(1,:),
+                1.0); % k-scale
 
   x_TVQxyz = qekf.x_TVQxyz # init state vectors #todo add IC from dataset
   for i in range(dset.start, dset.end):
