@@ -41,17 +41,17 @@ dset = dset.load(dataset);
 % init and run qekf
 qekf = qekf_class;
 qekf = qekf.config(dset, ... % dataset object dlog, ... % datalog object 
-                          9, ... % dim_x Txyz, Vxyz, Qxyz 
-                          9, ... % dim_z Txyz, Vxyz, Qxyz 
-                          6, ... % dim_u Axyz, Wrpy
-                          dset.data_rate_inv, ... % data rate
-                          1.0e-5, ... % Q_T_xyz - process noise covar
-                          1.5e-2, ... % Q_V_xyz
-                          0.5e-3, ... % Q_quat_xyz
-                          1e-6, ... % R_noise - measurement noise covar
-                          1e-4, ... % P_est_0
-                          dset.z_TVQxyzw(1,:), ... % initial conditions 
-                          1.0); % k-scale
+                   9, ... % dim_x Txyz, Vxyz, Qxyz 
+                   9, ... % dim_z Txyz, Vxyz, Qxyz 
+                   6, ... % dim_u Axyz, Wrpy
+                   dset.data_rate_inv, ... % data rate
+                   1.0e-5, ... % Q_T_xyz - process noise covar
+                   1.5e-2, ... % Q_V_xyz
+                   0.5e-3, ... % Q_quat_xyz
+                   1e-6, ... % R_noise - measurement noise covar
+                   1e-4, ... % P_est_0
+                   dset.z_TVQxyzw(1,:), ... % initial conditions 
+                   1.0); % k-scale
 
 
 print('end of qekf data iterator ----->>')

@@ -53,12 +53,12 @@ classdef qekf_class
       % state vectors
       obj.x_TVQxyz   = obj.dset.dat(1,:); % set state initial conditions
       obj.P          = eye(dim_x) .* P_est_0;
-      obj.F           = eye(dim_x);
-      obj.K         = zeros(dim_x,1);
-      obj.S         = zeros(dim_z,dim_z); 
-      obj.L         = eye(dim_x);
-      obj.I_        = eye(dim_x);
-      obj.C         = zeros(3,3); 
+      obj.F          = eye(dim_x);
+      obj.K          = zeros(dim_x,1);
+      obj.S          = zeros(dim_z,dim_z); 
+      obj.L          = eye(dim_x);
+      obj.I_         = eye(dim_x);
+      obj.C          = zeros(3,3); 
       obj.H         = zeros(dim_z,dim_x); 
       obj.Q_c       = diag([Q_T_xyz, ...
                             Q_T_xyz, ...
@@ -79,60 +79,65 @@ classdef qekf_class
                             R_noise, ...
                             R_noise]);
     end
+    function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyz)
+      %compute Kalman gain
+      PHT = dot(obj.P, obj.H');
+      obj.S = dot(obj.H, PHT) + obj.R;
+      obj.K = dot(PHT,inv(obj.S));
+      obj.K = obj.K .* obj.K_scale;
+      ''' lin part '''
+      hx = dot(obj.H,x_TVQxyz);
+      y_TVQ = z_TVQxyz - hx; % TVWQxyz
+      x_TVQ_post = zeros(obj.dim_x,1);
+      Ky = dot(obj.K,y_TVQ);
+      x_TVQ_post(1:6) = x_TVQxyz(1:6) + Ky(1:6);
+      ''' quat part '''
+      x_q = obj.Qxyz2Q(x_TVQxyz(7:9,0));
+      z_q = obj.Qxyz2Q(z_TVQxyz(7:9,0));
 
-      def update(self, x_TVQxyz, z_TVQxyz):
-    # compute Kalman gain
-    PHT = dot(self.P, self.H.T)
-    self.S = dot(self.H, PHT) + self.R
-    self.K = PHT.dot(linalg.inv(self.S))
-    self.K = self.K * self.K_scale
-    ''' lin part '''
-    hx = self.H @ x_TVQxyz
-    y_TVQ = np.subtract(z_TVQxyz, hx) # TVWQxyz
-    x_TVQ_post = np.zeros((self.dim_x,1))
-    Ky = self.K @ y_TVQ
-    x_TVQ_post[0:6] = x_TVQxyz[0:6] + Ky[0:6]
-    ''' quat part '''
-    x_q = get_npQ(x_TVQxyz[6:9,0])
-    z_q = get_npQ(z_TVQxyz[6:9,0])
-    y_PHIxyz = z_q * x_q.inverse() # get quaternion error
-    y_PHIxyz = y_PHIxyz.normalized()
-    y_PHIrpy = Q_log(get_Qwxyz(y_PHIxyz.imag)) # get rotation error
-    ky_PHIrpy = self.K[6:9,6:9] @ y_PHIrpy
-    x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
-    x_q_corr = get_npQ(x_q_corr[0:3])
-    # equation 6 from EKF2 paper # update quaternion
-    x_q_post = x_q_corr * x_q  ## wxyz format
-    x_q_post = x_q_post.normalized()
-    ''' at last update x '''
-    x_TVQxyz[0:6] = x_TVQ_post[0:6]
-    x_TVQxyz[6:9,0] = x_q_post.imag # load quat xyz to x_post
-    I_KH = self._I -  (self.K @ self.H)
-    self.P = (I_KH @ self.P) @ I_KH.T + (self.K @ self.R) @ self.K.T
-    ''' log state vector '''
-    x_TVQxyzw = np.ndarray((self.dim_x+1,1))
-    x_TVQxyzw[:-4,0] = x_TVQxyz[:-3,0]
-    x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
-    y_TVQ[6:9,0] = y_PHIxyz.imag
-    self.log.log_update(y_TVQ, x_TVQxyzw, self.P, self.K)
-    return x_TVQxyz
+      y_PHIxyz = z_q * quatinv(x_q); % get quaternion error
+      y_PHIxyz = y_PHIxyz.normalized();
+%       y_PHIrpy = Q_log(get_Qwxyz(y_PHIxyz.imag)) # get rotation error
+      y_PHIrpy = log(y_PHIxyz); % get rotation error
+      ky_PHIrpy = dot(obj.K(7:9,7:9),y_PHIrpy);
+      x_q_corr = exp(obj.T_ .* ky_PHIrpy(1:3)); % quaternion correction
+      x_q_corr = obj.Qxyz2Q(x_q_corr(1:3)); % return Quat object
+      % equation 6 from EKF2 paper # update quaternion
+      x_q_post = x_q_corr * x_q; % wxyz format
+      x_q_post = x_q_post.normalized();
+      % at last update x 
+      x_TVQxyz(1:6) = x_TVQ_post(1:6);
+      x_Qwxyz = parts(x_q_post); 
+      x_TVQxyz(7:9) = x_Qwxyz(2:4); % load quat xyz to x_post
+      I_KH = obj.I_ - dot(obj.K,obj.H);
+      obj.P = dot(dot(I_KH,obj.P),I_KH') + dot(dot(obj.K,obj.R),obj.K');
+      % log state vector
+      x_TVQxyzw = zeros(obj.dim_x+1,1);
 
-  def predict_x(self, x_TVQxyz, u_Wrpy):
+
+      x_TVQxyzw[:-4,0] = x_TVQxyz(:-3,0);
+      x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
+      y_TVQ[6:9,0] = y_PHIxyz.imag
+      obj.log.log_update(y_TVQ, x_TVQxyzw, obj.P, obj.K)
+      return x_TVQxyz
+
+  def predict_x(obj, x_TVQxyz, u_Wrpy):
     ''' estimation model
       - eq 16-22 of QEKF2
       - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
         f(\hat{x}_{k-1|k-1}, u_{k}) '''
     # est linPos
-    x_TVQxyz[0:3] = x_TVQxyz[0:3]+self.T_*x_TVQxyz[3:6]
+    x_TVQxyz[0:3] = x_TVQxyz[0:3]+obj.T_*x_TVQxyz[3:6]
     # est linVel
     x_TVQxyz[3:6] = x_TVQxyz[3:6]
     ''' est rotVec (quat) -- eq(18) '''
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-    u_Qxyzw = exp_map(self.T_ * u_Wrpy)
+    u_Qxyzw = exp_map(obj.T_ * u_Wrpy)
     q_u_Qwxyz = get_npQ(u_Qxyzw[0:3])
     q_x_Qwxyz = get_npQ(x_TVQxyz[6:9,0])
     q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz
     q_x_Qwxyz = q_x_Qwxyz.normalized()
+    
     x_TVQxyz[6:9,0] = q_x_Qwxyz.imag
     return x_TVQxyz
 
@@ -155,6 +160,8 @@ classdef qekf_class
       r = R.from_quat(x_Qxyz)
       obj.C = r.as_matrix();
     end
+
+
     def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):
   L1 = list()
   L2 = list()

@@ -83,8 +83,8 @@ class QEKF(object):
 
   def update(self, x_TVQxyz, z_TVQxyz):
     # compute Kalman gain
-    PHT = dot(self.P, self.H.T)
-    self.S = dot(self.H, PHT) + self.R
+    PHT = np.dot(self.P, self.H.T)
+    self.S = np.dot(self.H, PHT) + self.R
     self.K = PHT.dot(linalg.inv(self.S))
     self.K = self.K * self.K_scale
     ''' lin part '''
@@ -103,7 +103,7 @@ class QEKF(object):
     x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
     x_q_corr = get_npQ(x_q_corr[0:3])
     # equation 6 from EKF2 paper # update quaternion
-    x_q_post = x_q_corr * x_q  ## wxyz format
+    x_q_post = x_q_corr * x_q  # wxyz format
     x_q_post = x_q_post.normalized()
     ''' at last update x '''
     x_TVQxyz[0:6] = x_TVQ_post[0:6]
