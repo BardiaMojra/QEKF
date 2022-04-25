@@ -30,17 +30,17 @@ dataset = 'dataset-iphone1_clean';
 
 
 % add depenendencies
-addpath(genpath('utils'));
+addpath(genpath('./'));
 
 % init dataset object
-% dset = dat_class;
-dset = dat_class.byname(dataset);
+dset = dat_class;
+dset = dset.load(dataset);
 
 % plot data
 
 % init and run qekf
-qekf_obj, qekf_log = qekf(dset, ... % dataset object 
-                          dlog, ... % datalog object 
+qekf = qekf_class;
+qekf = qekf.config(dset, ... % dataset object dlog, ... % datalog object 
                           9, ... % dim_x Txyz, Vxyz, Qxyz 
                           9, ... % dim_z Txyz, Vxyz, Qxyz 
                           6, ... % dim_u Axyz, Wrpy
