@@ -1,7 +1,6 @@
-classdef dat_class
-  %DATA CLASS dataset class definition 
-  %   Detailed explanation goes here
-  
+classdef dmm_class
+  %DMM_CLASS data management module class
+  %   
   properties
     % define default values 
     name  
@@ -13,20 +12,14 @@ classdef dat_class
     SAVE_          = true;
     srcDir         = '../data/'
     outDir         = '../mout/'
-%     Vxyz_labels    = ['vx','vy','vz'];
-%     Txyz_labels    = ['Tx','Ty','Tz'];
-%     Wrpy_labels    = ['wr','wp','wy'];
-%     Qxyzw_labels   = ['qx','qy','qz','qw'];
-%     vicon_labels   = ['Qx_gt','Qy_gt','Qz_gt','Qw_gt','Tx_gt','Ty_gt','Tz_gt'];
     dat;
-    Vxyz; % xyz vel
-    Txyz; % xyz translation
-    Wrpy; % rpy ang vel
+    Vxyz;  % xyz vel
+    Txyz;  % xyz translation
+    Wrpy;  % rpy ang vel
     Qxyzw; % Qxyzw ang ori
   end
   methods 
-    function obj = load(obj, name)
-      % class constructor
+    function obj = load(obj, name) % construct data obj 
       obj.name   = name;
       obj.outDir = strcat(obj.outDir,'out_',obj.name,'/');
       obj.srcDir = strcat(obj.srcDir,name,'_df.csv');

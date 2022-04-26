@@ -79,19 +79,22 @@ classdef qekf_class
                             R_noise, ...
                             R_noise]);
     end
+    function [obj, log] = run(obj, )
+      
+    end
     function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyz)
-      %compute Kalman gain
+      % ''' compute Kalman gain '''
       PHT = dot(obj.P, obj.H');
       obj.S = dot(obj.H, PHT) + obj.R;
       obj.K = dot(PHT,inv(obj.S));
       obj.K = obj.K .* obj.K_scale;
-      ''' lin part '''
+      % ''' lin part '''
       hx = dot(obj.H,x_TVQxyz);
       y_TVQ = z_TVQxyz - hx; % TVWQxyz
       x_TVQ_post = zeros(obj.dim_x,1);
       Ky = dot(obj.K,y_TVQ);
       x_TVQ_post(1:6) = x_TVQxyz(1:6) + Ky(1:6);
-      ''' quat part '''
+      % ''' quat part '''
       x_q = obj.Qxyz2Q(x_TVQxyz(7:9,0));
       z_q = obj.Qxyz2Q(z_TVQxyz(7:9,0));
 
@@ -111,37 +114,34 @@ classdef qekf_class
       x_TVQxyz(7:9) = x_Qwxyz(2:4); % load quat xyz to x_post
       I_KH = obj.I_ - dot(obj.K,obj.H);
       obj.P = dot(dot(I_KH,obj.P),I_KH') + dot(dot(obj.K,obj.R),obj.K');
-      % log state vector
+      
+      % ''' log state vectors '''
       x_TVQxyzw = zeros(obj.dim_x+1,1);
-
-
-      x_TVQxyzw[:-4,0] = x_TVQxyz(:-3,0);
-      x_TVQxyzw[6:10,0] = get_Qxyzw(x_TVQxyz[6:9,0])
-      y_TVQ[6:9,0] = y_PHIxyz.imag
-      obj.log.log_update(y_TVQ, x_TVQxyzw, obj.P, obj.K)
-      return x_TVQxyz
-
-  def predict_x(obj, x_TVQxyz, u_Wrpy):
-    ''' estimation model
-      - eq 16-22 of QEKF2
-      - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
-        f(\hat{x}_{k-1|k-1}, u_{k}) '''
-    # est linPos
-    x_TVQxyz[0:3] = x_TVQxyz[0:3]+obj.T_*x_TVQxyz[3:6]
-    # est linVel
-    x_TVQxyz[3:6] = x_TVQxyz[3:6]
-    ''' est rotVec (quat) -- eq(18) '''
-    # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-    u_Qxyzw = exp_map(obj.T_ * u_Wrpy)
-    q_u_Qwxyz = get_npQ(u_Qxyzw[0:3])
-    q_x_Qwxyz = get_npQ(x_TVQxyz[6:9,0])
-    q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz
-    q_x_Qwxyz = q_x_Qwxyz.normalized()
-    
-    x_TVQxyz[6:9,0] = q_x_Qwxyz.imag
-    return x_TVQxyz
-
-    
+      x_TVQxyzw(7:10,1) = obj.get_Qxyzw(x_TVQxyz(7:9,1));
+      y_TVQ(7:9,1) = y_PHIxyz;
+%       obj.log.log_update(y_TVQ, x_TVQxyzw, obj.P, obj.K)
+    end
+    function x_TVQxyz = predict_x(obj, x_TVQxyz, u_Wrpy)
+      % estimation model
+      %  - eq 16-22 of QEKF2
+      %  - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
+      %    f(\hat{x}_{k-1|k-1}, u_{k}) 
+      % est linPos
+      x_TVQxyz(1:3) = x_TVQxyz(1:3) + obj.T_ .* x_TVQxyz(4:6);
+      % est linVel
+      x_TVQxyz(4:6) = x_TVQxyz(4:6);
+      % est rotVec (quat) -- eq(18)
+      % est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
+      u_Qxyzw = exp(obj.T_ .* u_Wrpy);
+      q_u_Qwxyz = obj.Qxyz2Q(u_Qxyzw(1:3));
+      q_x_Qwxyz = obj.Qxyz2Q(x_TVQxyz(7:9,1));
+      q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz;
+      q_x_Qwxyz = q_x_Qwxyz.normalized();
+      x_TVQxyz(7:9,1) = obj.Q2Qxyz(q_x_Qwxyz);
+    end
+    function [x,y,z] = Q2Qxyz(q)
+      w,x,y,z = parts(q);
+    end
 
     function obj = set_F(obj,u_Wrpy)
       obj.F = eye(obj.dim_x);
@@ -157,40 +157,37 @@ classdef qekf_class
       obj.L(4:6,4:6) = -obj.C';
     end 
     function obj = set_C(obj,x_Qxyz)
-      r = R.from_quat(x_Qxyz)
-      obj.C = r.as_matrix();
+      q = obj.Qxyz2Q(x_Qxyz);
+      obj.C = quat2rotm(q);
     end
-
-
-    def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):
-  L1 = list()
-  L2 = list()
-  for i in range(len(res.index)):
-    state_l1 = 0.0
-    state_l2 = 0.0
-    for j in range(len(res.columns)):
-      l1 = abs(res.iloc[i,j])
-      l2 = res.iloc[i,j] ** 2
-      state_l1 += l1
-      state_l2 += l2
-    L1.append(state_l1);  L2.append(state_l2)
-  L1_df = pd.DataFrame(L1, columns=['L1'])
-  L2_df = pd.DataFrame(L2, columns=['L2'])
-  res = pd.concat([res,L1_df, L2_df], axis=1)
-  if save_en==True and  output_dir is not None:
-    file_name = output_dir+'losses.txt'
-    with open(file_name, 'a+') as f:
-      L1_str = shorthead+f"L1 (total): {res['L1'].sum()}"
-      L2_str = shorthead+f"L2 (total): {res['L2'].sum()}"
-      f.write(L1_str)
-      f.write(L2_str+'\n\n')
-      f.close()
-  return res
-
-def print_losses(df: pd.DataFrame):
-  print(shorthead+"L1 (total): ", df['L1'].sum())
-  print(shorthead+"L2 (total): ", df['L2'].sum())
-  print('\n\n')
-  return
+    function res = get_losses(res, outDir)
+      L1 = zeros(height(res),1);
+      L2 = zeros(height(res),1);
+      for i = 1:height(res)
+        state_l1 = 0.0;
+        state_l2 = 0.0;
+        for j = 1:width(res)
+          l1 = abs(res(i,j));
+          l2 = res(i,j)^2;
+          state_l1 = state_l1 + l1;
+          state_l2 = state_l2 + l2;
+        end
+        L1(i,1) = state_l1;
+        L2(i,2) = state_l2;
+      end
+      L1 = array2table(L1,'VariableNames','L1');
+      L2 = array2table(L2,'VariableNames','L2');
+      Losses = [L1,L2];
+      res = [res,Losses];
+      if isstring(outDir)
+        fname = strcat(outDir,'losses.txt');
+        file = fopen(fname, 'a');
+        mssg = strcat('---->> L1:',num2str(sum(L1)),'  L2:',num2str(sum(L2)),'\n');
+        disp(mssg);
+        fprintf(file,mssg);
+      end
+    end
   end
 end
+
+    
