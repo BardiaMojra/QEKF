@@ -64,12 +64,12 @@ def main():
   test_id = 1
 
   if testmode == 'all':
-    print(shorthead+'starting all test sequences:')
+    print(shead+'starting all test sequences:')
     for i in range(len(datasets)):
       print('> '+str(i)+': '+datasets[i])
     print('\n')
     for i in range(len(datasets)):
-      print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
+      print('\n\n\n'+lhead+'> '+str(i)+': '+datasets[i])
       run(datasets[i])
   elif isinstance(test_id, int) is True:
     set_id = test_id
@@ -78,9 +78,9 @@ def main():
       eprint('usr input: '+str(test_id))
       exit()
     else:
-      print(shorthead+'user input (int): '+str(set_id)+' ---> '+datasets[set_id])
+      print(shead+'user input (int): '+str(set_id)+' ---> '+datasets[set_id])
       run(str(datasets[set_id]))
-  print(longhead+'---- end of main ----')
+  print(lhead+'---- end of main ----')
   return
 
 ''' local routines

@@ -56,11 +56,11 @@ qekf = qekf.config(dset, ... % dataset object
 
 x_TVQxyz = qekf.x_TVQxyz; % load prior state
 for i = dset.START_:dset.END_
-  u_Wrpy            = dset.u_Wrpy(i,:)';
-  z_TVQxyz          = dset.z_TVQxyzw(i,1:end-1)'; % copy all except w term 
+  u_Wrpy            = dset.u_Wrpy(i,:);
+  z_TVQxyz          = dset.z_TVQxyzw(i,1:end-1); % copy all except w term 
+  z_TVQxyzw         = dset.z_TVQxyzw(i,:); % only for data logging
   [qekf, x_TVQxyz]  = qekf.predict(x_TVQxyz, u_Wrpy);
   [qekf, x_TVQxyz]  = qekf.update(x_TVQxyz, z_TVQxyz);
-  z_TVQxyzw         = dset.z_TVQxyzw(i,:)'; % only for data logging
   dlog              = dlog.log_meas(z_TVQxyzw, i);
 end
 print('end of qekf data iterator ----->>')

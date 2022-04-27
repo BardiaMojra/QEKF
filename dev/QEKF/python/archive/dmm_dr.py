@@ -60,7 +60,7 @@ class dmm:
                prt=True,
                save=True):
     if outDir is None:
-      eprint(longhead+'Err--->> Missing output directory: DMM '+name+longtail)
+      eprint(lhead+'Err--->> Missing output directory: DMM '+name+ltail)
 
     # set dataset configs
     if name == 'dead_reckoning_01':
@@ -78,11 +78,11 @@ class dmm:
       # data_rate_inv = 0.1
       # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     else:
-      eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
+      eprint(lhead+'Err--->> selected dataset not found: '+name+ltail)
     ''' check '''
     if not os.path.exists(output_dir):
-      print(longhead+'the following directory DOES NOT EXIST: '+output_dir)
-      print(shorthead+"create is it with 'mkdir "+output_dir+"'\n\n")
+      print(lhead+'the following directory DOES NOT EXIST: '+output_dir)
+      print(shead+"create is it with 'mkdir "+output_dir+"'\n\n")
       exit()
     ''' init '''
     # data
@@ -133,7 +133,7 @@ class dmm:
     elif self.name=="test_001_vicon_training_day":
       self.read_interp_data()
     else:
-      eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
+      eprint(lhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
     ''' common df section '''
     self.len = len(self.df.index)
@@ -262,22 +262,22 @@ class dmm:
       pass
     else:
       nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
+      eprint(shead+'timestamp mismatch...'+ltail)
       exit()
     compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
     if np.all(compare == True):
       pass
     else:
       nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
+      eprint(shead+'timestamp mismatch...'+ltail)
       exit()
     compare = np.where(Axyz_np[:,0]==vicon_np[:,0], True, False)
     if not np.all(compare == True):
       nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
+      eprint(shead+'timestamp mismatch...'+ltail)
       exit()
     else:
-      print(shorthead+'all timestamps match...'+longtail)
+      print(shead+'all timestamps match...'+ltail)
     self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
     # self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
     # load np format
@@ -313,7 +313,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
-      prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+      prt_file_save(shead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -338,7 +338,7 @@ class dmm:
     if save==True and self.output_dir is not None:
       file_name = self.output_dir+'{}'.format(figname+'_'+title)
       plt.savefig(file_name, bbox_inches='tight',dpi=400)
-      prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+      prt_file_save(shead+'saving figure: '+file_name+'.png')
     if show==True:
       plt.show()
     else:
@@ -388,7 +388,7 @@ class dmm:
     for file in sorted(files):
       datum = np.genfromtxt(data_dir+file, delimiter=' ')
       if len(labels) != datum.shape[0]:
-        eprint(longhead+"Err--->> bad datum: "+file+longtail)
+        eprint(lhead+"Err--->> bad datum: "+file+ltail)
         exit()
       if imu_data is None:
         imu_data = np.expand_dims(datum, axis=1)
@@ -542,7 +542,7 @@ def plot_quat_vs_quat(quat_A_df,
     label_A = labels[0]
     label_B = labels[1]
   if output_dir is None:
-    eprint(longhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
+    eprint(lhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
   fig04 = plt.figure(figsize=figsize)
   ax1 = fig04.add_subplot(411)
   ax1.plot(quat_A_df.qw[start:end], marker='.',c=colors[0], ms=1, label=label_A)
@@ -578,7 +578,7 @@ def plot_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shead+'saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -608,7 +608,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
     label_B = labels[1]
     label_C = labels[2]
   if output_dir is None:
-    eprint(longhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
+    eprint(lhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
   # plot
   fig05 = plt.figure(figsize=figsize)
   ax1 = fig05.add_subplot(411)
@@ -645,7 +645,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shead+'saving figure: '+file_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
@@ -702,7 +702,7 @@ def plot_df(df:pd.DataFrame,
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin([col])]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin([col])]].max(skipna=False)))
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -717,7 +717,7 @@ def plot_df(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    prt_file_save(longhead+'saving figure: '+fig_name+'.png')
+    prt_file_save(lhead+'saving figure: '+fig_name+'.png')
   if show==True: fig.show()
   else: plt.close()
   return
@@ -759,7 +759,7 @@ def plot_Txyz_vs_Txyz_3d(z_Txyz_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shead+'saving figure: '+file_name+'.png')
   if show==True:
     plt.show()
   else:
@@ -785,10 +785,10 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   figsize=[5,8]):
   # check
   if len(z_df.columns) != len(x_df.columns):
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), dataframes have UNMATCHED \
-      number of columns...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_iso(), dataframes have UNMATCHED \
+      number of columns...'+ltail)
   if labels is None:
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), no df label passed...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_iso(), no df label passed...'+ltail)
   if end is None:
     end = min(z_df.index.size,x_df.index.size)-1
   if rows is None or cols is None:
@@ -835,8 +835,8 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
     ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
     ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=.01, label=xlab)
     if zcol != xcol:
-      print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
-      eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
+      print(lhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
+      eprint(lhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+ltail)
     else:
       ax.set_title(str(zcol), size=8)
     # col y range limits
@@ -870,7 +870,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
       ax.set_ylim(pad*q_df_min, pad*q_df_max)
       #ax.set_ylim(-qpad, qpad)
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+'...')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+'...')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -884,7 +884,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shead+'saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
@@ -912,10 +912,10 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   figsize=[5,8]):
   # check
   if len(z_df.columns) != len(x_df.columns):
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), dataframes have UNMATCHED \
-      number of columns...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_grp(), dataframes have UNMATCHED \
+      number of columns...'+ltail)
   if labels is None:
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), no df label passed...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_grp(), no df label passed...'+ltail)
   if end is None:
     end = min(z_df.index.size,x_df.index.size)-1
   rows = int(3)
@@ -960,8 +960,8 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
     #ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
     #ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=.01, label=xlab)
     if zcol != xcol:
-      print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
-      eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
+      print(lhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
+      eprint(lhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+ltail)
     else:
       ax.set_title(str(zcol), size=8)
     # col y range limits
@@ -971,7 +971,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if t_df_min is None or t_df_max is None:
         t_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(t_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(t_cols)]].min(skipna=True)))
@@ -984,7 +984,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if v_df_min is None or v_df_max is None:
         v_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(v_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(v_cols)]].min(skipna=True)))
@@ -997,7 +997,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if w_df_min is None or w_df_max is None:
         w_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(w_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(w_cols)]].min(skipna=True)))
@@ -1010,7 +1010,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if q_df_min is None or q_df_max is None:
         q_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(q_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(q_cols)]].min(skipna=True)))
@@ -1019,7 +1019,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       ax.set_ylim(pad*q_df_min, pad*q_df_max)
       #ax.set_ylim(-qpad, qpad)
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+'...')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+'...')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -1033,7 +1033,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
   if save==True and output_dir is not None:
     file_name = output_dir+'{}'.format(figname+'_'+title)
     plt.savefig(file_name, bbox_inches='tight',dpi=400)
-    prt_file_save(shorthead+'saving figure: '+file_name+'.png')
+    prt_file_save(shead+'saving figure: '+file_name+'.png')
     csv_name = output_dir+title
     z_df.to_csv(csv_name+'__z_.csv', columns=z_df.columns)
     x_df.to_csv(csv_name+'__x_.csv', columns=x_df.columns)
@@ -1093,7 +1093,7 @@ def plot_df_grp(df:pd.DataFrame,
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin(q_cols)]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin(q_cols)]].max(skipna=False)))
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -1108,7 +1108,7 @@ def plot_df_grp(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    prt_file_save(shorthead+'saving figure: '+fig_name+'.png')
+    prt_file_save(shead+'saving figure: '+fig_name+'.png')
   if show==True: fig.show()
   else: plt.close()
   return
@@ -1148,13 +1148,13 @@ def plot_df_grp_K(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    prt_file_save(shorthead+'saving figure: '+fig_name+'.png')
+    prt_file_save(shead+'saving figure: '+fig_name+'.png')
   if show==True: plt.show()
   else: plt.close()
   return
 
 def prt_file_save(string, *args):
   if prt_file_save_en is True:
-    print(shorthead+(string+' ')); print(*args);
+    print(shead+(string+' ')); print(*args);
 
 # EOF

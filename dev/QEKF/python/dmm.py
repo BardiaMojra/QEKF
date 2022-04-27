@@ -21,8 +21,8 @@ from nbug import *
 
 ''' config '''
 prt_file_save_en = True
-outDir = '../../out04/'
-_dataDir = '../../data/'
+outDir = '../pout/out04/'
+_dataDir = '../data/'
 
 
 
@@ -73,12 +73,12 @@ class dmm:
 
     # set dataset configs
     if name == 'dataset-iphone1_clean':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ','
     elif name == 'bigC_06-Aug2021':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ',' # space separator for csv file
@@ -88,84 +88,84 @@ class dmm:
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0002':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0002_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0005':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0005_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0018':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0018_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0060':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0060_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0084':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0084_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0926_0113':
       self.srcDir = _dataDir+'KITTI/2011_09_26/2011_09_26_drive_0113_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'kitti_imu_0928_0001':
       self.srcDir = _dataDir+'KITTI/2011_09_28/2011_09_28_drive_0001_sync/oxts/'
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = None
       data_rate_inv = 0.1
-      print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
+      print(lhead+' changed data_rate_inv to: '+str(data_rate_inv))
     elif name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name =='Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ' ' # space separator for csv file
     elif name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off':
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       ext = 'csv'
       opt = ',' # space separator for csv file
     elif name == 'test_001_vicon_training_day':
       # src_dir = _src_dir01
-      self.srcDir = _dataDir+name+'/'
+      self.srcDir = _dataDir
       output_dir = outDir+'out_'+name+'/'
       self.imuDir = self.srcDir+'imu/'
       self.viDir = self.srcDir+'vi/'
@@ -174,12 +174,12 @@ class dmm:
       # data_rate_inv = 0.1
       # print(longhead+' changed data_rate_inv to: '+str(data_rate_inv))
     else:
-      eprint(longhead+'Err--->> selected dataset not found: '+name+longtail)
+      eprint(lhead+'Err--->> selected dataset not found: '+name+ltail)
 
     ''' check '''
     if not os.path.exists(output_dir):
-      print(longhead+'the following directory DOES NOT EXIST: '+output_dir)
-      print(shorthead+"create is it with 'mkdir "+output_dir+"'\n\n")
+      print(lhead+'the following directory DOES NOT EXIST: '+output_dir)
+      print(shead+"create is it with 'mkdir "+output_dir+"'\n\n")
       exit()
 
     ''' init '''
@@ -279,7 +279,7 @@ class dmm:
     elif self.name=="test_001_vicon_training_day":
       self.load_imu_vi_data()
     else:
-      eprint(longhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
+      eprint(lhead+'Err--->> invalid name and/or ext!\n\n', file=sys.stderr)
       exit()
     ''' common df section '''
     # nprint('self.df.head(5)', self.df.head(5))
@@ -289,6 +289,10 @@ class dmm:
       self.end = self.len
     if self.save == True:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
+    return
+
+  def load_QuVest_set(self):
+
     return
 
   def load_QuVest_set(self):
@@ -353,22 +357,22 @@ class dmm:
       pass
     else:
       nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
+      eprint(shead+'timestamp mismatch...'+ltail)
       exit()
     compare = np.where(Axyz_np[:,0]==Wrpy_np[:,0], True, False)
     if np.all(compare == True):
       pass
     else:
       nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
+      eprint(shead+'timestamp mismatch...'+ltail)
       exit()
     compare = np.where(Axyz_np[:,0]==vicon_np[:,0], True, False)
     if not np.all(compare == True):
       nprint('compare', compare)
-      eprint(shorthead+'timestamp mismatch...'+longtail)
+      eprint(shead+'timestamp mismatch...'+ltail)
       exit()
     else:
-      print(shorthead+'all timestamps match...'+longtail)
+      print(shead+'all timestamps match...'+ltail)
     self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df], axis=1)
     # self.df = pd.concat([ Axyz_df, Wrpy_df, Qxyzw_df, vicon_df], axis=1)
     # load np format
@@ -468,7 +472,7 @@ class dmm:
     for file in sorted(files):
       datum = np.genfromtxt(data_dir+file, delimiter=' ')
       if len(labels) != datum.shape[0]:
-        eprint(longhead+"Err--->> bad datum: "+file+longtail)
+        eprint(lhead+"Err--->> bad datum: "+file+ltail)
         exit()
       if imu_data is None:
         imu_data = np.expand_dims(datum, axis=1)
@@ -596,7 +600,7 @@ def plot_quat_vs_quat(quat_A_df,
     label_A = labels[0]
     label_B = labels[1]
   if output_dir is None:
-    eprint(longhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
+    eprint(lhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
   # fig04 = plt.subplots(num=fignum, figsize=figsize)
   # import matplotlib.pyplot as plt
   fig04 = plt.figure(num=fignum, figsize=figsize)
@@ -667,7 +671,7 @@ def plot_quat_vs_quat_vs_quat(quat_A_df,
     label_B = labels[1]
     label_C = labels[2]
   if output_dir is None:
-    eprint(longhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
+    eprint(lhead+'Err--->> no output directory assigned for figure: '+figname+' .....\n\n')
   # plot
   fig05 = plt.figure(fignum,figsize=figsize)
   ax1 = fig05.add_subplot(411)
@@ -763,7 +767,7 @@ def plot_df(df:pd.DataFrame,
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin([col])]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin([col])]].max(skipna=False)))
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -778,7 +782,7 @@ def plot_df(df:pd.DataFrame,
     plt.savefig(fig_name, bbox_inches='tight',dpi=400)
     csv_name = output_dir+title
     df.to_csv(csv_name+'.csv', columns=df.columns)
-    prt_file_save(longhead+'saving figure: '+fig_name+'.png')
+    prt_file_save(lhead+'saving figure: '+fig_name+'.png')
   if show==True: fig.show()
   else: plt.close()
   return
@@ -850,10 +854,10 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
 
   # check
   if len(z_df.columns) != len(x_df.columns):
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), dataframes have UNMATCHED \
-      number of columns...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_iso(), dataframes have UNMATCHED \
+      number of columns...'+ltail)
   if labels is None:
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_iso(), no df label passed...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_iso(), no df label passed...'+ltail)
   if end is None:
     end = min(z_df.index.size,x_df.index.size)-1
   if rows is None or cols is None:
@@ -900,8 +904,8 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
     ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
     ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=.01, label=xlab)
     if zcol != xcol:
-      print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
-      eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
+      print(lhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
+      eprint(lhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+ltail)
     else:
       ax.set_title(str(zcol), size=8)
     # col y range limits
@@ -935,7 +939,7 @@ def plot_z_df_vs_x_df_iso(z_df:pd.DataFrame,
       ax.set_ylim(pad*q_df_min, pad*q_df_max)
       #ax.set_ylim(-qpad, qpad)
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+'...')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+'...')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -979,10 +983,10 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
 
   # check
   if len(z_df.columns) != len(x_df.columns):
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), dataframes have UNMATCHED \
-      number of columns...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_grp(), dataframes have UNMATCHED \
+      number of columns...'+ltail)
   if labels is None:
-    eprint(longhead+'Err--->> in plot_z_df_vs_x_df_grp(), no df label passed...'+longtail)
+    eprint(lhead+'Err--->> in plot_z_df_vs_x_df_grp(), no df label passed...'+ltail)
   if end is None:
     end = min(z_df.index.size,x_df.index.size)-1
   rows = int(3)
@@ -1027,8 +1031,8 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
     #ax.plot(z_df.loc[start:end,zcol], marker='.', c=next(palette01), ms=.01, label=zlab)
     #ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=.01, label=xlab)
     if zcol != xcol:
-      print(longhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
-      eprint(longhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+longtail)
+      print(lhead+' Labels '+zcol+' and '+xcol+'DO NOT MATCH for column {}'.format(n))
+      eprint(lhead+'Err--->> plot_z_df_vs_x_df_iso(): UNMATCHED column LABELS...'+ltail)
     else:
       ax.set_title(str(zcol), size=8)
     # col y range limits
@@ -1038,7 +1042,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if t_df_min is None or t_df_max is None:
         t_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(t_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(t_cols)]].min(skipna=True)))
@@ -1051,7 +1055,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if v_df_min is None or v_df_max is None:
         v_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(v_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(v_cols)]].min(skipna=True)))
@@ -1064,7 +1068,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if w_df_min is None or w_df_max is None:
         w_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(w_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(w_cols)]].min(skipna=True)))
@@ -1077,7 +1081,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       elif n%2 == 0: # x
         ax.plot(x_df.loc[start:end,xcol], marker='.', c=next(palette02), ms=1, label=xlab)
       else:
-        eprint(longhead+'Err--->> must be unreachable...'+longtail)
+        eprint(lhead+'Err--->> must be unreachable...'+ltail)
       if q_df_min is None or q_df_max is None:
         q_df_min =min(min(z_df[z_df.columns[z_df.columns.isin(q_cols)]].min(skipna=True)),\
                       min(x_df[x_df.columns[x_df.columns.isin(q_cols)]].min(skipna=True)))
@@ -1086,7 +1090,7 @@ def plot_z_df_vs_x_df_grp(z_df:pd.DataFrame,
       ax.set_ylim(pad*q_df_min, pad*q_df_max)
       #ax.set_ylim(-qpad, qpad)
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+'...')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+'...')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -1161,7 +1165,7 @@ def plot_df_grp(df:pd.DataFrame,
       ax.set_ylim(pad*min(df[df.columns[df.columns.isin(q_cols)]].min(skipna=False)),\
                   pad*max(df[df.columns[df.columns.isin(q_cols)]].max(skipna=False)))
     else:
-      eprint(longhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
+      eprint(lhead+'Err--->> column label missing for figure: '+figname+' .....\n\n')
   fig.subplots_adjust(wspace=0.05)
   ax.set_xlabel('time')
   fig.legend()
@@ -1224,7 +1228,7 @@ def plot_df_grp_K(df:pd.DataFrame,
 
 def prt_file_save(string, *args):
   if prt_file_save_en is True:
-    print(shorthead+(string+' ')); print(*args);
+    print(shead+(string+' ')); print(*args);
 
 
 def get_fignum_str(fignum):

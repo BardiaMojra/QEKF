@@ -57,34 +57,34 @@ def main():
   tnum = _TEST_ID
   if len(sys.argv) > 1:
     if sys.argv[1] == 'all':
-      print(shorthead+'starting all test sequences:')
+      print(shead+'starting all test sequences:')
       for i in range(len(datasets)):
         print('> '+str(i)+': '+datasets[i])
       print('\n')
       for i in range(len(datasets)):
-        print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
+        print('\n\n\n'+lhead+'> '+str(i)+': '+datasets[i])
         run(datasets[i])
     elif isinstance(int(sys.argv[1]), int):
       input_ID = int(sys.argv[1])
-      print(shorthead+'user input (int): '+str(input_ID)+' ---> '+datasets[input_ID])
+      print(shead+'user input (int): '+str(input_ID)+' ---> '+datasets[input_ID])
       run(str(datasets[input_ID]))
   else:
     if tmode == 'all':
-      print(shorthead+'starting all test sequences:')
+      print(shead+'starting all test sequences:')
       for i in range(len(datasets)):
         print('> '+str(i)+': '+datasets[i])
       print('\n')
       for i in range(len(datasets)):
-        print('\n\n\n'+longhead+'> '+str(i)+': '+datasets[i])
+        print('\n\n\n'+lhead+'> '+str(i)+': '+datasets[i])
         run(datasets[i])
     elif tnum not in range(len(datasets)):
       eprint('usr input (int) is out of range. datasets[] range: 0-'+str(len(datasets)-1))
       eprint('usr input: '+str(tnum))
       exit()
     else:
-      print(shorthead+'user input (int): '+str(tnum)+' ---> '+datasets[tnum])
+      print(shead+'user input (int): '+str(tnum)+' ---> '+datasets[tnum])
       run(str(datasets[tnum]))
-  print(longhead+'---- end of main ----')
+  print(lhead+'---- end of main ----')
   return
 
 ''' local routines '''
@@ -134,10 +134,10 @@ def run(data:str):
     u_Wrpy = dset.u_Wrpy_np[i].reshape(-1,1)
     z_TVQxyz = dset.z_TVQxyzw_np[i,:-1].reshape(-1,1)
     z_TVQxyzw = dset.z_TVQxyzw_np[i].reshape(-1,1) # only for data logging
-    # nsprint('x_TVQxyz', x_TVQxyz)
-    # nsprint('u_Wrpy', u_Wrpy)
-    # nsprint('z_TVQxyz', z_TVQxyz)
-    # st()
+    npprint('x_TVQxyz', x_TVQxyz)
+    npprint('u_Wrpy', u_Wrpy)
+    npprint('z_TVQxyz', z_TVQxyz)
+    st()
     x_TVQxyz = qekf.predict(x_TVQxyz, u_Wrpy)
     # nsprint('x_TVQxyz', x_TVQxyz)
     x_TVQxyz = qekf.update(x_TVQxyz, z_TVQxyz)

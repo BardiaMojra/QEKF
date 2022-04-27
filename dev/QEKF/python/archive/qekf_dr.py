@@ -237,16 +237,16 @@ def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=
   if save_en==True and  output_dir is not None:
     file_name = output_dir+'losses.txt'
     with open(file_name, 'a+') as f:
-      L1_str = shorthead+f"L1 (total): {res['L1'].sum()}"
-      L2_str = shorthead+f"L2 (total): {res['L2'].sum()}"
+      L1_str = shead+f"L1 (total): {res['L1'].sum()}"
+      L2_str = shead+f"L2 (total): {res['L2'].sum()}"
       f.write(L1_str)
       f.write(L2_str+'\n\n')
       f.close()
   return res
 
 def print_losses(df: pd.DataFrame):
-  print(shorthead+"L1 (total): ", df['L1'].sum())
-  print(shorthead+"L2 (total): ", df['L2'].sum())
+  print(shead+"L1 (total): ", df['L1'].sum())
+  print(shead+"L2 (total): ", df['L2'].sum())
   return
 
 

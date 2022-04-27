@@ -51,7 +51,7 @@ classdef qekf_class
       obj.R_noise    = R_noise;
       obj.P_est_0    = P_est_0;
       % state vectors
-      obj.x_TVQxyz   = horzcat(dset.Txyz(1,:),dset.Vxyz(1,:),dset.Qxyzw(1,1:end-1))'; % set state initial conditions
+      obj.x_TVQxyz   = horzcat(dset.Txyz(1,:),dset.V,); % set state initial conditions
       obj.P          = eye(dim_x) .* P_est_0;
       obj.F          = eye(dim_x);
       obj.K          = zeros(dim_x,1);
