@@ -127,7 +127,7 @@ def run(data:str):
               IC=dset.z_TVQxyzw_np[0],
               K_scale=1.0)
 
-  x_TVQxyz = qekf.x_TVQxyz # init state vectors #todo add IC from dataset
+  x_TVQxyz = qekf.x_TVQxyz # load prior state
   for i in range(dset.start, dset.end):
     ''' EKF state machine '''
     # print('    \\--->>> new state ------->>>>>:  ', i)

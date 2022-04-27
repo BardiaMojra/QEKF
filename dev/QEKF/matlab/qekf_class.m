@@ -18,7 +18,7 @@ classdef qekf_class
     % internal data structs 
     x_TVQxyz % state est vec
     y_TVQxyz % residual vec
-    p % posterior noise covariance
+    P % posterior noise covariance
     F % state transition matrix
     K % kalman gain vec
     S % system uncertainty
@@ -32,7 +32,7 @@ classdef qekf_class
     log % datalog obj
   end
   methods
-    function obj = config(obj, dset, ...
+    function obj = config(obj, dset, dlog, ...
                           dim_x,dim_z,dim_u, ...
                           Q_T_xyz, ...
                           Q_V_xyz, ...
@@ -41,7 +41,7 @@ classdef qekf_class
                           P_est_0 ...
                           )
       obj.dset       = dset;
-%         obj.log        = dlog;
+      obj.log        = dlog;
       obj.dim_x      = dim_x;
       obj.dim_z      = dim_z;
       obj.dim_u      = dim_u;
@@ -79,35 +79,32 @@ classdef qekf_class
                             R_noise, ...
                             R_noise]);
     end
-    function [obj, log] = run(obj, )
-      
-    end
+
     function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyz)
       % ''' compute Kalman gain '''
-      PHT = dot(obj.P, obj.H');
-      obj.S = dot(obj.H, PHT) + obj.R;
-      obj.K = dot(PHT,inv(obj.S));
-      obj.K = obj.K .* obj.K_scale;
+      PHT       = dot(obj.P, obj.H');
+      obj.S     = dot(obj.H, PHT) + obj.R;
+      obj.K     = dot(PHT,inv(obj.S));
+      obj.K     = obj.K .* obj.K_scale;
       % ''' lin part '''
-      hx = dot(obj.H,x_TVQxyz);
-      y_TVQ = z_TVQxyz - hx; % TVWQxyz
-      x_TVQ_post = zeros(obj.dim_x,1);
-      Ky = dot(obj.K,y_TVQ);
+      hx          = dot(obj.H,x_TVQxyz);
+      y_TVQ       = z_TVQxyz - hx; % TVWQxyz
+      x_TVQ_post  = zeros(obj.dim_x,1);
+      Ky          = dot(obj.K,y_TVQ);
       x_TVQ_post(1:6) = x_TVQxyz(1:6) + Ky(1:6);
       % ''' quat part '''
-      x_q = obj.Qxyz2Q(x_TVQxyz(7:9,0));
-      z_q = obj.Qxyz2Q(z_TVQxyz(7:9,0));
-
-      y_PHIxyz = z_q * quatinv(x_q); % get quaternion error
-      y_PHIxyz = y_PHIxyz.normalized();
-%       y_PHIrpy = Q_log(get_Qwxyz(y_PHIxyz.imag)) # get rotation error
-      y_PHIrpy = log(y_PHIxyz); % get rotation error
+      x_q       = obj.Qxyz2Q(x_TVQxyz(7:9,1));
+      z_q       = obj.Qxyz2Q(z_TVQxyz(7:9,1));
+      y_PHIxyz  = z_q * quatinv(x_q); % get quaternion error
+      y_PHIxyz  = quatnormalize(y_PHIxyz);
+      y_PHIxyz  = obj.Q2Qxyz(y_PHIxyz);
+      y_PHIrpy  = quatlog(y_PHIxyz); % get rotation error
       ky_PHIrpy = dot(obj.K(7:9,7:9),y_PHIrpy);
-      x_q_corr = exp(obj.T_ .* ky_PHIrpy(1:3)); % quaternion correction
-      x_q_corr = obj.Qxyz2Q(x_q_corr(1:3)); % return Quat object
+      x_q_corr  = quatexp(obj.T_ .* ky_PHIrpy(1:3)); % quaternion correction
+      x_q_corr  = obj.Qxyz2Q(x_q_corr(1:3)); % return Quat object
       % equation 6 from EKF2 paper # update quaternion
       x_q_post = x_q_corr * x_q; % wxyz format
-      x_q_post = x_q_post.normalized();
+      x_q_post = quatnormalize(x_q_post);
       % at last update x 
       x_TVQxyz(1:6) = x_TVQ_post(1:6);
       x_Qwxyz = parts(x_q_post); 
@@ -119,7 +116,7 @@ classdef qekf_class
       x_TVQxyzw = zeros(obj.dim_x+1,1);
       x_TVQxyzw(7:10,1) = obj.get_Qxyzw(x_TVQxyz(7:9,1));
       y_TVQ(7:9,1) = y_PHIxyz;
-%       obj.log.log_update(y_TVQ, x_TVQxyzw, obj.P, obj.K)
+      obj.log.log_update(y_TVQ, x_TVQxyzw, obj.P, obj.K)
     end
     function x_TVQxyz = predict_x(obj, x_TVQxyz, u_Wrpy)
       % estimation model
@@ -136,20 +133,33 @@ classdef qekf_class
       q_u_Qwxyz = obj.Qxyz2Q(u_Qxyzw(1:3));
       q_x_Qwxyz = obj.Qxyz2Q(x_TVQxyz(7:9,1));
       q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz;
-      q_x_Qwxyz = q_x_Qwxyz.normalized();
+      q_x_Qwxyz = quatnormalize(q_x_Qwxyz);
       x_TVQxyz(7:9,1) = obj.Q2Qxyz(q_x_Qwxyz);
     end
-    function [x,y,z] = Q2Qxyz(q)
-      w,x,y,z = parts(q);
+      function [obj, x_TVQxyz] = predict(obj,x_TVQxyz,u_Wrpy)
+      obj       = obj.set_C(x_TVQxyz(7:9,1));
+      obj       = obj.set_H();
+      obj       = obj.set_L();
+      obj       = obj.set_F(u_Wrpy);
+      x_TVQxyz  = obj.predict_x(obj,x_TVQxyz,u_Wrpy);
+      Q_k       = dot(dot(dot(dot(obj.T_ .* obj.F,obj.L),obj.Q_c),obj.L'),obj.F');
+      obj.P     = dot(dot(obj.F,obj.P),obj.F') + Q_k;
     end
-
+    function [x,y,z] = Q2Qxyz(q)
+      q = quantnormalize(q);
+      [~,x,y,z] = parts(q);
+    end
+    function q = Qxyz2Q(Qxyz)
+      w = sqrt(1 - Qxyz(1)^2 - Qxyz(2)^2 - Qxyz(3)^2);
+      q = quaternion(w,Qxyz(1),Qxyz(2),Qxyz(3));
+    end
     function obj = set_F(obj,u_Wrpy)
       obj.F = eye(obj.dim_x);
       obj.F(1:3,4:6) = obj.T_ .* eye(3);
       obj.F(7:9,7:9) = eye(3) - obj.T_ .* obj.get_skew_symm_X(u_Wrpy);
     end
     function obj = set_H(obj)
-      obj.H[1:9,1:9] = eye(9);
+      obj.H(1:9,1:9) = eye(9);
       obj.H(1:3,1:3) = obj.C;
     end 
     function obj = set_L(obj)

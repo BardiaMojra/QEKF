@@ -36,42 +36,32 @@ addpath(genpath('./'));
 dset = dat_class;
 dset = dset.load(dataset);
 
+dlog = log_class;
+
 % plot data
 
 % init and run qekf
 qekf = qekf_class;
-qekf = qekf.config(dset, ... % dataset object dlog, ... % datalog object 
+qekf = qekf.config(dset, ... % dataset object 
+                   dlog, ... % datalog object 
                    9, ... % dim_x Txyz, Vxyz, Qxyz 
                    9, ... % dim_z Txyz, Vxyz, Qxyz 
                    6, ... % dim_u Axyz, Wrpy
-                   dset.data_rate_inv, ... % data rate
                    1.0e-5, ... % Q_T_xyz - process noise covar
                    1.5e-2, ... % Q_V_xyz
                    0.5e-3, ... % Q_quat_xyz
                    1e-6, ... % R_noise - measurement noise covar
-                   1e-4, ... % P_est_0
-                   dset.z_TVQxyzw(1,:), ... % initial conditions 
-                   1.0); % k-scale
-qekf_obj = qekf_class(dim_x, ...
-                      dim_z, ...
-                      dim_u, ...
-                      T_, ...
-                      Q_T_xyz, ...
-                      Q_V_xyz, ...
-                      Q_quat_xyz, ...
-                      R_noise, ...
-                      P_est_0, ...
-                      IC);
+                   1e-4 ... % P_est_0
+                   ); %
 
-for i = dset.start:dset.end
-  u_Wrpy = dset.u_Wrpy(i,:);
-  z_TVQxyz  = dset.z_TVQxyzw(i,1:end-1); % copy all except w term 
-  z_TVQxyzw = dset.z_TVQxyzw(i,:); % only for data logging
-  x_TVQxyz  = qekf.predict(x_TVQxyz, u_Wrpy);
-  x_TVQxyz  = qekf.update(x_TVQxyz, z_TVQxyz);
-%   qekf.log.log_z_state(z_TVQxyzw, i);
-  print('end of qekf data iterator ----->>')
-   
+x_TVQxyz = qekf.x_TVQxyz; % load prior state
+for i = dset.START_:dset.END_
+  u_Wrpy            = dset.Wrpy(i,:);
+  z_TVQxyz          = dset.z_TVQxyzw(i,1:end-1); % copy all except w term 
+  z_TVQxyzw         = dset.z_TVQxyzw(i,:); % only for data logging
+  [qekf, x_TVQxyz]  = qekf.predict(x_TVQxyz, u_Wrpy);
+  [qekf, x_TVQxyz]  = qekf.update(x_TVQxyz, z_TVQxyz);
+  dlog              = dlog.log_meas(z_TVQxyzw, i);
 end
 print('end of qekf data iterator ----->>')
 
