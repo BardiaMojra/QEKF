@@ -36,14 +36,13 @@ addpath(genpath('./'));
 dset = dat_class;
 dset = dset.load(dataset);
 
-dlog = log_class;
+% dlog = log_class;
 
 % plot data
 
 % init and run qekf
 qekf = qekf_class;
-qekf = qekf.config(dset, ... % dataset object 
-                   dlog, ... % datalog object 
+qekf = qekf.config(dset, ... % dataset object % dlog, ... % datalog object 
                    9, ... % dim_x Txyz, Vxyz, Qxyz 
                    9, ... % dim_z Txyz, Vxyz, Qxyz 
                    6, ... % dim_u Axyz, Wrpy
@@ -57,11 +56,11 @@ qekf = qekf.config(dset, ... % dataset object
 x_TVQxyz = qekf.x_TVQxyz; % load prior state
 for i = dset.START_+1:dset.END_
   u_Wrpy            = dset.u_Wrpy(i,:)';
-  z_TVQxyz          = dset.z_TVQxyzw(i,1:end-1)'; % copy all except w term 
+  z_TVQxyzw          = dset.z_TVQxyzw(i,:)'; % copy all except w term 
   [qekf, x_TVQxyz]  = qekf.predict(x_TVQxyz, u_Wrpy);
-  [qekf, x_TVQxyz]  = qekf.update(x_TVQxyz, z_TVQxyz);
-  z_TVQxyzw         = dset.z_TVQxyzw(i,:)'; % only for data logging
-  dlog              = dlog.log_meas(z_TVQxyzw, i);
+  [qekf, x_TVQxyz]  = qekf.update(x_TVQxyz, z_TVQxyzw, i);
+%   z_TVQxyzw         = dset.z_TVQxyzw(i,:)'; % only for data logging
+%   qekf.log          = qekf.log_meas(z_TVQxyzw, i);
 end
-print('end of qekf data iterator ----->>')
+disp('end of qekf data iterator ----->>')
 

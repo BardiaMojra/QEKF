@@ -67,22 +67,19 @@ def check_q(_q:quaternion, tolerance=0.00001):
 
 ### Logarithmic map of Quaternion wxyz
 def Q_log(q):
-  q_v = q[0]
-  q_n = np.array([q[1],q[2],q[3]])
-  q_n = q_n.reshape(-1,1)
-  norm_q_n = np.linalg.norm(q_n)
-  #todo: re-evluate this
-  if q_v>1:
-    q_v=1
-    #st()
-  if q_v<-1:
-    q_v=-1
-    #st()
-  if (norm_q_n!=0 and q_v>=0):
-    return 2*np.arccos(q_v)*q_n/norm_q_n
-  elif (norm_q_n!=0 and q_v<0):
-    return -2*np.arccos(-q_v)*q_n/norm_q_n
-  elif norm_q_n==0:
+  w = q[0]
+  v = np.array([q[1],q[2],q[3]])
+  v = v.reshape(-1,1)
+  norm = np.linalg.norm(v)
+  if w>1:
+    w=1
+  if w<-1:
+    w=-1
+  if (norm!=0 and w>=0):
+    return 2*np.arccos(w)*v/norm
+  elif (norm!=0 and w<0):
+    return -2*np.arccos(-w)*v/norm
+  elif norm==0:
     return np.zeros((3,1))
 
 def get_Qwxyz(xyz: np.array):

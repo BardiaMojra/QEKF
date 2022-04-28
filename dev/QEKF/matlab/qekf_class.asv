@@ -86,7 +86,7 @@ classdef qekf_class
                             R_noise]);
     end
     function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyzw,i)
-      z_TVQxyz  = z_TVQxyzw(1:end-1,1);
+      z_TVQxyz  = z_TVQxyzw
       % ''' compute Kalman gain '''
       PHT       = obj.P * obj.H';
       obj.S     = obj.H * PHT + obj.R;
