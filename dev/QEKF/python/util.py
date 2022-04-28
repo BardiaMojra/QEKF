@@ -11,15 +11,6 @@ from pdb import set_trace as st
 
 
 
-def get_skew_symm_X(x):
-  X = np.zeros((3,3))
-  X[0,1] = -x[2]
-  X[0,2] =  x[1]
-  X[1,0] =  x[2]
-  X[1,2] = -x[0]
-  X[2,0] = -x[1]
-  X[2,1] =  x[0]
-  return X
 
 def get_unix_time_from_str(dateStr):
   datetime_format = '%Y-%m-%d %H:%M:%S.%f'

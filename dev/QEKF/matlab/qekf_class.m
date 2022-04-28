@@ -93,15 +93,15 @@ classdef qekf_class
       Ky          = dot(obj.K,y_TVQ);
       x_TVQ_post(1:6) = x_TVQxyz(1:6) + Ky(1:6);
       % ''' quat part '''
-      x_q       = obj.Qxyz2Q(x_TVQxyz(7:9,1));
-      z_q       = obj.Qxyz2Q(z_TVQxyz(7:9,1));
+      x_q       = Qxyz2Q(x_TVQxyz(7:9,1));
+      z_q       = Qxyz2Q(z_TVQxyz(7:9,1));
       y_PHIxyz  = z_q * quatinv(x_q); % get quaternion error
       y_PHIxyz  = quatnormalize(y_PHIxyz);
-      y_PHIxyz  = obj.Q2Qxyz(y_PHIxyz);
+      y_PHIxyz  = Q2Qxyz(y_PHIxyz);
       y_PHIrpy  = quatlog(y_PHIxyz); % get rotation error
       ky_PHIrpy = dot(obj.K(7:9,7:9),y_PHIrpy);
       x_q_corr  = quatexp(obj.T_ .* ky_PHIrpy(1:3)); % quaternion correction
-      x_q_corr  = obj.Qxyz2Q(x_q_corr(1:3)); % return Quat object
+      x_q_corr  = Qxyz2Q(x_q_corr(1:3)); % return Quat object
       % equation 6 from EKF2 paper # update quaternion
       x_q_post = x_q_corr * x_q; % wxyz format
       x_q_post = quatnormalize(x_q_post);
@@ -124,51 +124,54 @@ classdef qekf_class
       %  - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
       %    f(\hat{x}_{k-1|k-1}, u_{k}) 
       % est linPos
+
       x_TVQxyz(1:3) = x_TVQxyz(1:3) + obj.T_ .* x_TVQxyz(4:6);
       % est linVel
       x_TVQxyz(4:6) = x_TVQxyz(4:6);
       % est rotVec (quat) -- eq(18)
       % est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
+      
+      
       u_Qxyzw = exp(obj.T_ .* u_Wrpy);
-      q_u_Qwxyz = obj.Qxyz2Q(u_Qxyzw(1:3));
-      q_x_Qwxyz = obj.Qxyz2Q(x_TVQxyz(7:9,1));
+
+      breakpoint;
+
+      q_u_Qwxyz = Qxyz2Q([u_Qxyzw(1:3)]);
+      q_x_Qwxyz = Qxyz2Q(x_TVQxyz(7:9,1));
       q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz;
       q_x_Qwxyz = quatnormalize(q_x_Qwxyz);
-      x_TVQxyz(7:9,1) = obj.Q2Qxyz(q_x_Qwxyz);
+      x_TVQxyz(7:9,1) = Q2Qxyz(q_x_Qwxyz);
     end
-      function [obj, x_TVQxyz] = predict(obj,x_TVQxyz,u_Wrpy)
-      obj       = obj.set_C(x_TVQxyz(7:9,1));
-      obj       = obj.set_H();
-      obj       = obj.set_L();
-      obj       = obj.set_F(u_Wrpy);
-      x_TVQxyz  = obj.predict_x(obj,x_TVQxyz,u_Wrpy);
+    function [obj, x_TVQxyz] = predict(obj,x_TVQxyz,u_Wrpy)
+      Qxyz      = x_TVQxyz(7:9,1);
+      obj.C     = obj.get_C(Qxyz);
+      obj.H     = obj.get_H(obj.C);
+      obj.L     = obj.get_L(obj.C,obj.dim_x);
+      obj.F     = obj.get_F(u_Wrpy,obj.dim_x,obj.T_);
+      x_TVQxyz  = obj.predict_x(x_TVQxyz,u_Wrpy);
+      obj.x_TVQxyz  = x_TVQxyz;
       Q_k       = dot(dot(dot(dot(obj.T_ .* obj.F,obj.L),obj.Q_c),obj.L'),obj.F');
       obj.P     = dot(dot(obj.F,obj.P),obj.F') + Q_k;
     end
-    function [x,y,z] = Q2Qxyz(q)
-      q = quantnormalize(q);
-      [~,x,y,z] = parts(q);
+  end 
+  methods (Static)
+    function F = get_F(u_Wrpy,dim_x,T)
+      F           = eye(dim_x);
+      F(1:3,4:6)  = T .* eye(3);
+      u_skw       = skw_sym(u_Wrpy);
+      F(7:9,7:9)  = eye(3) - T .* u_skw;
     end
-    function q = Qxyz2Q(Qxyz)
-      w = sqrt(1 - Qxyz(1)^2 - Qxyz(2)^2 - Qxyz(3)^2);
-      q = quaternion(w,Qxyz(1),Qxyz(2),Qxyz(3));
-    end
-    function obj = set_F(obj,u_Wrpy)
-      obj.F = eye(obj.dim_x);
-      obj.F(1:3,4:6) = obj.T_ .* eye(3);
-      obj.F(7:9,7:9) = eye(3) - obj.T_ .* obj.get_skew_symm_X(u_Wrpy);
-    end
-    function obj = set_H(obj)
-      obj.H(1:9,1:9) = eye(9);
-      obj.H(1:3,1:3) = obj.C;
+    function H = get_H(C)
+      H(1:9,1:9)  = eye(9);
+      H(1:3,1:3)  = C;
     end 
-    function obj = set_L(obj)
-      obj.L = eye(obj.dim_x);
-      obj.L(4:6,4:6) = -obj.C';
+    function L = get_L(C,dim_x)
+      L           = eye(dim_x);
+      L(4:6,4:6)  = -C';
     end 
-    function obj = set_C(obj,x_Qxyz)
-      q = obj.Qxyz2Q(x_Qxyz);
-      obj.C = quat2rotm(q);
+    function C = get_C(Qxyz)
+      q    = Qxyz2Q(Qxyz);
+      C    = quat2rotm(q);
     end
     function res = get_losses(res, outDir)
       L1 = zeros(height(res),1);
@@ -198,6 +201,26 @@ classdef qekf_class
       end
     end
   end
+end
+
+%% local functions
+%  
+function [x,y,z] = Q2Qxyz(q)
+  q = quantnormalize(q);
+  [~,x,y,z] = parts(q);
+end
+function q = Qxyz2Q(Qxyz)
+  w = sqrt(1 - Qxyz(1)^2 - Qxyz(2)^2 - Qxyz(3)^2);
+  q = quaternion(w,Qxyz(1),Qxyz(2),Qxyz(3));
+end
+function x_sym = skw_sym(x)
+  x_sym       = zeros(3,3);
+  x_sym(1,2)  = -x(3);
+  x_sym(1,3)  =  x(2);
+  x_sym(2,1)  =  x(3);
+  x_sym(2,3)  = -x(1);
+  x_sym(3,1)  = -x(2);
+  x_sym(3,2)  =  x(1);
 end
 
     
