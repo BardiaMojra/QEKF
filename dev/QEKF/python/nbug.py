@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 ''' NBUG config '''
-# _prec       = 10 # nprt precision
+_prec       = 2 # nprt precision
 nprt_en     = True #False
 nprt_en2    = True
 
@@ -21,7 +21,7 @@ stail       = ''
 attn        = 'here ----------- <<<<<\n\n'
 
 # np.set_printoptions(precision=_prec)
-# pd.set_option("display.precision", _prec)
+pd.set_option("display.precision", _prec)
 # pd.option_context('display.float_format', '{:0.10f}'.format)
 
 def eprint(*args, **kwargs):

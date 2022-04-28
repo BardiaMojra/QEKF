@@ -100,7 +100,9 @@ class QEKF(object):
     y_PHIxyz = y_PHIxyz.normalized()
     y_PHIrpy = Q_log(get_Qwxyz(y_PHIxyz.imag)) # get rotation error
     ky_PHIrpy = self.K[6:9,6:9] @ y_PHIrpy
+
     x_q_corr = exp_map(self.T_*ky_PHIrpy[0:3,0]) # quaternion correction
+
     x_q_corr = get_npQ(x_q_corr[0:3])
     # equation 6 from EKF2 paper # update quaternion
     x_q_post = x_q_corr * x_q  # wxyz format
@@ -129,7 +131,12 @@ class QEKF(object):
     x_TVQxyz[3:6] = x_TVQxyz[3:6]
     ''' est rotVec (quat) -- eq(18) '''
     # est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
+
     u_Qxyzw = exp_map(self.T_ * u_Wrpy)
+
+    npprint('u_Qxyzw', u_Qxyzw)
+    st()
+
     q_u_Qwxyz = get_npQ(u_Qxyzw[0:3])
     q_x_Qwxyz = get_npQ(x_TVQxyz[6:9,0])
     q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz

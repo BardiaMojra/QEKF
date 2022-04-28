@@ -136,7 +136,7 @@ classdef qekf_class
 
 
       q_u_Qwxyz = Qxyz2Q(u_Rrpy(1:3))
-      q_u_Qwxyz = quaternion(u_Rrpy, 'rotvec')
+      q_u_Qwxyz = quaternion(u_Rrpy, '')
       
       q_x_Qwxyz = Qxyz2Q(x_TVQxyz(7:9,1));
       q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz;
@@ -211,7 +211,6 @@ function [x,y,z] = Q2Qxyz(q)
   [~,x,y,z] = parts(q);
 end
 function q = Qxyz2Q(Qxyz)
-  disp(Qxyz)
   w = sqrt(1 - Qxyz(1)^2 - Qxyz(2)^2 - Qxyz(3)^2);
   q = quaternion(w,Qxyz(1),Qxyz(2),Qxyz(3));
 end
@@ -225,15 +224,13 @@ function x_sym = skw_sym(x)
   x_sym(3,2)  =  x(1);
 end
 function Qxyzw = exp_map(x)
-  if isequal(size(x),[3,1])
-    norm_x = norm(x);
-  %   x = array(x);
-    if norm_x == 0
-      Qxyzw = [0,0,0,1];
-    else
-      qxyz = sin(norm_x/2) .* x/norm_x;
-      qw = cos(norm_x/2);
-      Qxyzw = [qxyz(1),qxyz(2),qxyz(3),qw];
-    end
+  norm_x = norm(x);
+%   x = array(x);
+  if norm_x == 0
+    Qxyzw = [0,0,0,1];
+  else
+    qxyz = sin(norm_x/2) .* x/norm_x;
+    qw = cos(norm_x/2);
+    Qxyzw = [qw,qxyz(1),qxyz(2),qxyz(3)];
   end
 end

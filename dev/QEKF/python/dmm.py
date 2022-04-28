@@ -239,25 +239,32 @@ class dmm:
       Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6
     '''
     if self.name=="dataset-iphone1_clean" and self.ext=='csv':
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name=="bigC_06-Aug2021" and self.ext=='csv':
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name == 'Y2021M08D05_zoom-twist-jackal_BigC-off_ransac-off'\
       and self.ext=='csv':
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name == 'Y2021M08D05_ZoomTwistJackal_BigC-off_ransac-off'\
       and self.ext=='csv':
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name == 'Y2021M08D05_BoxWalkKuka_BigC-off_ransac-off_Q-Select-on_FP-Last6'\
       and self.ext=='csv':
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name == 'Y2021M08D06_BoxWalkKuka_BigC-off_ransac-off_Q-Select-off_FP-HighLow6'\
       and self.ext=='csv':
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name == 'Y2021M08D05_CircleAoundMetal_BigC-off_ransac-off'\
       and self.ext=='csv':
       # self.load_sigfig_set()
-      self.load_QuVest_set()
+      # self.load_QuVest_set()
+      self.load_df()
     elif self.name=="kitti_imu_0926_0001" and self.ext=='csv':
         self.load_kitti_set()
     elif self.name=="kitti_imu_0926_0002" and self.ext=='csv':
@@ -291,8 +298,18 @@ class dmm:
       self.df.to_csv(self.output_dir+self.name+'_df.csv', columns=self.df.columns)
     return
 
-  def load_QuVest_set(self):
+  def load_df(self):
+    fname = self.srcDir+self.name+'_df.csv'
+    df = pd.read_csv(fname, index_col=0, dtype=self.dtype)
+    # quest_df.drop(['time'], axis=1, inplace=True, errors='raise')
+    self.df = df
+    # load np format
+    self.z_TVQxyzw_np = df[_Z_LABELS].to_numpy()
+    self.u_Wrpy_np = df[_U_LABELS].to_numpy()
 
+    # nprint('self.z_TVQxyzw_np[5:]', self.z_TVQxyzw_np[5:])
+    # nprint('self.z_TVQxyzw_np[:5]', self.z_TVQxyzw_np[:5])
+    # st()
     return
 
   def load_QuVest_set(self):
