@@ -14,7 +14,7 @@ classdef qekf_class
     R_noise % measurement noise covar
     P_est_0 % init condition posterior noise covar
     IC % init condition state vec 
-    k_scale = 1.0; % linear gain factor for manual tuning 
+    K_scale = 1.0; % linear gain factor for manual tuning 
     % internal data structs 
     x_TVQxyz % state est vec
     y_TVQxyz % residual vec
@@ -82,36 +82,36 @@ classdef qekf_class
 
     function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyz)
       % ''' compute Kalman gain '''
-      PHT       = dot(obj.P, obj.H');
-      obj.S     = dot(obj.H, PHT) + obj.R;
-      obj.K     = dot(PHT,inv(obj.S));
+      PHT       = obj.P * obj.H';
+      obj.S     = obj.H * PHT + obj.R;
+      obj.K     = PHT \ obj.S; % instead of PHT * inv(obj.S);
       obj.K     = obj.K .* obj.K_scale;
       % ''' lin part '''
-      hx          = dot(obj.H,x_TVQxyz);
+      hx          = obj.H * x_TVQxyz;
       y_TVQ       = z_TVQxyz - hx; % TVWQxyz
       x_TVQ_post  = zeros(obj.dim_x,1);
-      Ky          = dot(obj.K,y_TVQ);
+      Ky          = obj.K * y_TVQ ;
       x_TVQ_post(1:6) = x_TVQxyz(1:6) + Ky(1:6);
       % ''' quat part '''
       x_q       = Qxyz2Q(x_TVQxyz(7:9,1));
       z_q       = Qxyz2Q(z_TVQxyz(7:9,1));
-      y_PHIxyz  = z_q * quatinv(x_q); % get quaternion error
-      y_PHIxyz  = quatnormalize(y_PHIxyz);
-      y_PHIxyz  = Q2Qxyz(y_PHIxyz);
-      y_PHIrpy  = quatlog(y_PHIxyz); % get rotation error
-      ky_PHIrpy = dot(obj.K(7:9,7:9),y_PHIrpy);
-      x_q_corr  = quatexp(obj.T_ .* ky_PHIrpy(1:3)); % quaternion correction
+      y_PHIwxyz  = z_q * qinv(x_q); % get quaternion error
+%       y_PHIwxyz  = y_PHIwxyz.normalize();
+%       y_PHIwxyz  = Q2Qxyz(y_PHIwxyz);
+      disp(y_PHIwxyz);
+      y_PHIrpy  = log_map(y_PHIwxyz); % get incremental rotation error
+      ky_PHIrpy = obj.K(7:9,7:9) * y_PHIrpy;
+      x_q_corr  = exp_map(obj.T_ .* ky_PHIrpy(1:3)); % quaternion correction
       x_q_corr  = Qxyz2Q(x_q_corr(1:3)); % return Quat object
       % equation 6 from EKF2 paper # update quaternion
       x_q_post = x_q_corr * x_q; % wxyz format
-      x_q_post = quatnormalize(x_q_post);
+      x_q_post = x_q_post.normalize();
       % at last update x 
       x_TVQxyz(1:6) = x_TVQ_post(1:6);
-      x_Qwxyz = parts(x_q_post); 
+      x_Qwxyz = x_q_post.compact(); 
       x_TVQxyz(7:9) = x_Qwxyz(2:4); % load quat xyz to x_post
-      I_KH = obj.I_ - dot(obj.K,obj.H);
-      obj.P = dot(dot(I_KH,obj.P),I_KH') + dot(dot(obj.K,obj.R),obj.K');
-      
+      I_KH = obj.I_ - obj.K * obj.H;
+      obj.P = I_KH * obj.P * I_KH' + obj.K * obj.R * obj.K';
       % ''' log state vectors '''
       x_TVQxyzw = zeros(obj.dim_x+1,1);
       x_TVQxyzw(7:10,1) = obj.get_Qxyzw(x_TVQxyz(7:9,1));
@@ -130,17 +130,14 @@ classdef qekf_class
       x_TVQxyz(4:6) = x_TVQxyz(4:6);
       % est rotVec (quat) -- eq(18)
       % est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
-      
-      u_Rrpy = exp_map(obj.T_ .* u_Wrpy);
-
-
-
-      q_u_Qwxyz = Qxyz2Q(u_Rrpy(1:3))
-      q_u_Qwxyz = quaternion(u_Rrpy, 'rotvec')
-      
+      u_Qxyzw = exp_map(obj.T_ .* u_Wrpy);
+      q_u_Qwxyz = Qxyz2Q(u_Qxyzw(1:3));
+%       disp(q_u_Qwxyz);
+%       q_u_Qwxyz = quaternion(u_Qxyz, 'rotvec');
+%       disp(q_u_Qwxyz);
       q_x_Qwxyz = Qxyz2Q(x_TVQxyz(7:9,1));
       q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz;
-      q_x_Qwxyz = quatnormalize(q_x_Qwxyz);
+      q_x_Qwxyz = q_x_Qwxyz.normalize();
       x_TVQxyz(7:9,1) = Q2Qxyz(q_x_Qwxyz);
     end
     function [obj, x_TVQxyz] = predict(obj,x_TVQxyz,u_Wrpy)
@@ -151,8 +148,8 @@ classdef qekf_class
       obj.F     = obj.get_F(u_Wrpy,obj.dim_x,obj.T_);
       x_TVQxyz  = obj.predict_x(x_TVQxyz,u_Wrpy);
       obj.x_TVQxyz  = x_TVQxyz;
-      Q_k       = dot(dot(dot(dot(obj.T_ .* obj.F,obj.L),obj.Q_c),obj.L'),obj.F');
-      obj.P     = dot(dot(obj.F,obj.P),obj.F') + Q_k;
+      Q_k       = obj.T_ .* obj.F * obj.L * obj.Q_c * obj.L' * obj.F';
+      obj.P     = obj.F * obj.P * obj.F' + Q_k;
     end
   end 
   methods (Static)
@@ -207,11 +204,10 @@ end
 %% local functions
 %  
 function [x,y,z] = Q2Qxyz(q)
-  q = quantnormalize(q);
-  [~,x,y,z] = parts(q);
+  q = q.normalize();
+  [~,x,y,z] = q.compact();
 end
 function q = Qxyz2Q(Qxyz)
-  disp(Qxyz)
   w = sqrt(1 - Qxyz(1)^2 - Qxyz(2)^2 - Qxyz(3)^2);
   q = quaternion(w,Qxyz(1),Qxyz(2),Qxyz(3));
 end
@@ -227,13 +223,39 @@ end
 function Qxyzw = exp_map(x)
   if isequal(size(x),[3,1])
     norm_x = norm(x);
-  %   x = array(x);
     if norm_x == 0
       Qxyzw = [0,0,0,1];
     else
       qxyz = sin(norm_x/2) .* x/norm_x;
       qw = cos(norm_x/2);
-      Qxyzw = [qxyz(1),qxyz(2),qxyz(3),qw];
+      Qxyzw = [qxyz(1);qxyz(2);qxyz(3);qw];
     end
   end
+end
+function qi = qinv(q)
+  q   = q.normalize();
+  qi  = q.conj ./ (q * q.conj);
+end 
+function 
+  y_PHIrpy  = log_map(y_PHIxyz); % get rotation error
+  ## Logarithmic map of Quaternion wxyz
+def Q_log(q):
+  q_v = q[0]
+  q_n = np.array([q[1],q[2],q[3]])
+  q_n = q_n.reshape(-1,1)
+  norm_q_n = np.linalg.norm(q_n)
+  #todo: re-evluate this
+  if q_v>1:
+    q_v=1
+    #st()
+  if q_v<-1:
+    q_v=-1
+    #st()
+  if (norm_q_n!=0 and q_v>=0):
+    return 2*np.arccos(q_v)*q_n/norm_q_n
+  elif (norm_q_n!=0 and q_v<0):
+    return -2*np.arccos(-q_v)*q_n/norm_q_n
+  elif norm_q_n==0:
+    return np.zeros((3,1))
+
 end

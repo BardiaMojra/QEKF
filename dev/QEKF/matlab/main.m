@@ -55,7 +55,7 @@ qekf = qekf.config(dset, ... % dataset object
                    ); %
 
 x_TVQxyz = qekf.x_TVQxyz; % load prior state
-for i = dset.START_:dset.END_
+for i = dset.START_+1:dset.END_
   u_Wrpy            = dset.u_Wrpy(i,:)';
   z_TVQxyz          = dset.z_TVQxyzw(i,1:end-1)'; % copy all except w term 
   [qekf, x_TVQxyz]  = qekf.predict(x_TVQxyz, u_Wrpy);

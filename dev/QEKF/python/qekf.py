@@ -157,7 +157,7 @@ class QEKF(object):
   def set_F(self, u_Wrpy:np.ndarray):
     self.F = np.eye(self.dim_x)
     self.F[0:3,3:6] = self.T_*np.eye(3)
-    self.F[6:9,6:9] = np.eye(3) - self.T_*get_skew_symm_X(u_Wrpy)
+    self.F[6:9,6:9] = np.eye(3) - self.T_* get_skew_symm_mat(u_Wrpy)
     return
 
   def set_H(self):
@@ -180,15 +180,15 @@ class QEKF(object):
     self.C = r.as_matrix()
     return
 
-  def get_skew_symm_X(x):
-    X = np.zeros((3,3))
-    X[0,1] = -x[2]
-    X[0,2] =  x[1]
-    X[1,0] =  x[2]
-    X[1,2] = -x[0]
-    X[2,0] = -x[1]
-    X[2,1] =  x[0]
-    return X
+def get_skew_symm_mat(x):
+  X = np.zeros((3,3))
+  X[0,1] = -x[2]
+  X[0,2] =  x[1]
+  X[1,0] =  x[2]
+  X[1,2] = -x[0]
+  X[2,0] = -x[1]
+  X[2,1] =  x[0]
+  return X
 
 
 def get_losses(res:pd.DataFrame, output_dir:str, save_en:bool=True, prt_en:bool=True):
