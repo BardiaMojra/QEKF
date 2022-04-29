@@ -34,16 +34,15 @@ addpath(genpath('./'));
 
 % init dataset object
 dset = dat_class;
-dset = dset.load(dataset);
+dset = dset.config(dataset);
 
-dlog = log_class;
+% dlog = log_class; %todo figure superclass structure 
 
 % plot data
 
 % init and run qekf
 qekf = qekf_class;
-qekf = qekf.config(dset, ... % dataset object 
-                   dlog, ... % datalog object 
+qekf = qekf.config(dset, ... % dataset object % dlog, ... % datalog object 
                    9, ... % dim_x Txyz, Vxyz, Qxyz 
                    9, ... % dim_z Txyz, Vxyz, Qxyz 
                    6, ... % dim_u Axyz, Wrpy
@@ -51,17 +50,21 @@ qekf = qekf.config(dset, ... % dataset object
                    1.5e-2, ... % Q_V_xyz
                    0.5e-3, ... % Q_quat_xyz
                    1e-6, ... % R_noise - measurement noise covar
-                   1e-4 ... % P_est_0
-                   ); %
+                   1e-4, ... % P_est_0
+                   dset.name, ...
+                   dset.outDir); %
 
 x_TVQxyz = qekf.x_TVQxyz; % load prior state
 for i = dset.START_:dset.END_
-  u_Wrpy            = dset.u_Wrpy(i,:);
-  z_TVQxyz          = dset.z_TVQxyzw(i,1:end-1); % copy all except w term 
-  z_TVQxyzw         = dset.z_TVQxyzw(i,:); % only for data logging
+  u_Wrpy            = dset.u_Wrpy(i,:)';
+  z_TVQxyzw         = dset.z_TVQxyzw(i,:)'; % copy all except w term 
   [qekf, x_TVQxyz]  = qekf.predict(x_TVQxyz, u_Wrpy);
-  [qekf, x_TVQxyz]  = qekf.update(x_TVQxyz, z_TVQxyz);
-  dlog              = dlog.log_meas(z_TVQxyzw, i);
+  [qekf, x_TVQxyz]  = qekf.update(x_TVQxyz, z_TVQxyzw, i);
 end
-print('end of qekf data iterator ----->>')
+disp('end of qekf data iterator...');
 
+%% plot data 
+dat = dset.get_dat();
+res = qekf.get_res();
+disp('60 sec delay before exit...');
+pause(60);

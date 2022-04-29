@@ -2,7 +2,7 @@ classdef qekf_class
   %qekf_class qekf class holds related configs and data structures 
   %   detailed explanation goes here
   properties
-    % config (pass in to init internal configs)
+    %% config (pass in to init internal configs)
     dset % dataset obj 
     dim_x % state est/bel vec dim
     dim_z % state meas/obs vec dim
@@ -15,7 +15,7 @@ classdef qekf_class
     P_est_0 % init condition posterior noise covar
     IC % init condition state vec 
     K_scale = 1.0; % linear gain factor for manual tuning 
-    % internal data structs 
+    %% internal data structs 
     x_TVQxyz % state est vec
     y_TVQxyz % residual vec
     P % posterior noise covariance
@@ -28,14 +28,18 @@ classdef qekf_class
     H % observation jacobian matrix
     Q_c % process noise covar matrix
     R % measurement noise covar matrix
-%     log_en = true; % data logger flag
-%     log % datalog obj
+    %%  log
+    log_en = true; % data logger flag
+    log % datalog obj
     idx 
     z_hist % state measurement history
     x_hist % state estimate history
     y_hist % state residual history
     P_hist % state estimation covar history
     K_hist %Kalman gain matrix history 
+    ylabels = {'Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw'};
+    name % dataset
+    outDir % output dir 
   end
   methods
     function obj = config(obj, dset, ... % dlog, ...
@@ -44,8 +48,9 @@ classdef qekf_class
                           Q_V_xyz, ...
                           Q_quat_xyz, ...
                           R_noise, ...
-                          P_est_0 ...
-                          )
+                          P_est_0, ...
+                          dname, ...
+                          outdir)
       obj.dset       = dset;
 %       obj.log        = dlog;
       obj.dim_x      = dim_x;
@@ -56,6 +61,8 @@ classdef qekf_class
       obj.Q_quat_xyz = Q_quat_xyz;
       obj.R_noise    = R_noise;
       obj.P_est_0    = P_est_0;
+      obj.name       = dname;
+      obj.outDir     = outdir;
       % state vectors
       obj.x_TVQxyz   = horzcat(dset.Txyz(1,:),dset.Vxyz(1,:),dset.Qxyzw(1,1:end-1))'; % set state initial conditions
       obj.P          = eye(dim_x) .* P_est_0;
@@ -86,7 +93,7 @@ classdef qekf_class
                             R_noise]);
     end
     function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyzw,i)
-      z_TVQxyz  = z_TVQxyzw
+      z_TVQxyz  = z_TVQxyzw(1:end-1,1);
       % ''' compute Kalman gain '''
       PHT       = obj.P * obj.H';
       obj.S     = obj.H * PHT + obj.R;
@@ -102,17 +109,14 @@ classdef qekf_class
       x_q       = Qxyz2Q(x_TVQxyz(7:9,1));
       z_q       = Qxyz2Q(z_TVQxyz(7:9,1));
       y_PHI_Qwxyz  = z_q * qinv(x_q); % get quaternion error
-%       y_PHI_Qwxyz  = y_PHIwxyz.normalize();
-%       y_PHI_Qwxyz  = Q2Qxyz(y_PHIwxyz);
-%       disp(y_PHI_Qwxyz);
       y_PHI_lmap  = log_map(y_PHI_Qwxyz); % get incremental rotation error 
       ky_PHI_lmap = obj.K(7:9,7:9) * y_PHI_lmap;
       x_q_corr  = exp_map(obj.T_ .* ky_PHI_lmap(1:3)); % quaternion correction
       x_q_corr  = Qxyz2Q(x_q_corr(1:3)); % return Quat object
-      % equation 6 from EKF2 paper # update quaternion
+      % eq(6) update quaternion
       x_q_post = x_q_corr * x_q; % wxyz format
       x_q_post = x_q_post.normalize();
-      % at last update x 
+      % update x 
       x_TVQxyz(1:6) = x_TVQ_post(1:6);
       x_Qwxyz = x_q_post.compact(); 
       x_TVQxyz(7:9) = x_Qwxyz(2:4); % load quat xyz to x_post
@@ -121,28 +125,22 @@ classdef qekf_class
       % ''' log state vectors '''
       x_TVQxyzw = zeros(obj.dim_x+1,1);
       x_TVQxyzw(7:10,1) = Qxyz2Qxyzw(x_TVQxyz(7:9,1));
-      [~,x,y,z] = y_PHI_Qwxyz.parts();
-      y_TVQ(7:9,1) = [x,y,z];
-      obj = obj.log_update(y_TVQ, x_TVQxyzw, obj.P, obj.K);
+      [w,x,y,z] = y_PHI_Qwxyz.parts();
+      y_TVQw = zeros(obj.dim_x+1,1);
+      y_TVQw(1:6,1) = y_TVQ(1:6,1);  
+      y_TVQw(7:10,1) = [x,y,z,w];
+      obj = obj.log_update(y_TVQw, x_TVQxyzw,obj.P,obj.K);
       obj = obj.log_meas(z_TVQxyzw,i);
     end
     function x_TVQxyz = predict_x(obj, x_TVQxyz, u_Wrpy)
-      % estimation model
-      %  - eq 16-22 of QEKF2
-      %  - this routine is essentially discrete form of \hat{x}_{k|k-1} =\
-      %    f(\hat{x}_{k-1|k-1}, u_{k}) 
+      % eq(16-22) discrete form: \hat{x}_{k|k-1} = f(\hat{x}_{k-1|k-1}, u_{k}) 
       % est linPos
-
       x_TVQxyz(1:3) = x_TVQxyz(1:3) + obj.T_ .* x_TVQxyz(4:6);
       % est linVel
       x_TVQxyz(4:6) = x_TVQxyz(4:6);
-      % est rotVec (quat) -- eq(18)
-      % est incremental rotation (in quat) based on input angVel (Wrpy) and delta t
+      % eq(18) est incremental rotation (in quat) based on input angVel (Wrpy)
       u_Qxyzw = exp_map(obj.T_ .* u_Wrpy);
       q_u_Qwxyz = Qxyz2Q(u_Qxyzw(1:3));
-%       disp(q_u_Qwxyz);
-%       q_u_Qwxyz = quaternion(u_Qxyz, 'rotvec');
-%       disp(q_u_Qwxyz);
       q_x_Qwxyz = Qxyz2Q(x_TVQxyz(7:9,1));
       q_x_Qwxyz = q_u_Qwxyz * q_x_Qwxyz;
       q_x_Qwxyz = q_x_Qwxyz.normalize();
@@ -174,6 +172,14 @@ classdef qekf_class
       obj.P_hist = cat(1,obj.P_hist,P');
       obj.K_hist = cat(1,obj.K_hist,K');   
     end
+    function res = get_res(obj)
+      losses  = obj.get_losses(obj.y_hist);
+      res     = array2table(obj.y_hist,'VariableNames',obj.ylabels);
+      res     = [res,losses];
+      fname = strcat(obj.outDir,'res_',obj.name,'_tab.csv');
+      writetable(res,fname);
+%       head(res);
+    end 
   end
   methods (Static)
     function F = get_F(u_Wrpy,dim_x,T)
@@ -194,38 +200,39 @@ classdef qekf_class
       q    = Qxyz2Q(Qxyz);
       C    = quat2rotm(q);
     end
-    function res = get_losses(res, outDir)
-      L1 = zeros(height(res),1);
-      L2 = zeros(height(res),1);
+    function losses = get_losses(res)
+      losses = zeros(height(res),2);
       for i = 1:height(res)
         state_l1 = 0.0;
         state_l2 = 0.0;
-        for j = 1:width(res)
+        for j = 1:width(res)-1 % ignore q.w term
           l1 = abs(res(i,j));
           l2 = res(i,j)^2;
           state_l1 = state_l1 + l1;
           state_l2 = state_l2 + l2;
         end
-        L1(i,1) = state_l1;
-        L2(i,2) = state_l2;
+        losses(i,1) = state_l1;
+        losses(i,2) = state_l2;
       end
-      L1 = array2table(L1,'VariableNames','L1');
-      L2 = array2table(L2,'VariableNames','L2');
-      Losses = [L1,L2];
-      res = [res,Losses];
-      if isstring(outDir)
-        fname = strcat(outDir,'losses.txt');
-        file = fopen(fname, 'a');
-        mssg = strcat('---->> L1:',num2str(sum(L1)),'  L2:',num2str(sum(L2)),'\n');
-        disp(mssg);
-        fprintf(file,mssg);
-      end
+      losses = array2table(losses,'VariableNames',{'L1','L2'});
+%       head(losses);
+      %       res = [res,Losses];
+%       if isstring(outDir)
+%         fname = strcat(outDir,'losses.txt');
+%         file = fopen(fname, 'a');
+%         mssg = strcat('---->> L1:',num2str(sum(L1)),'  L2:',num2str(sum(L2)),'\n');
+%         disp(mssg);
+%         fprintf(file,mssg);
+%       end
     end
   end
 end
 
 %% local functions
 %  
+function head(dat)
+  disp(dat(1:5,:));
+end
 function [x,y,z] = Qxyz2Qxyzw(Qxyz)
   q = Qxyz2Q(Qxyz);
   [~,x,y,z] = q.parts();
