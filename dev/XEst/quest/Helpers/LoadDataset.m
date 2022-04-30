@@ -211,7 +211,6 @@ elseif strcmp(benchtype, 'TUM')
     qTru = [qw, qx, qy, qz].'; % Ground truth quaternions in world coord frame    
     tTru = [tx, ty, tz].';     % Ground truth translations in world coord frame
     dataset.times = times;
-    
 else
     error('Undefined dataset.')
 end
@@ -221,7 +220,6 @@ negIdx = qTru(1,:) < 0;
 qTru(:,negIdx) = - qTru(:,negIdx);
 
 if strcmp(benchtype, 'TUM')
-    
     % We need to interpolate pose for TUM dataset
     % Initialize with the first frame
     fname = fnames{1};
