@@ -1,4 +1,5 @@
-function matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i)
+function matches = MatchFeaturePoints(Ip,ppoints,In,npoints,maxPts,dataset,i,...
+  matches_disp_en, matches_sav_en, outDir)
 
 % Extract feature points
 [f1,vp1] = extractFeatures(Ip,ppoints);
@@ -12,9 +13,13 @@ matchedPoints2 = vp2(indexPairs(:,2));
 
 p1 = matchedPoints1.Location;
 p2 = matchedPoints2.Location;     
-figure; im = showMatchedFeatures(Ip,In,p1,p2);
-% outpath = ['./out/KITTI/feature_matches/' num2str(i, '%02d') '.png'];
-% imwrite(im, outpath);
+if matches_disp_en
+  figure; im = showMatchedFeatures(Ip,In,p1,p2);
+  if matches_sav_en
+    outpath = [outDir 'matched_features_' num2str(i, '%02d') '.png'];
+    imwrite(im, outpath);
+  end
+end 
 % Feature points
 numMatch = size(p1, 1);  % Number of matched feature points
 numPts = min(numMatch, maxPts);
@@ -33,24 +38,30 @@ m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1)));
 m2u = bsxfun(@rdivide, m2, sqrt(sum(m2.^2,1)));
 
 % % Display images with matched feature points    
-imshow(In);
-hold on;
-plot(p1(:,1), p1(:,2), 'g+');
-plot(p2(:,1), p2(:,2), 'yo');    
-for j = 1 : numPts
-    plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'g');
+if matches_disp_en
+  imshow(In);
+  hold on;
+  plot(p1(:,1), p1(:,2), 'g+');
+  plot(p2(:,1), p2(:,2), 'yo');    
+  for j = 1 : numPts
+      plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'g');
+  end
+  drawnow;    
+  hold off;
+  if matches_sav_en
+    path = [outDir 'matched_features_fig_' num2str(i, '%02d') '.png'];
+    set(gcf, 'Position', [100 100 150 150]);
+    saveas(gcf, path); 
+    close
+  end
 end
-drawnow;    
-hold off;
-path = ['./out/KITTI/feature_matches/matches_fig_' num2str(i, '%02d') '.png'];
-% set(gcf, 'Position', [100 100 150 150]);
-saveas(gcf, path); 
-close
-
-% save the matched data points in pixels (padded with row of 1s)
-dat = cat(2,p11',p21');
-path = ['./out/KITTI/feature_matches/matches_p11p21_' num2str(i, '%02d') '.txt'];
-writematrix(dat,path,'Delimiter',' ') 
+  
+if matches_sav_en
+  % save the matched data points in pixels (padded with row of 1s)
+  dat = cat(2,p11',p21');
+  path = [outDir 'matches_p11p21_' num2str(i,'%02d') '.txt'];
+  writematrix(dat,path,'Delimiter',' ') 
+end
 
 
 % % save the matched data points in unit frame lengths 

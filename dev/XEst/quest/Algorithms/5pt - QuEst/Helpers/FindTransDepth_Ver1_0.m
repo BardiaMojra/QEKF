@@ -49,7 +49,6 @@ Z1      = zeros(numPts,numInp);  % Depth of points in the 1st camera frame
 Z2      = zeros(numPts,numInp);  % Depth of points in the 2nd camera frame
 Res     = zeros(1,numInp);       % Residue from SVD
 
-
 for k = 1 : numInp
     % Stack rigid motion constraints into matrix-vector form C * Y = 0
     C = zeros(3*numPts, 2*numPts+3);
@@ -97,17 +96,14 @@ for k = 1 : numInp
 end
 
 
-path = '../../mout/nbug_QuEst_T_matlab.txt';
-writematrix(T,path,'Delimiter',' ');
-
-path = '../../mout/nbug_QuEst_Z1_matlab.txt';
-writematrix(Z1,path,'Delimiter',' ');
-
-path = '../../mout/nbug_QuEst_Z2_matlab.txt';
-writematrix(Z2,path,'Delimiter',' ');
-
-path = '../../mout/nbug_QuEst_qt_Res_matlab.txt';
-writematrix(Res,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_T_matlab.txt';
+% writematrix(T,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_Z1_matlab.txt';
+% writematrix(Z1,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_Z2_matlab.txt';
+% writematrix(Z2,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_qt_Res_matlab.txt';
+% writematrix(Res,path,'Delimiter',' ');
 
 
 

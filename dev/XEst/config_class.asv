@@ -15,9 +15,6 @@ classdef config_class < matlab.System
     surf_thresh     = 200; % surf detector thresh
     maxPts          = 30; % max features used in pose est (fewer features, faster compute)
     minPts          = 8; % min feature required (6 to estimate a unique pose from RANSAC, or at least 8 for 8-pt algorithm)
-    % QuEest runtime var
-    keyFrames;
-    cntr;
   end
   methods
     %% constructor

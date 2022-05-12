@@ -52,8 +52,8 @@ Idx = [ 1     2     5    11    21     3     6    12    22     8    14    24    1
 Cf = CoefsVer3_1_1(m,n);
 % Cf = CoefsVer3_1_1_mex(m,n);
 
-path = '../../mout/QuEst_Cf_ml.txt';
-writematrix(Cf,path,'Delimiter',' ');
+% path = '../../mout/QuEst_Cf_ml.txt';
+% writematrix(Cf,path,'Delimiter',' ');
 
 numEq = size(Cf,1);
 % A is the coefficient matrix such that A * X = 0
@@ -61,36 +61,32 @@ A = zeros(4*numEq,56);
 for i = 1 : 4
     idx = Idx(i,:);
     A((i-1)*numEq+1 : i*numEq, idx) = Cf;
-    path = '../../mout/QuEst_A_ml.txt';
-    writematrix(A,path,'Delimiter',' ');
+%     path = '../../mout/QuEst_A_ml.txt';
+%     writematrix(A,path,'Delimiter',' ');
 end
 
-path = '../../mout/QuEst_A_ml.txt';
-writematrix(A,path,'Delimiter',' ');
-path = '../../mout/QuEst_Idx_ml.txt';
-writematrix(Idx,path,'Delimiter',' ');
+% path = '../../mout/QuEst_A_ml.txt';
+% writematrix(A,path,'Delimiter',' ');
+% path = '../../mout/QuEst_Idx_ml.txt';
+% writematrix(Idx,path,'Delimiter',' ');
 
 
 % Find bases for the null space of A
 [~,S,V] = svd(A,0);
 N = V(:,37:56);
 
-path = '../../mout/QuEst_V_ml.txt';
-writematrix(V,path,'Delimiter',' ');
-
-path = '../../mout/QuEst_V_fi10_ml.txt';
-writematrix(V(1:10,:),path,'Delimiter',' ');
-
-path = '../../mout/QuEst_V_la10_ml.txt';
-writematrix(V(47:56,:),path,'Delimiter',' ');
-
-path = '../../mout/QuEst_N_ml.txt';
-writematrix(N,path,'Delimiter',' ');
-path = '../../mout/QuEst_Idx_ml.txt';
-writematrix(Idx,path,'Delimiter',' ');
-
-path = '../../mout/QuEst_S_ml.txt';
-writematrix(S,path,'Delimiter',' ');
+% path = '../../mout/QuEst_V_ml.txt';
+% writematrix(V,path,'Delimiter',' ');
+% path = '../../mout/QuEst_V_fi10_ml.txt';
+% writematrix(V(1:10,:),path,'Delimiter',' ');
+% path = '../../mout/QuEst_V_la10_ml.txt';
+% writematrix(V(47:56,:),path,'Delimiter',' ');
+% path = '../../mout/QuEst_N_ml.txt';
+% writematrix(N,path,'Delimiter',' ');
+% path = '../../mout/QuEst_Idx_ml.txt';
+% writematrix(Idx,path,'Delimiter',' ');\
+% path = '../../mout/QuEst_S_ml.txt';
+% writematrix(S,path,'Delimiter',' ');
 
 idx = Idx(1,:);   A0 = N(idx,:);
 idx = Idx(2,:);   A1 = N(idx,:);
@@ -105,20 +101,16 @@ B2 = B(:,21:40);
 B3 = B(:,41:60);
 
 
-path = '../../mout/QuEst_A0_ml.txt';
-writematrix(A0,path,'Delimiter',' ');
-
-path = '../../mout/QuEst_A1_ml.txt';
-writematrix(A1,path,'Delimiter',' ');
-
-path = '../../mout/QuEst_A2_ml.txt';
-writematrix(A2,path,'Delimiter',' ');
-
-path = '../../mout/QuEst_A3_ml.txt';
-writematrix(A3,path,'Delimiter',' ');
-
-path = '../../mout/QuEst_B_ml.txt';
-writematrix(B,path,'Delimiter',' ');
+% path = '../../mout/QuEst_A0_ml.txt';
+% writematrix(A0,path,'Delimiter',' ');
+% path = '../../mout/QuEst_A1_ml.txt';
+% writematrix(A1,path,'Delimiter',' ');
+% path = '../../mout/QuEst_A2_ml.txt';
+% writematrix(A2,path,'Delimiter',' ');
+% path = '../../mout/QuEst_A3_ml.txt';
+% writematrix(A3,path,'Delimiter',' ');
+% path = '../../mout/QuEst_B_ml.txt';
+% writematrix(B,path,'Delimiter',' ');
 
 
 
@@ -130,14 +122,14 @@ writematrix(B,path,'Delimiter',' ');
 [V3, ~] = eig(B3);
 
 
-path = '../../mout/nbug_QuEst_V1_matlab.txt';
-writematrix(V1,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_V1_matlab.txt';
+% writematrix(V1,path,'Delimiter',' ');
 
-path = '../../mout/nbug_QuEst_V2_matlab.txt';
-writematrix(V2,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_V2_matlab.txt';
+% writematrix(V2,path,'Delimiter',' ');
 
-path = '../../mout/nbug_QuEst_V3_matlab.txt';
-writematrix(V3,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_V3_matlab.txt';
+% writematrix(V3,path,'Delimiter',' ');
 
 
 Ve = [V1, V2, V3];
@@ -151,8 +143,8 @@ Vi = Viall(:,srtIdx(1:2:end)); % Keep only one complex eigenvector
 Vr = Ve(:,~imagIdx);
 V0 = real([Vi, Vr]);           % Use only the real parts
 
-path = '../../mout/nbug_QuEst_V0_matlab.txt';
-writematrix(V0,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_V0_matlab.txt';
+% writematrix(V0,path,'Delimiter',' ');
 
 
 %% Extract quaternion elements
@@ -163,8 +155,8 @@ X5 = N * V0;
 % Correct the sign of each column s.t. the first element (i.e., w^5) is always positive
 X5 = bsxfun(@times, sign(X5(1,:)), X5);
 
-path = '../../mout/nbug_QuEst_X5_matlab.txt';
-writematrix(X5,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_X5_matlab.txt';
+% writematrix(X5,path,'Delimiter',' ');
 
 
 % Recover quaternion elements  
@@ -179,13 +171,13 @@ Q = [w;
      y;
      z];
 
-path = '../../mout/nbug_QuEst_Q_matlab.txt';
-writematrix(V0,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_Q_matlab.txt';
+% writematrix(V0,path,'Delimiter',' ');
 
 % Normalize s.t. each column of Q has norm 1
 QNrm = sqrt(sum(Q.^2,1));
 Q = bsxfun(@rdivide, Q, QNrm);
-path = '../../mout/nbug_QuEst_Qs_matlab.txt';
-writematrix(Q,path,'Delimiter',' ');
+% path = '../../mout/nbug_QuEst_Qs_matlab.txt';
+% writematrix(Q,path,'Delimiter',' ');
 
 
