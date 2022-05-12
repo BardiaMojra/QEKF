@@ -9,28 +9,39 @@ classdef quest_class < matlab.System
 
   %% public vars
   properties 
-    % mod config
+    %% configs (passed in via cfg obj or set manually)
+    test_ID % unified name for test run 
     outDir % out dir 
-    srcDir % data dir
-    title % unified name for test run 
-    matches_disp_en % disp matched features between two keyframes
-    
-    sliding_ref_en = false % disable sliding_ref mode when running in real-time
-    res_prt_en = true; % print res in terminal  
-    res_sav_en = true; % save res table 
-    
-    
-    % quest configs
-    dataroot % data path
-    benchtype % dataset name 
-    benchnum % data sequence 
+    method % method in use --- pass in by managing obj durring runtime (run) or unit testing (dev) 
+    st_frame    = 1;% start frame index
+    end_frame   = nan;% end frame index
+    %% features (private)
+    matches_disp_en   = false; % disp matched features between two keyframes
+    sliding_ref_en    = false; % disable sliding_ref mode when running in real-time
+    res_prt_en        = true; % print res in terminal  
+    res_sav_en        = true; % save res table 
+    %% quest configs
+    dataroot    = [pwd '/data/']; % data path
+    benchtype % benchmark type (e.g. KITTI or TUM) 
+    benchnum    = 3; % data sequence aux to KITTI   
+    skipFrame   = 0; % num of frames skiped between two keyframes
+    ranThresh   = 1e-6;% RANSAC Sampson dist threshold (for outliers)
+    surfThresh  = 200; % SURF feature detection threshold
+    maxPts      = 30; % max num of features used in pose est (fewer points, faster compute)
+    minPts      = 8; % max num of features required (6 to est a unique pose with RANSAC)
+    algorithms  = {'EightPt'; 
+                   'Nister'; 
+                   'Kneip'; 
+                   'Kukelova'; 
+                   'Stewenius'; 
+                   'QuEst'}; % algorithms to run ----> (disabled for now)
+    benchmarks  = {'KITTI';
+                   'NAIST';
+                   'ICL';
+                   'TUM'} % benchmarks ----> (disabled for now)
+    % run-time variables 
     dataset % quest dataset obj
-    skipFrame % num of frames skiped between two keyframes
-    ranThresh % RANSAC Sampson dist threshold (for outliers)
-    surfThresh % SURF feature detection threshold
-    maxPts % max num of features used in pose est (fewer points, faster compute)
-    minPts % max num of features required (6 to est a unique pose with RANSAC)
-    % opt vars
+    posp % previous frame ground truth pose (per frame, given)
     numImag % total num of images
     keyFrames % keyframe indecies 
     numKeyFrames % num of keyframes
@@ -39,8 +50,6 @@ classdef quest_class < matlab.System
     tranErr % trans err for each method
     Q % recovered quaternions 
     T % recovered translations
-    st_frame % start frame index
-    end_frame % end frame index
     cntr % key frame counter
     ppoints_i % initial frame feature points 
     Ip_i % initial image
@@ -48,9 +57,8 @@ classdef quest_class < matlab.System
     Ip % previous image
     npoints % current frame feature points 
     In % current image 
-%     matches % matches_class obj
-    relPose % relative ground truth transform (bewteen frames)
-    posp % previous frame ground truth pose (per frame, given)
+    matches % matches_class obj
+    relPose % relative ground truth transform (bewteen frames)    
   end
   %% public consts 
 %   properties(Nontunable) 
@@ -71,28 +79,36 @@ classdef quest_class < matlab.System
   methods(Access = protected)
     %% public functions
     function obj = load_cfg(obj,cfg)
-      % load cfg
+      % load common cfg 
+      obj.test_ID       = cfg.test_ID;
+      obj.outDir        = cfg.outDir;
+      obj.method        = cfg.QuEst_method;
+      obj.st_frame      = cfg.st_frame;
+      obj.end_frame     = cfg.end_frame;
+      % load QuEst cfg
       obj.dataroot      = cfg.datDir;
-      obj.benchtype     = cfg.benchmarks;
+      obj.benchtype     = cfg.benchtype;
       obj.benchnum      = cfg.seq;
-      obj.skip_frame    = cfg.skip_frame;
+      obj.skipFrame     = cfg.skipFrame;
       obj.ransac_thresh = cfg.ransac_thresh;
       obj.surf_thresh   = cfg.surf_thresh;
       obj.maxPts        = cfg.maxPts;
       obj.minPts        = cfg.minPts;
-      obj.algorithms    = cfg.benchmarks;
-      obj.skipFrame     = cfg.skipFrame;
-      obj.ranThresh     = cfg.ransac_thresh;
-      obj.surfThresh    = cfg.surf_thresh;
-      obj.maxPts        = cfg.maxPts;
-      obj.minPts        = cfg.minPts;
-      % init rest of the config
-
-
-
-
-      [obj.dataset,obj.posp] = LoadDataset(obj.dataroot,obj.benchtype,...
+      % init run-time configs
+      obj = obj.init();
+    end
+    function obj = init(obj)
+      [obj.dataset,obj.posp] = obj.LoadDataset(obj.dataroot,obj.benchtype,...
         obj.benchnum);
+      if strcmp(obj.benchtype,'KITTI')
+        obj.skipFrame = 1; 
+      elseif strcmp(obj.benchtype,'NAIST')
+        obj.skipFrame = 1; 
+      elseif strcmp(obj.benchtype,'ICL')
+        obj.skipFrame = 1; 
+      elseif strcmp(obj.benchtype,'TUM')
+        obj.skipFrame = 1;     
+      end
       obj.numImag       = length(obj.dataset.fnames); 
       obj.keyFrames     = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
       obj.numKeyFrames  = length(obj.keyFrames); 
@@ -113,12 +129,12 @@ classdef quest_class < matlab.System
       obj.cntr  = obj.cntr + 1; % Counter          
       % get current frame features and match w prev frame    
       [obj.npoints,obj.In] = GetFeaturePoints(i,obj.dataset,obj.surfThresh);            
-      matches   = MatchFeaturePoints(obj.Ip,obj.ppoints,obj.In,obj.npoints,...
+      obj.matches   = MatchFeaturePoints(obj.Ip,obj.ppoints,obj.In,obj.npoints,...
         obj.maxPts,obj.dataset,i);
       % relative ground truth transformation and previous frame gt pose
       [obj.relPose,obj.posp] = RelativeGroundTruth(i,obj.posp,obj.dataset);
       % skip frame if not enough matches found 
-      if (matches.numPts < obj.minPts) || (matches.status~=0)         
+      if (obj.matches.numPts < obj.minPts) || (obj.matches.status~=0)         
         obj.Ip      = obj.In; % use current frame as the next previous frame
         obj.ppoints = obj.npoints;         
         disp('Not enough matched feature points. Frame skipped!');
@@ -126,29 +142,29 @@ classdef quest_class < matlab.System
         % recover pose and calc its err by comparing w ground truth     
         for mthd = 1:obj.numMethods   
           if strcmp(obj.algorithms{mthd},'QuEst_RANSAC_v0102') % QuEst w RANSAC
-            [M, inliers]  = QuEst_RANSAC_Ver1_2(matches.m1,matches.m2,...
+            [M, inliers]  = QuEst_RANSAC_Ver1_2(obj.matches.m1,obj.matches.m2,...
               obj.ranThresh);   
             q             = M.Q;
             tOut          = M.t;
           elseif strcmp(obj.algorithms{mthd},'QuEst_v0708') 
-            kp1           = matches.m1(:,1:5);
-            kp2           = matches.m2(:,1:5);
+            kp1           = obj.matches.m1(:,1:5);
+            kp2           = obj.matches.m2(:,1:5);
             q             = QuEst_5Pt_Ver7_8(kp1,kp2,obj.cntr);
             tOut          = FindTransDepth_Ver1_0(kp1,kp2,q);
           elseif strcmp(obj.algorithms{mthd},'EightPt') % Eight Point alg
-            EOut          = eightp_Ver2_0(matches.m1,matches.m2);
+            EOut          = eightp_Ver2_0(obj.matches.m1,obj.matches.m2);
             [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
             q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'Nister') % Five Point alg (Nister)
-            EOut          = opengv('fivept_nister',matches.m2u,matches.m1u);
+            EOut          = opengv('fivept_nister',obj.matches.m2u,obj.matches.m1u);
             [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
             q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'Li') % Five Point alg (Li + Hatley)
-            EOut          = Ematrix5pt_v2(matches.m2u(:,1:5),matches.m1u(:,1:5));
+            EOut          = Ematrix5pt_v2(obj.matches.m2u(:,1:5),obj.matches.m1u(:,1:5));
             [ROut,tOut]   = TransformEssentialsVer2_0(EOut);
             q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd}, 'Kneip') % Five Point alg (Kneip)
-            ROut          = opengv('fivept_kneip',1:5,matches.m2u,matches.m1u);  
+            ROut          = opengv('fivept_kneip',1:5,obj.matches.m2u,obj.matches.m1u);  
             if ~isempty(ROut) % If a solution is returned
               q            = R2Q(ROut);
               [q,matchIdx] = FindClosetQVer2_2(obj.relPose.qr,q); % ...to gtruth 
@@ -158,34 +174,38 @@ classdef quest_class < matlab.System
             % the next iteration.
             continue;
           elseif strcmp(obj.algorithms{mthd},'Kukelova') % Five Point algorithm (Polynomial eigenvalue)
-            EOut          = PolyEigWrapper(matches.m1,matches.m2);                
+            EOut          = PolyEigWrapper(obj.matches.m1,obj.matches.m2);                
             [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
             q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'Stewenius') % Five Point algorithm (Stewenius)
-            EOut          = opengv('fivept_stewenius',matches.m2u,matches.m1u); % Same results as fivep.m                
+            EOut          = opengv('fivept_stewenius',obj.matches.m2u,obj.matches.m1u); % Same results as fivep.m                
             [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
             q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'QuEst') % Five Point algorithm (QuEst)
-            sol           = QuEst_Ver1_1(matches.m1,matches.m2);                
+            sol           = QuEst_Ver1_1(obj.matches.m1,obj.matches.m2);                
             q             = sol.Q;
             tOut          = sol.T;
           else
             error('Undefined algorithm.')
           end
+          % package output object for pose and rot
+          TQ              = [tOut q]; 
+          
           % find the closest transform to ground truth    
           [q,matchIdx]    = FindClosetQVer2_2(obj.relPose.qr,q);
-          t               = FindClosetTrans(obj.relPose.tr,[tOut,-tOut]);        
+          t               = FindClosetTrans(obj.relPose.tr,[tOut,-tOut]);   
+
+
           % calc est error
           obj.rotErr(obj.cntr,mthd)  = QuatError(obj.relPose.qr, q);
           obj.tranErr(obj.cntr,mthd) = TransError(obj.relPose.tr, t);            
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-        
         if obj.matches_disp_en 
           fig = imshow(obj.Ip);
           hold on;
-          p1 = matches.p1;
-          p2 = matches.p2;
+          p1 = obj.matches.p1;
+          p2 = obj.matches.p2;
           numPts = size(p1,2);
           plot(p1(:,1), p1(:,2), 'g+');
           plot(p2(:,1), p2(:,2), 'yo');    
@@ -212,6 +232,8 @@ classdef quest_class < matlab.System
         if mod(obj.cntr,10) == 0 % Print iteration number
           disp(['Iteration ' num2str(obj.cntr) ' of ' num2str(obj.numKeyFrames)]);
         end  
+
+        
       end 
     end
     function res = get_res(obj)
@@ -258,7 +280,7 @@ classdef quest_class < matlab.System
                    data(:,5), ...
                    data(:,6), ...
                    'RowNames', RowNames, ...
-                   'VariableNames', algorithms); 
+                   'VariableNames', obj.algorithms); 
       if obj.res_prt_en
         disp(res);
       end 

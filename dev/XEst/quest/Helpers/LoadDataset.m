@@ -1,4 +1,5 @@
-function [dataset, posp] = LoadDataset(dataroot, benchtype, benchnum)
+function [dataset, posp] = LoadDataset(dataroot, benchtype, benchnum, ...
+  st_frame, end_frame)
 
 dataset.dataroot = dataroot;
 dataset.benchtype = benchtype;
@@ -48,43 +49,38 @@ dataset.datapath = datapath;
 
 
 %% Image files
-
 files  = dir(imgpath);
+st_frame = st_frame+2; % dir('.') lists . and .. 
+if isnan(end_frame)
+  end_frame = length(files);
+end 
+
 if strcmp(benchtype, 'KITTI')
-    
-    fnames = cell(1,length(files)-3);
-    for i = 3 : length(files)
+  fnames = cell(1,end_frame-3);
+    for i = st_frame:end_frame
         fnames{i-2} = files(i).name;
     end
-    
 elseif strcmp(benchtype, 'NAIST')
-    
-    fnames = cell(1,length(files)-3);
-    for i = 3 : length(files)
+    fnames = cell(1,end_frame-3);
+    for i = st_frame:end_frame
         fnames{i-2} = files(i).name;
     end
-    
 elseif strcmp(benchtype, 'ICL')
-    
-    fnames = cell(1,length(files)-3);
-    for i = 1 : length(fnames)
+    fnames = cell(1,end_frame-3);
+    for i = st_frame-2:length(fnames)
         fnames{i} = [num2str(i-1) '.png'];
     end
-    
 elseif strcmp(benchtype, 'TUM')
-    
-    fnames = cell(1,length(files)-2);
-    for i = 3 : length(files)
+    fnames = cell(1,end_frame-2);
+    for i = st_frame:end_frame
         fnames{i-2} = files(i).name;
     end
-    
 end
-
 dataset.fnames = fnames;
-
+dataset.st_frame = st_frame;
+dataset.end_frame = end_frame;
 
 %% Calibration matrix
-
 if strcmp(benchtype, 'KITTI')
     
     %Use textscan to load the calibration matrix

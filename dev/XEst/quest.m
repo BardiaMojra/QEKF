@@ -11,7 +11,9 @@
 addpath('Helpers')
 addpath(genpath('.Algorithms'))
 dataroot = [pwd '/Datasets'];
-
+% Load dataset
+benchtype = 'KITTI';
+benchnum = 3;
 [dataset, posp] = LoadDataset(dataroot, benchtype, benchnum);
 
 
