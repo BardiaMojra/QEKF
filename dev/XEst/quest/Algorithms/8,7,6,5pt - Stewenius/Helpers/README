@@ -1,0 +1,14 @@
+Code written by Henrik Stewenius 2004
+
+Solvers: 
+ sixp_pizarro.m   A solver build trying along the lines of Pizarro
+ sixplin.m        A linear solver for the calibrated sixpoint problem. Along the lines of Philip. 
+
+Test: 
+ test.m           Shows how to call
+
+Helper Code: 
+ buildMsixp.m
+ mult_atom.m
+ mult_mat.m
+

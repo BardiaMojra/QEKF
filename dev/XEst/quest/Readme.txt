@@ -1,35 +1,42 @@
-This folder contains the Matlab implementation of the RANSAC based on QuEst algorithm.
-
-Example.m: Is a demo file that shows how RANSAC based on QuEst can be used to estimate the relative pose between keyframes in the KITTI image dataset (http://www.cvlibs.net/datasets/kitti/eval_odometry.php).
-
-
-Copyright (C) 2013-2018, under the GNU lesser General Public License, by Kaveh Fathian.
+A Benchmarking Package for Relative 
+Pose Estimation Algorithms
 
 
--------------------------------------------------------------
-Main algorithms:
 
-QuEst_RANSAC_Ver1_2: QuEst algorithm with RANSAC incorporated.
+Run “Batch_Benchmark.m” in MATLAB to benchmark camera pose estimation algorithms
+* 8-point algorithm
+* Kneip (5-point)
+* Kukelova (5-point)
+* Nister (5-point)
+* Li & Hartley (5-point)
+* Stewenius (5-point)
+* QuEst (5-point)
 
-QuEst_Ver1_1: The implementation of QuEst algorithm that recoveres the rotation, translation, and depths.
+on real world image datasets 
+* KITTI
+* TUM 
+* ICL
+* NAIST.
 
-Malab scripts are written and tested in Matlab version 2017b. The code preambles further explain the use of each script.
+We have only included the first 10 images from each dataset. This is sufficient to run the code and see how algorithms can be benchmarked.  You need to download the full image datasets from the links below (they’re free, but you may need to create an account):
+
+KITTI: http://www.cvlibs.net/datasets/kitti/eval_odometry.php
+TUM: https://vision.in.tum.de/data/datasets/rgbd-dataset
+ICL: https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html
+NAIST: http://ypcex.naist.jp/trakmark/sequences/naist.package02/index.html#sequence
+
+For each dataset, copy the sequence images to their associated locations in the “Datasets” folder. You can then run “Batch_Benchmark.m” to get the full benchmark results.
 
 
--------------------------------------------------------------
-Additional files:
+Notes:
+Several algorithms come in the “.mexw64” format. You need to run the code on a 64-bit Windows machine, otherwise, you will get an error. If you do not have access to such a machine, try calling the algorithms with their “.m” format in the code. You should be able to replace “.mexw64” with “.m” for all algorithms except for the Kneip’s and Li’s algorithms.
+
+This package is tested on MATLAB R2016b, 64-bit. MATLAB’s Computer Vision System Toolbox and Statistics and Machine Learning Toolbox are required.
 
 
-QuEst_5Pt_Ver5_2: Part of QuEst implementation that recoveres the rotation (as explained in the paper "QuEst: A Quaternion-Based Approach for Camera Motion Estimation from Minimal Feature Points").
+We have included the results that we got after running the benchmark in the folder “Benchmark Results”. You can run “Table_Benchmark.m” to generate an Excel file with the averaged estimation errors for all sequences in each dataset. Note that the results you get from benchmarking the algorithms may differ slightly from ours due to the random nature of RANSAC.
 
-QuEst_5Pt_Ver7_8: This is a slightly faster implementation of Ver5_2.
 
-QuEst_5Pt_Ver7_8_spd: Speeded up version. This file can be used for automatic Mex/C++ code generation.
-
-FindTransDepth_Ver1_0: Part of QuEst implementation that simultaniously recoveres the translation and depths.
-
-CoefsVer3_1_1: This file generates the coefficients of the degree four polynomial equations from the matched feature points. 
-
-Q2R: Transforms a quaternion to a rotation matrix.
-
-R2Q: Transforms a rotation matrix to quaternion.
+For any questions or comments please email:
+Kaveh Fathian: kaveh.fathian@utdallas.edu,  kaveh.fathian@gmail.com
+Pablo Ramirez: jpi.ramirez@ugto.mx

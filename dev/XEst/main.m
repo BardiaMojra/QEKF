@@ -1,15 +1,10 @@
 %% XEst main 
 % Summary of example objective
 %
-%
-
-
-
 
 %% init
 % warning('off','all'); % turn off all warnings!
 addpath(genpath('./'));
-
 
 %% config
 cfg = config_class();
@@ -18,9 +13,12 @@ cfg.seq           = 3; % aux config, used in KITTI
 cfg.skipFrame     = 0; % num of frames skipped bwt two keyframes 
 % cfg.st_frame      = 650; % start frame index
 % cfg.end_frame     = 680; 
+cfg.benchtype     = "KITTI";
+cfg.QuEst_method  = "QuEst";
+
 cfg = init(cfg);
-disp("output dir:");
-disp(cfg.outDir);
+
+
 quest = quest_class();
 % quest = copyprops(cfg, quest);
 
@@ -40,14 +38,6 @@ quest = quest.load_cfg(cfg.test_ID, ...
 
 % needed for VEst module 
 cfg.keyFrames = quest.keyFrames;
-% obj.numImag       = length(obj.dataset.fnames); 
-% obj.keyFrames     = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
-% obj.numKeyFrames  = length(obj.keyFrames); 
-% obj.numMethods    = length(obj.algorithms); 
-% obj.rotErr        = NaN(obj.numKeyFrames,obj.numMethods); 
-% obj.tranErr       = NaN(obj.numKeyFrames,obj.numMethods); 
-% obj.Q             = cell(obj.numKeyFrames,obj.numMethods); 
-% obj.T             = cell(obj.numKeyFrames,obj.numMethods);
 
 % vest = vest_class();
 % vest.config(cfg);
@@ -60,7 +50,11 @@ for i = cfg.keyFrames
 
   [quest,T,Q] = quest.get_pose(i);
   cfg.cntr = quest.cntr;
-  [vest,V,W] = vest.get_vel(i,T,Q); 
+%   [vest,V,W] = vest.get_vel(i,T,Q); 
+%   Q_VEst = exp_map(W);
+%    if isequal(Q,Q_VEst)
+%     disp('QuEst and VEst rotation estimates match!');
+%    end 
 %   x_TVWQ = QEKF(i,TQ,VW);
 
 end 

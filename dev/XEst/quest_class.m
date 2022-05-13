@@ -23,25 +23,25 @@ classdef quest_class
     res_prt_en        = true; % print res in terminal  
     res_sav_en        = true; % save res table 
     %% quest configs
-    dataroot    = [pwd '/data/']; % data path
+    dataroot        = [pwd '/data/']; % data path
     benchtype       = "KITTI"; % benchmark type (e.g. KITTI or TUM) 
     benchnum        = 3; % data sequence aux to KITTI   
     skipFrame       = 0; % num of frames skiped between two keyframes
-    ranThresh   = 1e-6;% RANSAC Sampson dist threshold (for outliers)
-    surfThresh     = 200; % SURF feature detection threshold
+    ranThresh       = 1e-6;% RANSAC Sampson dist threshold (for outliers)
+    surfThresh      = 200; % SURF feature detection threshold
     maxPts          = 30; % max num of features used in pose est (fewer points, faster compute)
     minPts          = 8; % max num of features required (6 to est a unique pose with RANSAC)
     algorithms      = {...
-%                        'EightPt'; 
-%                        'Nister'; 
+                       'EightPt'; 
+                       'Nister'; 
 %                        'Kneip'; 
-%                        'Kukelova'; 
+                       'Kukelova'; 
 %                        'Stewenius'; 
                        'QuEst'}; % algorithms to run ----> (disabled for now)
     benchmarks      = {'KITTI';
-%                        'NAIST';
-%                        'ICL';
-%                        'TUM';
+                       'NAIST';
+                       'ICL';
+                       'TUM';
                        } % benchmarks ----> (disabled for now)
     % run-time variables 
     dataset % quest dataset obj
@@ -50,12 +50,14 @@ classdef quest_class
     numImag % total num of images
     keyFrames % keyframe indecies 
     numKeyFrames % num of keyframes
+
     numMethods  % num of algs used for comparison
     rotErr % rot err for each method
     tranErr % trans err for each method
     Q % recovered quaternions 
     T % recovered translations
     cntr % key frame counter
+    
     ppoints_i % initial frame feature points 
     Ip_i % initial image
     ppoints % previous frame feature points 
@@ -139,17 +141,7 @@ classdef quest_class
       else
         % recover pose and calc its err by comparing w ground truth     
         for mthd = 1:obj.numMethods   
-          if strcmp(obj.algorithms{mthd},'QuEst_RANSAC_v0102') % QuEst w RANSAC
-            [M, inliers]  = QuEst_RANSAC_Ver1_2(obj.matches.m1,obj.matches.m2,...
-              obj.ranThresh);   
-            q             = M.Q;
-            tOut          = M.t;
-          elseif strcmp(obj.algorithms{mthd},'QuEst_v0708') 
-            kp1           = obj.matches.m1(:,1:5);
-            kp2           = obj.matches.m2(:,1:5);
-            q             = QuEst_5Pt_Ver7_8(kp1,kp2,obj.cntr);
-            tOut          = FindTransDepth_Ver1_0(kp1,kp2,q);
-          elseif strcmp(obj.algorithms{mthd},'EightPt') % Eight Point alg
+          if strcmp(obj.algorithms{mthd},'EightPt') % Eight Point alg
             EOut          = eightp_Ver2_0(obj.matches.m1,obj.matches.m2);
             [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
             q             = R2Q(ROut);
@@ -189,7 +181,8 @@ classdef quest_class
           
           % find the closest transform to ground truth    
           [q,matchIdx]    = FindClosetQVer2_2(obj.relPose.qr,q);
-          t               = FindClosetTrans(obj.relPose.tr,[tOut,-tOut]);   
+          t               = FindClosetTrans(obj.relPose.tr,[tOut(:,matchIdx),...
+            -tOut(:,matchIdx)]);   
 
           % calc est error
           obj.rotErr(obj.cntr,mthd)  = QuatError(obj.relPose.qr, q);
@@ -264,9 +257,38 @@ classdef quest_class
                    tranErrMd;
                    tranErrQ1;
                    tranErrQ3;];
-      res  = table(data(:,1), ...
-                   'RowNames', RowNames, ...
-                   'VariableNames', obj.algorithms); 
+      if obj.numMethods == 1
+        res  = table(data(:,1), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 2
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 3
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     data(:,3), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 4
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     data(:,3), ...
+                     data(:,4), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 5
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     data(:,3), ...
+                     data(:,4), ...
+                     data(:,5), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms);    
+      end
+
       if obj.res_prt_en
         disp(res);
       end 

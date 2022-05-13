@@ -1,0 +1,13 @@
+Code written by Henrik Stewenius 2004
+
+Solvers: 
+ sixp.m
+ sixp_pizarro.m
+ sixplin.m
+
+test.m
+
+buildMsixp.m
+mult_atom.m
+mult_mat.m
+
