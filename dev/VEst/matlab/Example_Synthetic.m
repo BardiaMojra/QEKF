@@ -3,11 +3,12 @@ clear;clc;close all;
 % install Statistics and Machine Learning Toolbox
 
 % activate vision toolbox by Peter Corke
-addpath('rtb'); 
-addpath('smtb'); 
-addpath('vision'); 
+addpath('robot'); 
+addpath('spatial-math'); 
+addpath('vision');
+addpath('common');
 addpath('Helpers'); 
-run('./rtb/startup_rtb.m'); 
+run('./startup_rvc.m'); 
 
 
 

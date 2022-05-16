@@ -3,6 +3,7 @@ clear;clc;close all;
 % install Statistics and Machine Learning Toolbox
 
 % activate vision toolbox by Peter Corke
+% addpath(genpath('./'));
 addpath('rtb'); 
 addpath('smtb'); 
 addpath('vision'); 

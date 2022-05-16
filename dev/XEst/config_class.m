@@ -1,22 +1,28 @@
 classdef config_class < matlab.System
   properties
-    %% common config
+    %% test config (constant)
     test_ID     %= [];
     outDir      %= [pwd '/out/'];
+    % test config dependent 
+    test_outDir
+    %% data config (constant)
     datDir      %= [pwd '/Datasets/']; % data dir     
     st_frame    %= 1; % start frame index
     end_frame   %= nan;% end frame index
-    % %QuEst config
-    QuEst_method    %= 'QuEst';
     benchtype       %= 'KITTI'; 
     seq             %= 3% aux config, used in KITTI     
+    % data config dependent (constant)
+    keyFrames;
     skipFrame       %= 0; % num of frames skipped bwt two keyframes         
+    
+    % %QuEst config (constant)
+    QuEst_method    %= 'QuEst';
     ransac_thresh   %= 1e-6; % ransac, sampson dist thresh
     surf_thresh     %= 200; % surf detector thresh
     maxPts          %= 30; % max features used in pose est (fewer features, faster compute)
     minPts          %= 8; % min feature required (6 to estimate a unique pose from RANSAC, or at least 8 for 8-pt algorithm)
     % QuEest runtime var
-    keyFrames;
+    
     cntr;
   end
   methods
@@ -25,13 +31,15 @@ classdef config_class < matlab.System
       arguments
         namedArgs.test_ID       = [];
         namedArgs.outDir        = [pwd '/out/'];
+        
         namedArgs.datDir        = [pwd '/data/']; 
         namedArgs.st_frame      = 1; 
         namedArgs.end_frame     = nan;
-        namedArgs.QuEst_method    = 'QuEst';
         namedArgs.benchtype       = 'KITTI'; 
         namedArgs.seq             = 3% aux config, used in KITTI     
         namedArgs.skipFrame       = 0; % num of frames skipped bwt two keyframes         
+       
+        namedArgs.QuEst_method    = 'QuEst';
         namedArgs.ransac_thresh   = 1e-6; % ransac, sampson dist thresh
         namedArgs.surf_thresh     = 200; % surf detector thresh
         namedArgs.maxPts          = 30; % max features used in pose est (fewer features, faster compute)

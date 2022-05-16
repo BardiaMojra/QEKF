@@ -1,12 +1,4 @@
-classdef quest_class 
-  % untitled2 Add summary here
-  %
-  % NOTE: When renaming the class name untitled2, the file name
-  % and constructor name must be updated to use the class name.
-  %
-  % This template includes most, but not all, possible properties,
-  % attributes, and methods that you can implement for a System object.
-
+classdef quest_class < matlab.System
   %% public vars
   properties 
     %% configs (passed in via cfg obj or set manually)
@@ -331,6 +323,7 @@ classdef quest_class
       obj.keyFrames     = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
       obj.numKeyFrames  = length(obj.keyFrames); 
       obj.numMethods    = length(obj.algorithms); 
+      
       obj.rotErr        = NaN(obj.numKeyFrames,obj.numMethods); 
       obj.tranErr       = NaN(obj.numKeyFrames,obj.numMethods); 
       obj.Q             = cell(obj.numKeyFrames,obj.numMethods); 
