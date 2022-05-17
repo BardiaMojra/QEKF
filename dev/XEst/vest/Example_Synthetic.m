@@ -44,6 +44,7 @@ for i = 1:(length(noise_list))
         [v_est,w_est] = PoCo(m,m_dot); % call algorithm 
         
 %         v_est_norm = v_est; 
+        
         v_est_norm = v_est / norm(v_est); % normalize v answer 
         if(v_est_norm(3)<0) 
             v_est_norm = -v_est_norm; 

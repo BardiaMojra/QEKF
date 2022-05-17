@@ -12,7 +12,13 @@ classdef vest_class < config_class & data_class
     %% quest configs
 
     %% run-time variables 
-    
+    m 
+    m_dot 
+    v   % frame vel
+    w  % frame ang vel 
+    v_ests
+    V_errs % 
+    W_errs
   end
   %% public consts 
   %   properties(Nontunable) 
@@ -35,41 +41,29 @@ classdef vest_class < config_class & data_class
       obj.outDir  = namedArgs.outDir;
       obj.method  = namedArgs.method;
     end    
-  
-    %% public functions
-    function obj = load_cfg(obj, test_ID, ...
-                            outDir, ...
-                            method, ...
-                            st_frame, ...
-                            end_frame, ...
-                            datDir, ...
-                            benchtype, ...
-                            seq, ...
-                            skipFrame, ...
-                            ransac_thresh, ...
-                            surf_thresh, ...
-                            maxPts, ...
-                            minPts)
-      %% common 
-      obj.test_ID       = test_ID;
-      obj.outDir        = outDir;
-      obj.method        = method;
-      obj.st_frame      = st_frame;
-      obj.end_frame     = end_frame;
-      % QuEst
-      obj.dataroot      = datDir;
-      obj.benchtype     = benchtype;
-      obj.benchnum      = seq;
-      obj.skipFrame     = skipFrame;
-      obj.ranThresh     = ransac_thresh;
-      obj.surfThresh    = surf_thresh;
-      obj.maxPts        = maxPts;
-      obj.minPts        = minPts;
-      %% init
-      obj = obj.init();
+  end 
+ %% public functions
+ methods (Access = public)
+    function obj = load_cfg(some_config)
+%       obj.some = some_config;
     end
-  end
-  methods(Access = public)
+    function [obj, v, w] = get_vel(obj, matches)
+
+      [obj.m, obj.m_dot] = vest.prep_matches(obj, matches);
+      [v, w]  = vest.PoCo(obj.m, obj.m_dot); % call algorithm 
+  
+    end 
+
+    function  [v_err, w_err] = get_err(obj, idx, v, w)
+      v = obj.normalize(v);
+      w = obj.normalize(w);
+      v_err = 1/pi * acos(v' * obj.v_gt(idx,:));
+      w_err = sqrt(   (w - obj.w_gt(idx))^2   );
+    end 
+
+ end % end of public access 
+  
+  methods (Access = private)
     function normed = normalize(vector)
       normed  = vector/ norm(vector); % normalize v answer 
         if(normed(3)<0) 
@@ -78,19 +72,22 @@ classdef vest_class < config_class & data_class
     end 
     function [m, m_dot] = prep_matches(obj, matches)
       
+      disp(matches);
+
+
     end % end of prep_matches
-    function  err_v, err_w = get_err(obj); %
+    function  v_err_v, err_w = get_err(obj, i); %
       v_est_norm, v_true_norm, i
-      [v_est,w_est] = PoCo(m,m_dot); % call algorithm 
         
 %         v_est_norm = v_est; 
         v_est_norm = v_est / norm(v_est); % normalize v answer 
         if(v_est_norm(3)<0) 
             v_est_norm = -v_est_norm; 
         end 
-        
+       v_n = obj.normalize(v_est);
+       
 %         error_v = sqrt( (v_est_norm(1)-v_true_norm(1))^2 + (v_est_norm(2)-v_true_norm(2))^2 + (v_est_norm(3)-v_true_norm(3))^2 ); 
-        error_v =1/pi*acos((v_est_norm'*v_true_norm)); 
+        error_v =1/pi*acos((v_'*v_true_norm)); 
         error_w = sqrt( (w_est(1)-w_true(1))^2 + (w_est(2)-w_true(2))^2 + (w_est(3)-w_true(3))^2 ); 
         
         v_error_buffer(1, j) = error_v; 

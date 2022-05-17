@@ -1,4 +1,4 @@
-classdef quest_class < matlab.System 
+classdef quest_class < matlab.System
   %% public vars
   properties 
     %% configs (passed in via cfg obj or set manually)
@@ -28,6 +28,8 @@ classdef quest_class < matlab.System
                        'TUM';
                        } % benchmarks ----> (disabled for now)
     % run-time variables 
+    t % 
+    q % frame quaternion orientation 
     posp % previous frame ground truth pose (per frame, given)
     numMethods  % num of algs used for comparison
     ppoints % previous frame feature points 
@@ -40,52 +42,38 @@ classdef quest_class < matlab.System
 
   methods
     %% constructor
-    function obj = quest_class(namedArgs)
-      arguments
-        namedArgs.test_ID = "xxx";
-        namedArgs.outDir = "xxx";
-        namedArgs.method = "QuEst";
-      end 
-      obj.test_ID = namedArgs.test_ID;
-      obj.outDir  = namedArgs.outDir;
-      obj.method  = namedArgs.method;
+    function obj = quest_class(varargin)
+      setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end    
   
   
     %% public functions
-    function obj = load_cfg(obj, test_ID, ...
-                            outDir, ...
-                            method, ...
-                            st_frame, ...
-                            end_frame, ...
-                            datDir, ...
-                            benchtype, ...
-                            seq, ...
+    function obj = load_cfg(obj, ...
                             skipFrame, ...
                             ransac_thresh, ...
                             surf_thresh, ...
                             maxPts, ...
                             minPts)
       %% common 
-      obj.test_ID       = test_ID;
-      obj.outDir        = outDir;
-      obj.method        = method;
-      obj.st_frame      = st_frame;
-      obj.end_frame     = end_frame;
+%       obj.test_ID       = test_ID;
+%       obj.outDir        = outDir;
+%       obj.method        = method;
+%       obj.st_frame      = st_frame;
+%       obj.end_frame     = end_frame;
       % QuEst
-      obj.dataroot      = datDir;
-      obj.benchtype     = benchtype;
-      obj.benchnum      = seq;
-      obj.skipFrame     = skipFrame;
+%       obj.dataroot      = datDir;
+%       obj.benchtype     = benchtype;
+%       obj.benchnum      = seq;
+%       obj.skipFrame     = skipFrame;
       obj.ranThresh     = ransac_thresh;
       obj.surfThresh    = surf_thresh;
       obj.maxPts        = maxPts;
       obj.minPts        = minPts;
       %% init
-      obj = obj.init();
+%       obj = obj.init();
     end
   end
-  methods(Access = public)
+  methods (Access = public)
     function [obj,t,q] = get_pose(obj, i, dat, cfg)
 %       obj.cntr  = cfg.cntr + 1; % Counter          
       % get current frame features and match w prev frame    

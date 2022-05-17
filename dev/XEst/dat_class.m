@@ -1,13 +1,16 @@
-classdef dat_class < handle 
+classdef dat_class < matlab.System
   %% DAT_CLASS Add summary here
   % Public, tunable properties
   properties
+
+
     %% data config (constant)
     datDir              = [pwd '/data/']; % data dir     
     st_frame          = 1; % start frame index
     end_frame       = nan;% end frame index
     benchtype       = 'KITTI'; % default
     seq                   = 3; % aux config, used in KITTI     
+
 
     % data config dependent (constant)
     dataset; % dataset obj
@@ -33,16 +36,14 @@ classdef dat_class < handle
     function obj = dat_class(varargin)
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end 
-    function obj = dat_init(datDir, benchtype, benchnum, st_frame, end_frame)
-
-      obj.datDir  =   datDir  ;
-      obj.benchtype  =  benchtype  ;
-      obj.benchnum  =  benchnum  ;
-      obj.st_frame =  st_frame ;
-      obj.end_frame =  end_frame ;
-      
+  end 
+  methods  (Access = protected)
+    % In setup allocate any resources, which in this case is
+    % opening the file.
+    function obj = setupImpl(obj)
       %init 
-      [obj.dataset, obj.posp] = LoadDataset(datDir, benchtype, benchnum, st_frame, end_frame); 
+      [obj.dataset, obj.posp] = LoadDataset(obj.datDir, obj.benchtype, obj.benchnum, ...
+        obj.st_frame, obj.end_frame); 
 
       if strcmp(obj.benchtype,'KITTI')
         obj.skipFrame = 1; 
