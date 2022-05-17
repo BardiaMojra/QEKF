@@ -1,61 +1,65 @@
-classdef dat_class
-  %DAT_CLASS data class
-  % 
+classdef dat_class < handle 
+  %% DAT_CLASS Add summary here
+  % Public, tunable properties
   properties
-    % define default values 
-    name  
-    VestScale      = 1.0;
-    data_rate_inv  = 1/30.0;
-    START_         = 1;
-    END_           = nan;
-    PRINT_         = true;
-    SAVE_          = true;
-    srcDir         = '../data/';
-    outDir         = '../mout/';
-    labels         = {'Tx','Ty','Tz','vx','vy','vz','wr','wp','wy','qx','qy','qz','qw'};
-    dat;           % dataset
-    Vxyz;          % xyz vel
-    Txyz;          % xyz translation
-    Wrpy;          % rpy ang vel
-    Qxyzw;         % Qxyzw ang ori
-    z_TVQxyzw;     % meas/obs vec
-    u_Wrpy;        % cont/inp vec
-  end
-  methods 
-    function obj = config(obj,name) % construct data obj 
-      obj.name      = name;
-      obj.outDir    = strcat(obj.outDir,'out_',obj.name,'/');
-      obj.srcDir    = strcat(obj.srcDir,name,'_df.csv');
-      dt            = readtable(obj.srcDir); 
-      obj.Txyz      = horzcat(dt.Tx,dt.Ty,dt.Tz); % Txyz 
-      obj.Vxyz      = horzcat(dt.vx,dt.vy,dt.vz); % Vxyz 
-      obj.Wrpy      = horzcat(dt.wr,dt.wp,dt.wy); % Wrpy ang vel
-      obj.Qxyzw     = horzcat(dt.qx,dt.qy,dt.qz,dt.qw); % Qxyzw ang ori
-      obj.z_TVQxyzw = horzcat(obj.Txyz,obj.Vxyz,obj.Qxyzw); 
-      obj.u_Wrpy    = obj.Wrpy;
-%       obj.z_TVQxyzw = table2array(obj.z_TVQxyzw);
-      obj.dat       = horzcat(obj.Txyz,obj.Vxyz,obj.Wrpy,obj.Qxyzw);
-%       obj.dat       = dt;
-      if isnan(obj.END_)
-        obj.END_ = height(obj.dat);
-      end
-    end
-    function dat = get_dat(obj)
-      dat = obj.dat;
-      dat = array2table(dat,'VariableNames', obj.labels);
-      fname = strcat(obj.outDir,'dat_',obj.name,'_tab.csv');
-      writetable(dat,fname);
-      %       head(dat);
-    end 
-    function save(obj)
-      ddat = array2table(obj.dat,'VariableNames', obj.labels);
-      fname = strcat(obj.outDir,'dat_',obj.name,'_tab.csv');
-      writetable(ddat,fname);
-    end
-  end
-end
+    %% data config (constant)
+    datDir              = [pwd '/data/']; % data dir     
+    st_frame          = 1; % start frame index
+    end_frame       = nan;% end frame index
+    benchtype       = 'KITTI'; % default
+    seq                   = 3; % aux config, used in KITTI     
 
-%% locals
-function head(dat)
-  disp(dat(1:5,:));
+    % data config dependent (constant)
+    dataset; % dataset obj
+    posp; 
+    ppoints_i; % init frame points 
+    Ip_i; % init frame image 
+    skipFrame       = 0; % num of frames skipped bwt two keyframes        
+    numImag % total num of images
+    keyFrames;
+    numKeyFrames % num of keyframes
+
+  end
+  
+  properties(Nontunable)% Public, non-tunable properties
+  end
+  properties(DiscreteState)
+  end
+  properties(Access = private) % Pre-computed constants
+  end
+
+  methods
+    % Constructor
+    function obj = dat_class(varargin)
+      setProperties(obj,nargin,varargin{:}) % init obj w name-value args
+    end 
+    function obj = dat_init(datDir, benchtype, benchnum, st_frame, end_frame)
+
+      obj.datDir  =   datDir  ;
+      obj.benchtype  =  benchtype  ;
+      obj.benchnum  =  benchnum  ;
+      obj.st_frame =  st_frame ;
+      obj.end_frame =  end_frame ;
+      
+      %init 
+      [obj.dataset, obj.posp] = LoadDataset(datDir, benchtype, benchnum, st_frame, end_frame); 
+
+      if strcmp(obj.benchtype,'KITTI')
+        obj.skipFrame = 1; 
+      elseif strcmp(obj.benchtype,'NAIST')
+        obj.skipFrame = 1; 
+      elseif strcmp(obj.benchtype,'ICL')
+        obj.skipFrame = 1; 
+      elseif strcmp(obj.benchtype,'TUM')
+        obj.skipFrame = 1;     
+      end
+ 
+      obj.numImag              = length(obj.dataset.fnames); 
+      obj.keyFrames           = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
+      obj.numKeyFrames   = length(obj.keyFrames);      
+      
+      [obj.ppoints_i, obj.Ip_i] = GetFeaturePoints(obj.st_frame,obj.dataset,...
+        obj.surfThresh);
+    end
+  end
 end

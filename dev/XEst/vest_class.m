@@ -36,7 +36,6 @@ classdef vest_class < config_class & data_class
       obj.method  = namedArgs.method;
     end    
   
-  
     %% public functions
     function obj = load_cfg(obj, test_ID, ...
                             outDir, ...
@@ -71,9 +70,18 @@ classdef vest_class < config_class & data_class
     end
   end
   methods(Access = public)
-    function [obj,t,q] = get_vel(obj,i)
+    function normed = normalize(vector)
+      normed  = vector/ norm(vector); % normalize v answer 
+        if(normed(3)<0) 
+            normed = - normed; 
+        end 
+    end 
+    function [m, m_dot] = prep_matches(obj, matches)
       
-        [v_est,w_est] = PoCo(m,m_dot); % call algorithm 
+    end % end of prep_matches
+    function  err_v, err_w = get_err(obj); %
+      v_est_norm, v_true_norm, i
+      [v_est,w_est] = PoCo(m,m_dot); % call algorithm 
         
 %         v_est_norm = v_est; 
         v_est_norm = v_est / norm(v_est); % normalize v answer 
