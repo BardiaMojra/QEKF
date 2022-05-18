@@ -171,7 +171,6 @@ elseif strcmp(benchtype, 'ICL')
     qTru = [rawdata(:,8) rawdata(:,5:7)]';     
     
 elseif strcmp(benchtype, 'NAIST')
-    
     datafile = [datapath '/naist' num2str(benchnum, '%03d') '_camerapath.csv'];
     fileid = fopen(datafile);
     C = textscan(fileid, '%s %f %f %f %f %f %f %f %f %f %f %f %f', 'Delimiter', ',', 'CommentStyle', '#');

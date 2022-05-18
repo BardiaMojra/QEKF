@@ -40,7 +40,7 @@ classdef dlog_class < matlab.System %& config_class
      
       obj.numKeyFrames = NaN(obj.numBenchmarks,1);
       for ds = obj.numBenchmarks
-         obj.numKeyFrames(ds) =  cfg.dats{ds}.benchtype; 
+         obj.numKeyFrames(ds) =  cfg.dats{ds}.numKeyFrames; 
       end
       disp(obj.numKeyFrames);
       obj = init(obj);

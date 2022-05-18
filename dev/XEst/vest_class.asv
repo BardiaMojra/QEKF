@@ -1,4 +1,4 @@
-classdef vest_class < config_class & %data_class
+classdef vest_class < config_class %& data_class
   %% public vars
   properties 
     %% run-time variables 
@@ -36,18 +36,18 @@ classdef vest_class < config_class & %data_class
  end % end of public access 
   
   methods (Access = private)
-       function [m, m_dot] = prep_matches(obj, matches)
+    function [m, m_dot] = prep_matches(obj, matches)
       
       disp(matches);
 
 
-    end % end of prep_matches function normed = normalize(vector)
+    end % end of prep_matches
+    function normed = normalize(vector)
       normed  = vector/ norm(vector); % normalize v answer 
         if(normed(3)<0) 
             normed = - normed; 
         end 
-    end 
-
+    end
 
     %% Backup/restore functions
     function s = save(obj)

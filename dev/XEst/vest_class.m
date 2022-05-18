@@ -1,4 +1,4 @@
-classdef vest_class < config_class & %data_class
+classdef vest_class < matlab.System % & config_class
   %% public vars
   properties 
     %% run-time variables 

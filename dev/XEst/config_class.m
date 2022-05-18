@@ -31,9 +31,9 @@ classdef config_class < matlab.System %& dat_class
    
     benchmarks      = { ...
                                     'KITTI';
-                                    'NAIST';
-                                    'ICL';
-                                    'TUM';
+%                                     'NAIST';
+%                                     'ICL';
+%                                     'TUM';
                                                } % benchmarks ----> (disabled for now)
     
   end

@@ -10,20 +10,12 @@ clear
 clc 
 addpath(genpath('./'));
 
-%% datasets 
-
-
-
-
-
-
-%% config
-cfg = config_class(... 
-                                 test_ID               = 'quest_unit_test'  );
+% config - datasets handled in cfg
+cfg = config_class(  test_ID   =   'quest_unit_test'  );
 cfg = init(cfg);
 
 dlog = dlog_class();
-dlog = dlog.load_cfg(cfg);% overwrite default settings 
+dlog = dlog.load_cfg(cfg); % overwrite default settings 
 
 quest = quest_class();
 quest = quest.load_cfg(cfg); 
@@ -52,8 +44,6 @@ for i = cfg.keyFrames
   [vest, V, W] = vest.get_vel(i, quest.matches); % get velocity
   
 %   x_TVWQ = QEKF(i,TQ,V,W);
-
-
 
   dlog.kF_hist(i,:) =  i;
   dlog.T_hist(i,:)  =  T;
