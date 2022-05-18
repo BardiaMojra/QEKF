@@ -31,7 +31,7 @@ classdef log_class < matlab.System
     end
   end % methods % constructor 
   methods (Access = public) 
-    function obj = load_cfg(obj, cfg, benchtype, keyFrames)
+    function load_cfg(obj, cfg, benchtype, keyFrames)
       % load config from cfg
       obj.algorithms       = cfg.pose_algorithms;
       obj.benchtype       = benchtype; 
