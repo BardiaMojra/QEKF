@@ -5,39 +5,39 @@
 %
 % Inputs:
 %
-% m, n:    Homogeneous coordinates of N feature points in the first  
-%          and second coordinate frames. Each column of m or n has the 
-%          format [x, y, 1]^T, where x and y are coordinates of the  
-%          feature point on the image plane. Thus, m and n are 3*N matrices, 
+% m, n:    Homogeneous coordinates of N feature points in the first
+%          and second coordinate frames. Each column of m or n has the
+%          format [x, y, 1]^T, where x and y are coordinates of the
+%          feature point on the image plane. Thus, m and n are 3*N matrices,
 %          with one entries in the 3rd row.
 %
 %
 % Outputs:
 %
-% Q   :  The recovered rotation in quaternion. 
+% Q   :  The recovered rotation in quaternion.
 %
 %
 % Copyright (C) 2013-2017, by Kaveh Fathian.
 %
 % This program is a free software: you can redistribute it and/or modify it
 % under the terms of the GNU lesser General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or any 
+% the Free Software Foundation, either version 3 of the License, or any
 % later version.
 %
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU Lesser General Public License for more details  
+% GNU Lesser General Public License for more details
 % <http://www.gnu.org/licenses/>.
 %
 % ------------------------------------------------------------------------
 %
 % Ver 7_8:
 %           -  Uses all matrices B1,B2,B3 to find solutions
-%           -  Slightly slower, but has better accuracy 
+%           -  Slightly slower, but has better accuracy
 %
 %%
-function [Q] = QuEst_5Pt_Ver7_8(m,n,i)
+function [Q] = QuEst_5Pt_Ver7_8(m,n)
 %% Preallocate variables
 
 Idx = [ 1     2     5    11    21     3     6    12    22     8    14    24    17    27    31     4     7    13    23     9    15    25    18    28    32    10    16    26    19    29    33    20    30    34    35;
@@ -125,7 +125,7 @@ writematrix(B,path,'Delimiter',' ');
 %% Find eigenvectors
 
 % Initial guess for the common eigenvectors
-[V1, ~] = eig(B1); 
+[V1, ~] = eig(B1);
 [V2, ~] = eig(B2);
 [V3, ~] = eig(B3);
 
@@ -141,7 +141,7 @@ writematrix(V3,path,'Delimiter',' ');
 
 
 Ve = [V1, V2, V3];
-% #todo for now remove all the imaginary solutions 
+% #todo for now remove all the imaginary solutions
 % Remove duplicate complex eigenvectors
 Vy = imag(Ve);
 imagIdx = sum(abs(Vy),1) > 10*eps;
@@ -167,7 +167,7 @@ path = '../../mout/nbug_QuEst_X5_matlab.txt';
 writematrix(X5,path,'Delimiter',' ');
 
 
-% Recover quaternion elements  
+% Recover quaternion elements
 w = nthroot(X5(1,:),5);
 w4 = w.^4;
 x = X5(2,:) ./ w4;
@@ -187,5 +187,3 @@ QNrm = sqrt(sum(Q.^2,1));
 Q = bsxfun(@rdivide, Q, QNrm);
 path = '../../mout/nbug_QuEst_Qs_matlab.txt';
 writematrix(Q,path,'Delimiter',' ');
-
-

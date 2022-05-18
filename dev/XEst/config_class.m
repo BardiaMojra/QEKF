@@ -48,7 +48,7 @@ classdef config_class < matlab.System %& dat_class
       obj.dats = cell(obj.numBenchmarks,1); % create corresponding dat_class objs
       for i = 1: obj.numBenchmarks
         obj.dats{i} = dat_class(benchtype = obj.benchmarks(i));
-        obj.dats{i} = obj.dats{i}.load_cfg(obj); 
+        obj.dats{i}.load_cfg(obj); 
       end
     end
   end % methods (Access = private)

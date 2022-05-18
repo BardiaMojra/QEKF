@@ -13,6 +13,7 @@ classdef dat_class < matlab.System
 %     imgpath
 %     datapath
     keyFrames
+
     ppoints_i; % init frame points 
     Ip_i; % init frame image 
     skipFrame       = 0; % num of frames skipped bwt two keyframes        

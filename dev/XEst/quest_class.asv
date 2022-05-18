@@ -50,12 +50,12 @@ classdef quest_class < matlab.System % & config_class
       obj.surfThresh            =  cfg.quest_surfThresh;       
     end
 
-    function [T, Q] = get_pose(obj, kframe_idx, dat, cfg)
+    function [T, Q] = get_pose(obj, frame_idx, dat, cfg)
       T = nan; Q = nan;
       % get current frame features and match w prev frame    
-      [dat.npoints,dat.In] = GetFeaturePoints(kframe_idx, dat.dataset, dat.surfThresh);            
+      [dat.npoints,dat.In] = GetFeaturePoints(frame_idx, dat.dataset, dat.surfThresh);            
       dat.matches   = MatchFeaturePoints(dat.Ip, dat.ppoints, dat.In, dat.npoints, ...
-                                                                    obj.maxPts, dat.dataset, kframe_idx, ...
+                                                                    obj.maxPts, dat.dataset, frame_idx, ...
                                                                     obj.matches_disp_en, ... 
                                                                     obj.matches_sav_en, cfg.test_outDir);
       % relative ground truth transformation and previous frame gt pose

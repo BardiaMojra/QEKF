@@ -1,12 +1,12 @@
 %% RANSAC Implementation of QuEst
 %
-% Run this script to see how the RANSAC implementation of the QuEst 
-% algorithm can be used to estimate the relative pose between keyframes in 
+% Run this script to see how the RANSAC implementation of the QuEst
+% algorithm can be used to estimate the relative pose between keyframes in
 % the TUM image dataset.
 %
-% TUM dataset: https://vision.in.tum.de/data/datasets/rgbd-dataset. 
+% TUM dataset: https://vision.in.tum.de/data/datasets/rgbd-dataset.
 %
-% NOTE: You can increase the execution speed by compiling the .mex version  
+% NOTE: You can increase the execution speed by compiling the .mex version
 %       of the QuEst algorithm.
 %
 %
@@ -14,11 +14,11 @@
 % Email: kavehfathian@gmail.com
 %
 % This program is a free software: you can redistribute it and/or modify it
-% under the terms of the GNU lesser General Public License, either version 
+% under the terms of the GNU lesser General Public License, either version
 % 3, or any later version.
 %
-% This program is distributed in the hope that it will be useful, but 
-% WITHOUT ANY WARRANTY. See the GNU Lesser General Public License for more 
+% This program is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY. See the GNU Lesser General Public License for more
 % details <http://www.gnu.org/licenses/>.
 %
 %
@@ -61,14 +61,14 @@ minPts  = 6;    % Minimum number of feature points required (6 to estimate a uni
 %% Preallocate
 
 numImag     = length(dataset.fnames);       % Total number of images
-keyFrames   = 2+skipFrame : 1+skipFrame : numImag; 
+keyFrames   = 2+skipFrame : 1+skipFrame : numImag;
 numKeyFrames = length(keyFrames);           % Number of key frames
 
-% Preallocate pose estimation variables 
+% Preallocate pose estimation variables
 numMethods  = length(algorithms);               % Number of algorithms used in the comparison
 rotErr      = NaN(numKeyFrames,numMethods);     % Rotation error for each method
 tranErr     = NaN(numKeyFrames,numMethods);     % Translation error for each method
-Q           = cell(numKeyFrames,numMethods);    % Recovered quaternions 
+Q           = cell(numKeyFrames,numMethods);    % Recovered quaternions
 T           = cell(numKeyFrames,numMethods);    % Recovered translations
 
 
@@ -79,39 +79,39 @@ T           = cell(numKeyFrames,numMethods);    % Recovered translations
 
 cntr = 0; % key frame counter
 for i = keyFrames
-    
+
     cntr = cntr + 1; % Counter
-        
-    % Feature points matching    
-    [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points           
+
+    % Feature points matching
+    [npoints, In] = GetFeaturePoints(i, dataset, surfThresh); % Get the next image feature points
     matches = MatchFeaturePoints(Ip,ppoints, In,npoints, maxPts, dataset, i); % Match feature points
 %     matches = LoadMatches(i,dataset.K); % Match feature points
 %     m_dat = cat(2,matches.m1',matches.m2');
 %     dispn(m_dat,6); % must match python dat
-    % Relative ground truth 
+    % Relative ground truth
     [relPose, posp] = RelativeGroundTruth(i, posp, dataset);
-    
+
     % In case there are not enough matched points move to the next iteration
     % (This should be checked after 'RelativeGroundTruth')
-    if (matches.numPts < minPts)         
+    if (matches.numPts < minPts)
         % Use current image for the next iteration
         Ip = In;
-        ppoints = npoints;         
+        ppoints = npoints;
         disp('Not enough matched feature points. Frame skipped!')
         continue
     end
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-    % Recover pose and find error by comparing with the ground truth     
-    for mthd = 1 : numMethods        
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Recover pose and find error by comparing with the ground truth
+    for mthd = 1 : numMethods
         if strcmp(algorithms{mthd}, 'QuEst_RANSAC_v0102') % RANSAC with QuEst algorithm
-            [M, inliers] = QuEst_RANSAC_Ver1_2(matches.m1, matches.m2, ranThresh);   
+            [M, inliers] = QuEst_RANSAC_Ver1_2(matches.m1, matches.m2, ranThresh);
             q = M.Q;
             tOut = M.t;
-        elseif strcmp(algorithms{mthd}, 'QuEst_v0708') 
+        elseif strcmp(algorithms{mthd}, 'QuEst_v0708')
           kp1 = matches.m1(:,1:5);
           kp2 = matches.m2(:,1:5);
-          q = QuEst_5Pt_Ver7_8(kp1, kp2, cntr);
+          q = QuEst_5Pt_Ver7_8(kp1, kp2);
           tOut = FindTransDepth_Ver1_0(kp1, kp2, q);
 %             q = M.Q;
 %             tOut = M.t;
@@ -119,26 +119,26 @@ for i = keyFrames
             error('Undefined algorithm.')
         end
 
-%         % Find the closet quaternion and translation to the ground truth    
+%         % Find the closet quaternion and translation to the ground truth
         [q, matchIdx] = FindClosetQVer2_2(relPose.qr, q);
-        t = FindClosetTrans(relPose.tr, [tOut,-tOut]);        
+        t = FindClosetTrans(relPose.tr, [tOut,-tOut]);
         t = -tOut;
-        
+
         % Calculate the estimation error
         rotErr(cntr,mthd)  = QuatError(relPose.qr, q);
-        tranErr(cntr,mthd) = TransError(relPose.tr, t);    
-    
+        tranErr(cntr,mthd) = TransError(relPose.tr, t);
+
     end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    
-    % Display images with matched feature points    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    % Display images with matched feature points
     imshow(Ip);
     hold on;
     p1 = matches.p1;
     p2 = matches.p2;
     numPts = size(p1,2);
     plot(p1(:,1), p1(:,2), 'g+');
-    plot(p2(:,1), p2(:,2), 'yo');    
+    plot(p2(:,1), p2(:,2), 'yo');
     for j = 1 : numPts
         if any(j == inliers)
             plot([p1(j,1) p2(j,1)], [p1(j,2) p2(j,2)], 'g'); % Detected inlier
@@ -146,16 +146,16 @@ for i = keyFrames
             plot([p1(j,1) p2(j,1)], [p1(j,2) p2(j,2)], 'r'); % Detected outlier
         end
     end
-    drawnow;    
+    drawnow;
     hold off;
-    
+
     % Store the current image for the next iteration
     Ip = In;
-    ppoints = npoints;                           
+    ppoints = npoints;
     % Print iteration number
     if mod(cntr,10) == 0
         display(['Iteration ' num2str(cntr) ' of ' num2str(numKeyFrames)]);
-    end     
+    end
 
 end
 
@@ -186,11 +186,10 @@ RowNames = {'Rot err mean'; 'Rot err std'; 'Rot err median'; 'Rot err Q_1'; 'Rot
     'Tran err mean'; 'Tran err std'; 'Tran err median'; 'Tran err Q_1'; 'Tran err Q_3'};
 data = [rotErrM; rotErrS; rotErrMd; rotErrQ1; rotErrQ3; ...
     tranErrM; tranErrS; tranErrMd; tranErrQ1; tranErrQ3;];
-table(data(:,1),'RowNames',RowNames, 'VariableNames', algorithms) 
+table(data(:,1),'RowNames',RowNames, 'VariableNames', algorithms)
 
 
 
 %%
 
 warning('on','all');
-

@@ -32,6 +32,8 @@ classdef vest_class < matlab.System % & config_class
   
     function check_w_QuEst(obj, W, Q)
       Q_VEst = obj.exp_map(W);
+      isequal(Q,Q_VEst)
+      
       disp(isequal(Q,Q_VEst));
       assert(isequal(Q,Q_VEst), 'QuEst and VEst rotation estimates match!');
     end 

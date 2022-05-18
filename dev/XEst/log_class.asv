@@ -29,17 +29,16 @@ classdef log_class < matlab.System
     function obj = log_class(varargin)
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end
-    function load_cfg2log(obj, cfg, benchtype, keyFrames)
+    function load_cfg(obj, cfg)
       % load config from cfg
       obj.algorithms       = cfg.pose_algorithms;
-      obj.benchtype       = benchtype; 
-      obj.keyFrames      = keyFrames;
+%       obj.benchtype       = benchtype; 
+%       obj.keyFrames      = keyFrames;
       obj.init();
     end 
 
   end % methods % constructor 
   methods (Access = public) 
-
     function log_state(obj, idx, frame_idx, T, Q, V, W)
       % 
       obj.idx_hist(idx, 1)         = idx;
