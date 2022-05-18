@@ -7,21 +7,20 @@
 close all; clear; clc 
 addpath(genpath('./'));
 
-% config - datasets handled in cfg
+% config - datasets handled in cfg 
 cfg = config_class(test_ID   =   'quest_unit_test');
-cfg = init(cfg);
 
-dlog = dlog_class();
-dlog = dlog.load_cfg(cfg); % overwrite default settings 
+dlogger = dlogger_class();
+dlogger.load_cfg(cfg); % overwrite default settings 
 
 quest = quest_class();
-quest = quest.load_cfg(cfg); 
+quest.load_cfg(cfg); 
 
 vest = vest_class();
-% vest = vest.load_cfg(vest, cfg); 
+% vest.load_cfg(vest, cfg); 
 
 % qekf = qekf_class();
-% qekf = qekf.load_cfg(qekf, cfg); 
+% qekf.load_cfg(qekf, cfg); 
 
 
 %% run 
@@ -32,19 +31,19 @@ for bnch = length(cfg.benchmarks)
   for frame_idx = cfg.dats.keyFrames
     idx = idx+1;
   
-    [quest,T,Q] = quest.get_pose(frame_idx, dat, cfg);  
-    [vest, V, W] = vest.get_vel(frame_idx, quest.matches); % get velocity
+    [T,Q]   = quest.get_pose(frame_idx, dat, cfg);  
+    [V, W] = vest.get_vel(frame_idx, quest.matches); % get velocity
     vest.check_w_QuEst(W, Q);
   %   x_TVWQ = QEKF(i,TQ,V,W);
   
-    dlog.log_state(benchName, idx, frame_idx, T, Q, V, W);
-    
-    dlog.datidx_hist(idx,1) = idx;
-    dlog.kF_hist(idx,:) =  frame_idx;
-    dlog.T_hist(idx,:)  =  T;
-    dlog.Q_hist(idx,:)  =  Q;
-    dlog.V_hist(idx,:)  =  V;
-    dlog.W_hist(idx,:) =  W;
+    dlogger.log_state(bnch, benchName, idx, frame_idx, T, Q, V, W);
+     % move to log_state
+    dlogger.datidx_hist(idx,1) = idx;
+    dlogger.kF_hist(idx,:) =  frame_idx;
+    dlogger.T_hist(idx,:)  =  T;
+    dlogger.Q_hist(idx,:)  =  Q;
+    dlogger.V_hist(idx,:)  =  V;
+    dlogger.W_hist(idx,:) =  W;
       
     %   Q_VEst = exp_map(W);
   %    if isequal(Q,Q_VEst)
@@ -56,7 +55,7 @@ end % bnch = length(cfg.benchmarks)
 
 %% post-processing 
 
-quest_res = quest.get_res(dlog);
-vest_res = vest.get_res(dlog);
-qekf_res = qekf.get_res(dlog);
+quest_res = quest.get_res(dlogger);
+vest_res = vest.get_res(dlogger);
+qekf_res = qekf.get_res(dlogger);
 

@@ -37,7 +37,7 @@ for bnch = length(cfg.benchmarks)
   %   x_TVWQ = QEKF(i,TQ,V,W);
   
     dlogger.log_state(bnch, benchName, idx, frame_idx, T, Q, V, W);
-    
+     % move to log_state
     dlogger.datidx_hist(idx,1) = idx;
     dlogger.kF_hist(idx,:) =  frame_idx;
     dlogger.T_hist(idx,:)  =  T;

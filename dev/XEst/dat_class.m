@@ -35,6 +35,10 @@ classdef dat_class < matlab.System
       obj.surfThresh  =    cfg.quest_surfThresh; 
       obj = obj.init();
     end
+
+%     function kframes = get_keyFrames(obj)
+%       
+%     end 
   end 
 
   methods  (Access = private)
