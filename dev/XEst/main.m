@@ -45,6 +45,9 @@ for i = cfg.keyFrames
   
 %   x_TVWQ = QEKF(i,TQ,V,W);
 
+  dlog.log_state(i, T, Q, V, W);
+
+ 
   dlog.kF_hist(i,:) =  i;
   dlog.T_hist(i,:)  =  T;
   dlog.Q_hist(i,:)  =  Q;

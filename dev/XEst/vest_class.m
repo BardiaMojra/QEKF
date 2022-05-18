@@ -14,8 +14,7 @@ classdef vest_class < matlab.System % & config_class
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end  
   end 
- %% public functions
- methods (Access = public)
+ methods (Access = public) % public functions
     function obj = load_cfg(obj, cfg)
 %       obj.some = some_config;
     end

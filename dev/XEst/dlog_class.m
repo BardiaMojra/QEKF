@@ -3,7 +3,7 @@ classdef dlog_class < matlab.System %& config_class
     res_prt_en  = true;
     res_sav_en = true;
 
-    % config
+    % config (inarg)
     test_ID
     test_outDir
     numMethods 
@@ -12,6 +12,7 @@ classdef dlog_class < matlab.System %& config_class
     benchmarks 
     numKeyFrames
     %% datalog arrays for each module
+    idx_hist
     % quest 
     Q_err_hist % rot err for each method
     T_err_hist % trans err for each method
@@ -24,9 +25,19 @@ classdef dlog_class < matlab.System %& config_class
     W_err_hist
     % qekf
     
+    %% constants 
+    res_labels  = {'Rot err mean';...
+                            'Rot err std';...
+                            'Rot err median'; 
+                            'Rot err Q_1';...
+                            'Rot err Q_3';...
+                            'Tran err mean';...
+                            'Tran err std';...
+                            'Tran err median';...
+                            'Tran err Q_1';...
+                            'Tran err Q_3'};
   end
-  methods
-    % Constructor
+  methods  % constructor
     function obj = dlog_class(varargin)
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end
@@ -37,29 +48,15 @@ classdef dlog_class < matlab.System %& config_class
       obj.numBenchmarks   = cfg.numBenchmarks;
       obj.pose_algorithms   = cfg.pose_algorithms;
       obj.benchmarks           = cfg.benchmarks;
-     
       obj.numKeyFrames = NaN(obj.numBenchmarks,1);
       for ds = obj.numBenchmarks
          obj.numKeyFrames(ds) =  cfg.dats{ds}.numKeyFrames; 
       end
-      disp(obj.numKeyFrames);
+%       disp(obj.numKeyFrames);
       obj = init(obj);
     end
-    function obj = init(obj)
-      % quest
-      obj.Q_err_hist       = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
-      obj.T_err_hist        = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks ); 
-      obj.Q_hist              = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
-      obj.T_hist              = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks);
-      % vest
-      obj.V_err_hist       = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
-      obj.W_err_hist      = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
-      obj.V_hist             = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
-      obj.W_hist            = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks);
-      % qekf
-
-    end
-
+  end % end of methods % constructor
+  methods (Access = public) % public functions
     function res = get_res(obj)
       %% quest
       % remove NaN entries (corresponding to skipped frames)
@@ -78,17 +75,7 @@ classdef dlog_class < matlab.System %& config_class
       tranErrQ1   = quantile(obj.T_err_hist,0.25, 1);
       tranErrQ3   = quantile(obj.T_err_hist,0.75, 1);
 
-      % Table of results
-      RowNames = {'Rot err mean';...
-                  'Rot err std';...
-                  'Rot err median'; 
-                  'Rot err Q_1';...
-                  'Rot err Q_3';...
-                  'Tran err mean';...
-                  'Tran err std';...
-                  'Tran err median';...
-                  'Tran err Q_1';...
-                  'Tran err Q_3'};
+
       data      = [rotErrM;
                    rotErrS;
                    rotErrMd;
@@ -101,25 +88,25 @@ classdef dlog_class < matlab.System %& config_class
                    tranErrQ3;];
       if obj.numMethods == 1
         res  = table(data(:,1), ...
-                     'RowNames', RowNames, ...
+                     'RowNames', obj.RowNames, ...
                      'VariableNames', obj.pose_algorithms); 
       elseif obj.numMethods == 2
         res  = table(data(:,1), ...
                      data(:,2), ...
-                     'RowNames', RowNames, ...
+                     'RowNames', obj.RowNames, ...
                      'VariableNames', obj.pose_algorithms); 
       elseif obj.numMethods == 3
         res  = table(data(:,1), ...
                      data(:,2), ...
                      data(:,3), ...
-                     'RowNames', RowNames, ...
+                     'RowNames', obj.RowNames, ...
                      'VariableNames', obj.pose_algorithms); 
       elseif obj.numMethods == 4
         res  = table(data(:,1), ...
                      data(:,2), ...
                      data(:,3), ...
                      data(:,4), ...
-                     'RowNames', RowNames, ...
+                     'RowNames', obj.RowNames, ...
                      'VariableNames', obj.pose_algorithms); 
       elseif obj.numMethods == 5
         res  = table(data(:,1), ...
@@ -127,7 +114,7 @@ classdef dlog_class < matlab.System %& config_class
                      data(:,3), ...
                      data(:,4), ...
                      data(:,5), ...
-                     'RowNames', RowNames, ...
+                     'RowNames', obj.RowNames, ...
                      'VariableNames', obj.pose_algorithms);    
       end
 
@@ -140,5 +127,22 @@ classdef dlog_class < matlab.System %& config_class
       end 
     end
 
-  end
+  end % end of methods (Access = public) % public functions
+  methods (Access = private) % private functions
+    function obj = init(obj)
+      % quest
+      obj.idx_hist            = NaN(obj.numKeyFrames,1);
+      obj.Q_err_hist       = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
+      obj.T_err_hist        = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks ); 
+      obj.Q_hist              = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
+      obj.T_hist              = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks);
+      % vest
+      obj.V_err_hist       = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
+      obj.W_err_hist      = NaN(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
+      obj.V_hist             = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks); 
+      obj.W_hist            = cell(obj.numKeyFrames,obj.numMethods, obj.numBenchmarks);
+      % qekf
+
+    end
+  end % methods (Access = private) % private functions
 end

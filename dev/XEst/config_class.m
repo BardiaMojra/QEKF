@@ -10,8 +10,7 @@ classdef config_class < matlab.System %& dat_class
     end_frame         = nan;% end frame index
     % test config dependent 
     test_outDir
-   
-    %% state machine config
+    % state machine config
     dats  % dataset handler array for multi-data mode 
     cntr % key frame counter
     numMethods  % num of algs used for comparison
@@ -35,7 +34,6 @@ classdef config_class < matlab.System %& dat_class
 %                                     'ICL';
 %                                     'TUM';
                                                } % benchmarks ----> (disabled for now)
-    
   end
   methods
     % Constructor
