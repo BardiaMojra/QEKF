@@ -25,12 +25,11 @@ classdef quest_class < matlab.System % & config_class
               %                        'Stewenius'; 
                                      'QuEst'}; % algorithms to run 
     numBenchmarks;
-    benchmarks      = {'KITTI';
+    benchmarks        = {'KITTI';
                                        'NAIST';
                                        'ICL';
-                                       'TUM';
-                                       } % benchmarks ----> (disabled for now)
-    
+                                       'TUM';  } % benchmarks ----> (disabled for now)
+
     %% run-time variables 
     t % frame translation 
     q % frame quaternion orientation 
@@ -154,8 +153,88 @@ classdef quest_class < matlab.System % & config_class
           disp(['Iteration ' num2str(obj.cntr) ' of ' num2str(obj.numKeyFrames)]);
         end  
       end 
+
+
     end
-    
+    function res = get_res(obj)
+      %% quest
+      % remove NaN entries (corresponding to skipped frames)
+      nanIdx = find(sum(isnan(obj.Q_err_hist),2));
+      obj.Q_err_hist(nanIdx,:)  = [];
+      obj.T_err_hist(nanIdx,:) = [];
+      % statistics of error for rotation and translation estimates
+      rotErrM     = mean(obj.Q_err_hist,1);           % Mean
+      rotErrS     = std(obj.Q_err_hist,1);            % Standard deviation
+      rotErrMd    = median(obj.Q_err_hist,1);         % Median
+      rotErrQ1    = quantile(obj.Q_err_hist,0.25, 1); % 25% quartile
+      rotErrQ3    = quantile(obj.Q_err_hist,0.75, 1); % 75% quartile
+      tranErrM    = mean(obj.T_err_hist,1);
+      tranErrS    = std(obj.T_err_hist,1);
+      tranErrMd   = median(obj.T_err_hist,1);
+      tranErrQ1   = quantile(obj.T_err_hist,0.25, 1);
+      tranErrQ3   = quantile(obj.T_err_hist,0.75, 1);
+
+      RowNames  = {'Rot err mean';...
+                                'Rot err std';...
+                                'Rot err median'; 
+                                'Rot err Q_1';...
+                                'Rot err Q_3';...
+                                'Tran err mean';...
+                                'Tran err std';...
+                                'Tran err median';...
+                                'Tran err Q_1';...
+                                'Tran err Q_3'};
+      data      = [rotErrM;
+                   rotErrS;
+                   rotErrMd;
+                   rotErrQ1;
+                   rotErrQ3;
+                   tranErrM;
+                   tranErrS;
+                   tranErrMd;
+                   tranErrQ1;
+                   tranErrQ3;];
+
+      if obj.numMethods == 1
+        res  = table(data(:,1), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 2
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 3
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     data(:,3), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 4
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     data(:,3), ...
+                     data(:,4), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms); 
+      elseif obj.numMethods == 5
+        res  = table(data(:,1), ...
+                     data(:,2), ...
+                     data(:,3), ...
+                     data(:,4), ...
+                     data(:,5), ...
+                     'RowNames', RowNames, ...
+                     'VariableNames', obj.algorithms);    
+      end
+
+      if obj.res_prt_en
+        disp(res);
+      end 
+      if obj.res_sav_en
+        fname = strcat(obj.test_outDir,'res_',obj.test_ID,'_QuEst_table.csv');
+        writetable(res,fname);
+      end 
+    end % end of get_res()
 
     %% Backup/restore functions
     function s = save(obj)

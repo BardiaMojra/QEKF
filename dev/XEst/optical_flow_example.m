@@ -1,1 +1,0 @@
-vidReader = VideoReader('visiontraffic.avi','CurrentTime',11);

@@ -1,25 +1,21 @@
 classdef dat_class < matlab.System 
-  %% DAT_CLASS Add summary here
-  % Public, tunable properties
   properties
-
-
-    %% data config (constant)
-    datDir              = [pwd '/data/']; % data dir     
+    %% config (constant)
+    datDir               = [pwd '/data/']; % data dir     
     st_frame          = 1; % start frame index
     end_frame       = nan;% end frame index
     benchtype       = 'KITTI'; % default
     benchnum       = 3; % aux config, used in KITTI     
     surfThresh      = 200; % SURF feature detection threshold
 
-    % data config dependent (constant)
+    % vars (private)
     dataset; % dataset obj
+    keyFrames
     dat_posp; 
     ppoints_i; % init frame points 
     Ip_i; % init frame image 
     skipFrame       = 0; % num of frames skipped bwt two keyframes        
     numImag % total num of images
-    keyFrames;
     numKeyFrames % num of keyframes
 
   end
