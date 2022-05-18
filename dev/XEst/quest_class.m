@@ -1,37 +1,40 @@
-classdef quest_class < matlab.System
-  %% public vars
-  properties 
-    %% configs (passed in via cfg obj or set manually)
-    %% features (private)
-    %     features_sav_en   = true;
+classdef quest_class < matlab.System % & config_class
+  properties % public vars
+    % configs (passed in via cfg obj or set manually)
+    test_ID
+    test_outDir
+
+    % features (private)
+    features_sav_en   = true;
     matches_sav_en    = true;
     matches_disp_en   = false; % disp matched features between two keyframes
     sliding_ref_en    = false; % disable sliding_ref mode when running in real-time
-    res_prt_en        = true; % print res in terminal  
-    res_sav_en        = true; % save res table 
-
-   
+    
+    % configs 
     ranThresh       = 1e-6;% RANSAC Sampson dist threshold (for outliers)
     surfThresh      = 200; % SURF feature detection threshold
     maxPts              = 30; % max num of features used in pose est (fewer points, faster compute)
     minPts              = 8; % max num of features required (6 to est a unique pose with RANSAC)
+    % overwritten by cfg
+    numMethods  % num of algs used for comparison    
     algorithms      = {...
-                       'EightPt'; 
-                       'Nister'; 
-%                        'Kneip'; 
-                       'Kukelova'; 
-%                        'Stewenius'; 
-                       'QuEst'}; % algorithms to run 
+                                     'EightPt'; 
+                                     'Nister'; 
+              %                        'Kneip'; 
+                                     'Kukelova'; 
+              %                        'Stewenius'; 
+                                     'QuEst'}; % algorithms to run 
+    numBenchmarks;
     benchmarks      = {'KITTI';
-                       'NAIST';
-                       'ICL';
-                       'TUM';
-                       } % benchmarks ----> (disabled for now)
-    % run-time variables 
+                                       'NAIST';
+                                       'ICL';
+                                       'TUM';
+                                       } % benchmarks ----> (disabled for now)
+    
+    %% run-time variables 
     t % frame translation 
     q % frame quaternion orientation 
     posp % previous frame ground truth pose (per frame, given)
-    numMethods  % num of algs used for comparison
     ppoints % previous frame feature points 
     Ip % previous image
     npoints % current frame feature points 
@@ -40,42 +43,24 @@ classdef quest_class < matlab.System
     relPose % relative ground truth transform (bewteen frames)    
   end
 
-  methods
-    %% constructor
+  methods % constructor
     function obj = quest_class(varargin)
-      setProperties(obj,nargin,varargin{:}) % init obj w name-value args
+        setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end    
   end
-  
-    %% public functions
-%     function obj = load_cfg(obj, ...
-%                             skipFrame, ...
-%                             ransac_thresh, ...
-%                             surf_thresh, ...
-%                             maxPts, ...
-%                             minPts)
-      %% common 
-%       obj.test_ID       = test_ID;
-%       obj.outDir        = outDir;
-%       obj.method        = method;
-%       obj.st_frame      = st_frame;
-%       obj.end_frame     = end_frame;
-      % QuEst
-%       obj.dataroot      = datDir;
-%       obj.benchtype     = benchtype;
-%       obj.benchnum      = seq;
-%       obj.skipFrame     = skipFrame;
-%       obj.ranThresh     = ransac_thresh;
-%       obj.surfThresh    = surf_thresh;
-%       obj.maxPts        = maxPts;
-%       obj.minPts        = minPts;
-      %% init
-%       obj = obj.init();
-%     end
+ 
+  methods (Access = public)  % public functions
+    function obj = load_cfg(obj, cfg) %,  extraprop)
+      obj.test_ID                   =  cfg.test_ID;                   
+      obj.test_outDir            =  cfg.test_outDir;            
+      obj.numMethods         =  cfg.numMethods;         
+      obj.algorithms             =  cfg.pose_algorithms;             
+      obj.numBenchmarks  =  cfg.numBenchmarks;  
+      obj.benchmarks          =  cfg.benchmarks;          
+      obj.surfThresh            =  cfg.quest_surfThresh;       
+    end
 
-  methods (Access = public)
     function [obj,t,q] = get_pose(obj, i, dat, cfg)
-%       obj.cntr  = cfg.cntr + 1; % Counter          
       % get current frame features and match w prev frame    
       [obj.npoints,obj.In] = GetFeaturePoints(i,dat,obj.surfThresh);            
       obj.matches   = MatchFeaturePoints(obj.Ip,obj.ppoints,obj.In,obj.npoints,...
@@ -183,7 +168,8 @@ classdef quest_class < matlab.System
     function load(obj,s,wasLocked)
       % Set properties in object obj to values in structure s
       % Set private and protected properties
-      obj.myproperty = s.myproperty;       
+      obj.myproperty = s.myproperty;    
+      
       % Set public properties and states
       load@matlab.System(obj,s,wasLocked);
     end

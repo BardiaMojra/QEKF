@@ -19,25 +19,22 @@ addpath(genpath('./'));
 
 %% config
 cfg = config_class(... 
-  test_ID  = 'quest_unit_test', ...
-  seq        = 3 ... % aux config, used in KITTI 
-  );
+                                 test_ID               = 'quest_unit_test'  );
 cfg = init(cfg);
 
 dlog = dlog_class();
-dlog = copyprops(dlog, cfg); % overwrite default settings
+dlog = dlog.load_cfg(cfg);% overwrite default settings 
 
 quest = quest_class();
-quest = copyprops(quest, cfg); % overwrite default settings
+quest = quest.load_cfg(cfg); 
 
 vest = vest_class();
-vest  = copyprops(vest, cfg); % overwrite default settings
+% vest = vest.load_cfg(vest, cfg); 
 
-qekf = qekf_class();
-qekf = copyprops(qekf, cfg); % overwrite default settings
+% qekf = qekf_class();
+% qekf = qekf.load_cfg(qekf, cfg); 
 
-% rqekf = rqekf_class();
-% rqekf.config(cfg);
+
 
 %% run 
 for i = cfg.keyFrames

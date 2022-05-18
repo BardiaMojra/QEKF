@@ -2,17 +2,18 @@ classdef config_class < matlab.System %& dat_class
   properties
     %
     test_single_bench_en     = true;
-    test_ID               =  'quest_unit_test'; % test ID 
-    outDir                = [pwd '/out/'];      
+    test_ID     =  'quest_unit_test'; % test ID 
+    outDir      = [pwd '/out/'];      
     % dat_cfg
     %datDir             = [pwd '/data/']; % data dir     
-    st_frame            = 1; % start frame index
-    end_frame         = nan;% end frame index
+    st_frame          = 1; % start frame index
+    end_frame       = nan;% end frame index
     % test config dependent 
     test_outDir
    
     %% state machine config
-    dats  % dataset handler array for multi-data mode 
+     dats  % dataset handler array for multi-data mode 
+    % dat  % dataset handler for single 
     cntr % key frame counter
     numMethods  % num of algs used for comparison
     numBenchmarks 
