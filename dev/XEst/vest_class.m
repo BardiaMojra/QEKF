@@ -31,10 +31,13 @@ classdef vest_class < matlab.System % & config_class
     end 
   
     function check_w_QuEst(obj, W, Q)
-      Q_VEst = obj.exp_map(W);
-      disp(isequal(Q,Q_VEst));
-      assert(isequal(Q,Q_VEst), 'QuEst and VEst rotation estimates match!');
-    end 
+      Q_VEst = obj.exp_map(W);   
+      if ~isequal(Q, Q_VEst) 
+        disp('QuEst and VEst rotation estimates match!');
+        disp('Q: ', Q);
+        disp('Q_VEst: ', Q_VEst);
+      end
+    end
   end % end of public access 
   
   methods (Access = private)

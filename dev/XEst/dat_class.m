@@ -1,7 +1,7 @@
 classdef dat_class < matlab.System 
   properties
     %% config (constant)
-    datDir               = [pwd '/data/']; % data dir     
+    datDir               = [pwd '/data']; % data dir     
     st_frame          = 1; % start frame index
     end_frame       = nan;% end frame index
     benchtype       = 'KITTI'; % default
@@ -10,11 +10,11 @@ classdef dat_class < matlab.System
 
     % vars (private)
     dataset; % dataset obj
-%     imgpath
-%     datapath
+    %imgpath
+    %datapath
     keyFrames
-    ppoints_i; % init frame points 
-    Ip_i; % init frame image 
+    %ppoints_i; % init frame points 
+    %Ip_i; % init frame image 
     skipFrame       = 0; % num of frames skipped bwt two keyframes        
     numImag % total num of images
     numKeyFrames % num of keyframes
