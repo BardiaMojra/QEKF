@@ -29,19 +29,20 @@ classdef dlogger_class < matlab.System
       obj.benchmarks           = cfg.benchmarks;      
       obj.logs                      = cell(obj.numBenchmarks,0);
       for b = 1:obj.numBenchmarks
-        obj.logs{b} = log_class( benchtype   = cfg.dats{b}.benchtype, ... 
-                                                  keyFrames  =  cfg.dats{b}.keyFrames);
+        obj.logs{b} = log_class( benchtype   =  cfg.dats{b}.benchtype, ... 
+                                                  keyFrames  =  cfg.dats{b}.keyFrames, ...
+                                                  algorithms   =  cfg.pose_algorithms );
         obj.logs{b}.load_cfg(cfg); 
       end
     end
     
-    function log_state(obj, bnch, benchName, idx, frame_idx, T, Q, V, W)
+    function log_state(obj, bnch, benchName, idx, frame_idx, TQ_sols, V, W)
       % check log BenchName and current benchtype
       assert(strcmp(obj.logs{bnch},benchName), ... 
-        "dlog.log{%d}: %s  doesnt match benchName: %s", ...
-        bench, obj.logs{bnch}, benchName);
+        "dlog.log{%d}: %s  DOES NOT match benchName: %s", ...
+        bnch, obj.logs{bnch}, benchName);
 
-      obj.log{bnch}.log_state(idx, frame_idx, T, Q, V, W);
+      obj.log{bnch}.log_state(idx, frame_idx, TQ_sols, V, W);
     end
   end % methods (Access = public) 
  

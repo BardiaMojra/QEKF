@@ -48,8 +48,8 @@ classdef quest_class < matlab.System % & config_class
       obj.init();
     end
 
-    function TQ_sols = get_pose(obj, kframe_idx, dat, cfg)
-%       T = nan; Q = nan;
+    function [TQ_sols, Q_quest] = get_pose(obj, kframe_idx, dat, cfg)
+      Q_quest = nan;
       % get current frame features and match w prev frame    
       [dat.npoints,dat.In] = GetFeaturePoints(kframe_idx, dat.dataset, dat.surfThresh);            
       dat.matches   = MatchFeaturePoints(dat.Ip, dat.ppoints, dat.In, dat.npoints, ...
@@ -58,6 +58,7 @@ classdef quest_class < matlab.System % & config_class
                                                                     obj.matches_sav_en, cfg.test_outDir);
       % relative ground truth transformation and previous frame gt pose
       [dat.relPose,dat.posp] = RelativeGroundTruth(kframe_idx, dat.posp, dat.dataset);
+      
       % skip frame if not enough matches found 
       if (dat.matches.numPts < obj.minPts) % || (obj.matches.status~=0)         
         dat.Ip      = dat.In; % use current frame as the next previous frame
@@ -70,15 +71,15 @@ classdef quest_class < matlab.System % & config_class
         for mthd = 1: obj.numMethods   
           if strcmp(obj.algorithms{mthd},'EightPt') % Eight Point alg
             EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2);
-            [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'Nister') % Five Point alg (Nister)
             EOut          = opengv('fivept_nister',dat.matches.m2u,dat.matches.m1u);
-            [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'Li') % Five Point alg (Li + Hatley)
             EOut          = Ematrix5pt_v2(dat.matches.m2u(:,1:5),dat.matches.m1u(:,1:5));
-            [ROut,tOut]   = TransformEssentialsVer2_0(EOut);
+            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);
             Q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd}, 'Kneip') % Five Point alg (Kneip)
             ROut          = opengv('fivept_kneip',1:5,dat.matches.m2u,dat.matches.m1u);  
@@ -92,19 +93,20 @@ classdef quest_class < matlab.System % & config_class
             continue;
           elseif strcmp(obj.algorithms{mthd},'Kukelova') % Five Point algorithm (Polynomial eigenvalue)
             EOut          = PolyEigWrapper(dat.matches.m1,dat.matches.m2);                
-            [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'Stewenius') % Five Point algorithm (Stewenius)
             EOut          = opengv('fivept_stewenius',dat.matches.m2u,dat.matches.m1u); % Same results as fivep.m                
-            [ROut,tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(obj.algorithms{mthd},'QuEst') % Five Point algorithm (QuEst)
             sol           = QuEst_Ver1_1(dat.matches.m1, dat.matches.m2);                
             Q             = sol.Q;
             tOut          = sol.T;
-             
+            
             [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
-            T                = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
+            T                = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);  
+            Q_quest = Q(:,);  
           else
             error('Undefined algorithm.')
           end

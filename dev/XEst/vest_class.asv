@@ -66,6 +66,11 @@ classdef vest_class < matlab.System % & config_class
       end
     end % Qxyzw = exp_map(x)
 
+    function dist = phi03_dist(qr, q)
+    dist = (1/pi) * acos(abs(sum(qr .* q)));
+      
+    end 
+
     %% Backup/restore functions
     function s = save(obj)
       % Set properties in structure s to values in object obj

@@ -29,14 +29,15 @@ for bnch = length(cfg.benchmarks) % --->> iter benchmarks
   for frame_idx = cfg.dats{bnch}.keyFrames % --->> iter keyframes 
     idx = idx+1;
 
-    [T, Q]   = quest.get_pose(frame_idx, cfg.dats{bnch}, cfg); 
+    TQ_sols  = quest.get_pose(frame_idx, cfg.dats{bnch}, cfg); 
     
     [V, W] = vest.get_vel(cfg.dats{bnch}.matches); % get velocity
+    TQ_sols = 
     vest.check_w_QuEst(W, Q);
   
     % x_TVWQ = QEKF(i,TQ,V,W);
   
-    dlogger.log_state(bnch, cfg.benchmarks(bnch), idx, frame_idx, T, Q, V, W);
+    dlogger.log_state(bnch, idx, frame_idx, TQ_sols, V, W);
 
   end % for frame_idx = cfg.dats.keyFrames
 end % bnch = length(cfg.benchmarks)
