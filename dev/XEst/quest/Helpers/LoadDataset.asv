@@ -83,7 +83,7 @@ dataset.end_frame = end_frame;
 if strcmp(benchtype, 'KITTI')
     
     %Use textscan to load the calibration matrix
-    calibfile = [dataroot 'KITTI/sequences/' num2str(benchnum, '%02d') ...
+    calibfile = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d') ...
                '/calib.txt'];
     fileid = fopen(calibfile);
     C = textscan(fileid, '%s %f %f %f %f %f %f %f %f %f %f %f %f');

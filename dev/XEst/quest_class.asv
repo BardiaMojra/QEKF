@@ -102,15 +102,17 @@ classdef quest_class < matlab.System % & config_class
             sol           = QuEst_Ver1_1(dat.matches.m1, dat.matches.m2);                
             Q             = sol.Q;
             tOut          = sol.T;
+             
+            [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
+            T                = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
           else
             error('Undefined algorithm.')
           end
           
           % find the closest transform to ground truth    
-          [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
+          %[Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
           %T                = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
-          T = -tOut;
-          
+          %T = -tOut;
          
           obj.save_method_est(Q, T, mthd);
           % calc est error
