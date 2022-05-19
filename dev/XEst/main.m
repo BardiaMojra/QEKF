@@ -37,7 +37,7 @@ for bnch = length(cfg.benchmarks) % --->> iter benchmarks
   
     % x_TVWQ = QEKF(i,TQ,V,W);
   
-    dlogger.log_state(bnch, idx, frame_idx, TQ_sols, V, W);
+    dlogger.log_state(bnch, cfg.benchmarks{bnch}, idx, frame_idx, TQ_sols, V, W);
 
   end % for frame_idx = cfg.dats.keyFrames
 end % bnch = length(cfg.benchmarks)

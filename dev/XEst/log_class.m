@@ -43,9 +43,15 @@ classdef log_class < matlab.System
       obj.frame_hist(idx, 1)    = frame_idx;
       % quest
       for alg = length(obj.algorithms)
-        assert(strcmp(obj.algorithms(alg), TQ_sols(alg, 3)), ... 
-          "[log_class]> obj.algorithms(%d): %s  DOES NOT match TQ_sols(%d, 3): %s", ...
+
+        disp(obj.algorithms(alg));
+        disp(TQ_sols{alg, 3});
+        msg = sprintf("[log_class]> obj.algorithms(%d): %s  DOES NOT match TQ_sols(%d, 3): %s", ...
           alg, obj.algorithms(alg), alg, TQ_sols(alg, 3));
+        
+
+        assert(strcmp(obj.algorithms(alg), TQ_sols(alg, 3)), msg); 
+          
         obj.T_hist(idx, alg)      =  TQ_sols(alg, 1);
         obj.Q_hist(idx, alg)      = TQ_sols(alg, 2);
       end

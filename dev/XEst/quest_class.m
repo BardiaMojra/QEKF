@@ -17,9 +17,9 @@ classdef quest_class < matlab.System % & config_class
     algorithms      = {...
                                      'EightPt'; 
                                      'Nister'; 
-              %                        'Kneip'; 
+                                     %'Kneip'; 
                                      'Kukelova'; 
-              %                        'Stewenius'; 
+                                     %'Stewenius'; 
                                      'QuEst'}; % algorithms to run ----> (disabled for now)
 
     benchmarks        = {'KITTI';

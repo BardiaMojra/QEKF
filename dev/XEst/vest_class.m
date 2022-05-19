@@ -1,6 +1,8 @@
 classdef vest_class < matlab.System % & config_class
   %% public vars
   properties 
+    %% 
+    check_w_QuEst_threshold   = 0.05;
     %% run-time variables 
     m  % current frame feature points 
     m_dot % m(i) - m(i-1) of matched feature points  
@@ -32,15 +34,19 @@ classdef vest_class < matlab.System % & config_class
   
     function check_w_QuEst(obj, W, Q)
       Q_VEst = obj.exp_map(W);   
-      if ~isequal(Q, Q_VEst)  % 
+      dist = obj.phi03_dist(Q, Q_VEst); 
+      if dist < obj.check_w_QuEst_threshold % 
         disp('QuEst and VEst rotation estimates DO NOT match!');
-        disp('Q: '); disp(Q);
-        disp('Q_VEst: '); disp(Q_VEst);
+        disp('Phi03 dist: '); disp(dist);
       end
     end
   end % end of public access 
   
   methods (Access = private)
+    function dist = phi03_dist(~, qr, q)
+      dist = (1/pi) * acos(abs( sum(qr .* q)));
+    end 
+
     function [m, m_dot] = prep_matches(~, matches)
       m         = matches.m2; 
       m_dot = matches.m2 - matches.m1;
