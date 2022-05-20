@@ -7,6 +7,8 @@ benchtype = dataset.benchtype;
 qTru = dataset.qTru;
 tTru = dataset.tTru;
 
+
+
 if strcmp(benchtype, 'KITTI') || strcmp(benchtype, 'ICL') || strcmp(benchtype, 'NAIST')
 
     q2 = qTru(:,i);
@@ -43,15 +45,12 @@ elseif strcmp(benchtype, 'NAIST')
     % Relative trans. vec. in current coord. frame (^2t_21 : relative 
     % translation given in frame 2)
     tr = t2 - Q2R(q2)*Q2R(QuatConj(q1)) * t1;  
-
 end
 
-
-
 % Store the current pose for the next iteration
-posp.q1 = q2;
+posp.q1 = normalize_all(q2);
 posp.t1 = t2;
 
 % Relative pose
-relPos.qr = qr;
+relPos.qr = normalize_all(qr);
 relPos.tr = tr;

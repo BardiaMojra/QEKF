@@ -36,13 +36,13 @@ classdef dlogger_class < matlab.System
       end
     end
     
-    function log_state(obj, b, bName, idx, f_idx, TQ_sols, V, W)
+    function log_state(obj, b, bName, cntr, f_idx, TQ_sols, V, W)
       % check log BenchName and current benchtype
       msg = sprintf("dlog.log{%d}: %s  DOES NOT match benchName: %s", b, ... 
         obj.logs{b}.benchtype, bName);
       assert(strcmp(obj.logs{b}.benchtype, bName), msg);
   
-      obj.logs{b}.log_state(idx, f_idx, TQ_sols, V, W);
+      obj.logs{b}.log_state(cntr, f_idx, TQ_sols, V, W);
     end
   end % methods (Access = public) 
  

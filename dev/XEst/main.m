@@ -24,23 +24,23 @@ vest = vest_class();
 
 
 %% run 
-for bnch = length(cfg.benchmarks) % --->> iter benchmarks
-  idx  = 0; % test index
-  for frame_idx = cfg.dats{bnch}.keyFrames % --->> iter keyframes 
-    idx = idx+1;
+for b = 1: length(cfg.benchmarks) % --->> iter benchmarks
+  cntr  = 0;
+  for frame_idx = cfg.dats{b}.keyFrames % --->> iter keyframes 
+    cntr = cntr+1;
 
-    [TQ_sols, Q] = quest.get_pose(frame_idx, cfg.dats{bnch}, cfg); 
+    [TQ_sols] = quest.get_pose(frame_idx, cfg.dats{b}, cfg); 
     
-    [V, W] = vest.get_vel(cfg.dats{bnch}.matches); % get velocity
+    [V, W] = vest.get_vel(cfg.dats{b}.matches); % get velocity
     
-    vest.check_w_QuEst(W, Q);
+%     vest.check_w_QuEst(W, Q);
   
     % x_TVWQ = QEKF(i,TQ,V,W);
   
-    dlog.log_state(bnch, cfg.benchmarks{bnch}, idx, frame_idx, TQ_sols, V, W);
+    dlog.log_state(b, cfg.benchmarks{b}, cntr, frame_idx, TQ_sols, V, W);
 
   end % for frame_idx = cfg.dats.keyFrames
-end % bnch = length(cfg.benchmarks)
+end % for b = 1:length(cfg.benchmarks)
 
 %% post-processing 
 

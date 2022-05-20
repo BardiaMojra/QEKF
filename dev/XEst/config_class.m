@@ -12,11 +12,11 @@ classdef config_class < matlab.System %& dat_class
   
     quest_surfThresh     = 200; % SURF feature detection threshold
     pose_algorithms      = { ...
-                                            %'EightPt'; 
-                                            %'Nister'; 
-                                            % 'Kneip'; 
-                                            %'Kukelova'; 
-                                            % 'Stewenius'; 
+                                            'EightPt'; 
+                                            'Nister'; 
+                                            %'Kneip';  % dep on opengv
+                                            'Kukelova'; 
+                                            %'Stewenius';  % dep on opengv
                                             'QuEst'}; % algorithms to run 
     benchmarks      = { 'KITTI';
                                     % 'NAIST';

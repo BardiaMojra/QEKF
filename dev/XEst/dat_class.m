@@ -13,6 +13,7 @@ classdef dat_class < matlab.System
     %imgpath
     %datapath
     keyFrames
+    posp_i % init frame ground truth pose (given)
     ppoints_i; % init frame points 
     Ip_i; % init frame image 
     skipFrame % num of frames skipped bwt two keyframes        
@@ -50,13 +51,13 @@ classdef dat_class < matlab.System
   methods  (Access = private)
     function init(obj)
       %init 
-      [obj.dataset, obj.posp] = LoadDataset( ...
+      [obj.dataset, obj.posp_i] = LoadDataset( ...
                                                         obj.datDir, ...
                                                         obj.benchtype, ...
                                                         obj.benchnum, ...
                                                         obj.st_frame, ...
                                                         obj.end_frame); 
-
+      
       if strcmp(obj.benchtype,'KITTI')
         obj.skipFrame = 1; 
       elseif strcmp(obj.benchtype,'NAIST')
@@ -69,10 +70,12 @@ classdef dat_class < matlab.System
  
       obj.numImag              = length(obj.dataset.fnames); 
       obj.keyFrames           = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
-      obj.numKeyFrames   = length(obj.keyFrames);      
+      obj.numKeyFrames   = length(obj.keyFrames);            
+      [obj.ppoints_i, obj.Ip_i]   = GetFeaturePoints(obj.st_frame, obj.dataset, obj.surfThresh);
       
-      [obj.ppoints, obj.Ip] = GetFeaturePoints(obj.st_frame, obj.dataset, obj.surfThresh);
-      
+      obj.posp        = obj.posp_i;
+      obj.ppoints    =  obj.ppoints_i; 
+      obj.Ip              =  obj.Ip_i;
     end
   end
 end

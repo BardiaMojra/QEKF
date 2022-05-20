@@ -11,19 +11,25 @@ classdef log_class < matlab.System
 
     %% datalog arrays for each module
 %     log_labels = { ...
-    idx_hist
+    cntr_hist
     frame_hist
     % quest 
     T_hist % recovered translations
     Q_hist % recovered quaternions 
-    T_err_hist % rot err for each method
-    Q_err_hist % trans err for each method
     % vest 
     V_hist
     W_hist 
-    V_err_hist
-    W_err_hist
     % qekf
+    
+    %% Log Errs
+    % init in init() but always compute and fill at post-processing 
+    T_errs % rot err for each method
+    Q_errs % trans err for each method
+    V_errs
+    W_errs
+    
+
+    
 
   end
   methods  % constructor
@@ -38,25 +44,25 @@ classdef log_class < matlab.System
 
   end % methods % constructor 
   methods (Access = public) 
-    function log_state(obj, idx, frame_idx, TQ_sols, V, W)
+    function log_state(obj, cntr, frame_idx, QT_sols, V, W)
       % 
-      obj.idx_hist(idx, 1)         = idx;
-      obj.frame_hist(idx, 1)    = frame_idx;
+      obj.cntr_hist(cntr, 1)         = cntr;
+      obj.frame_hist(cntr, 1)    = frame_idx;
       % quest
-      for alg = length(obj.algorithms)
-        msg = sprintf("[log_class]--> obj.algorithms{%d}: %s  DOES NOT match , TQ_sols{%d, 3}{1}: %s", ...
-          alg, obj.algorithms{alg}, alg, TQ_sols{alg, 3}{1});
-        assert(strcmp(obj.algorithms{alg}, TQ_sols{alg, 3}{1}), msg); 
-          
-        obj.T_hist{idx, alg}      =  TQ_sols{alg, 1};
-        obj.Q_hist{idx, alg}      =  TQ_sols{alg, 2};
+      for alg = 1:length(obj.algorithms)
+        msg = sprintf("[log_class]--> obj.algorithms{%d}: %s  DOES NOT match , TQ_sols{1, %d}{1}: %s", ...
+          alg, obj.algorithms{alg}, alg, QT_sols{1, alg}{1});
+        assert(strcmp(obj.algorithms{alg}, QT_sols{1, alg}{1}), msg); 
+        obj.Q_hist{cntr, alg}      =  QT_sols{2, alg};  
+        obj.T_hist{cntr, alg}      =  QT_sols{3, alg};
+        
       end
       % vest
-      obj.V_hist{idx, 1}      = V';
-      obj.W_hist{idx, 1}     = W';
+      obj.V_hist{cntr, 1}      = V';
+      obj.W_hist{cntr, 1}     = W';
       % qekf
       
-    end % function log_state(obj, benchName, idx, frame_idx, T, Q, V, W)
+    end % function log_state(obj, benchName, cntr, frame_idx, T, Q, V, W)
   end % methods (Access = public) % public functions
   methods (Access = private) % private functions
     function init(obj)
@@ -65,16 +71,16 @@ classdef log_class < matlab.System
       obj.numMethods        = length(obj.algorithms);
       obj.numKeyFrames    = length(obj.keyFrames);
       % 
-      obj.idx_hist            = NaN(obj.numKeyFrames,1);
+      obj.cntr_hist            = NaN(obj.numKeyFrames,1);
       obj.frame_hist       = NaN(obj.numKeyFrames,1);
       % quest
-      obj.Q_err_hist       = NaN(obj.numKeyFrames,obj.numMethods); 
-      obj.T_err_hist        = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.Q_errs             = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.T_errs              = NaN(obj.numKeyFrames,obj.numMethods); 
       obj.Q_hist              = cell(obj.numKeyFrames,obj.numMethods); 
       obj.T_hist              = cell(obj.numKeyFrames,obj.numMethods);
       % vest
-      obj.V_err_hist       = NaN(obj.numKeyFrames,obj.numMethods); 
-      obj.W_err_hist      = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.V_errs            = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.W_errs           = NaN(obj.numKeyFrames,obj.numMethods); 
       obj.V_hist             = cell(obj.numKeyFrames,obj.numMethods); 
       obj.W_hist            = cell(obj.numKeyFrames,obj.numMethods);
       % qekf
