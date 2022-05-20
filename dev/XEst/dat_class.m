@@ -15,10 +15,10 @@ classdef dat_class < matlab.System
     keyFrames
     %ppoints_i; % init frame points 
     %Ip_i; % init frame image 
-    skipFrame       = 0; % num of frames skipped bwt two keyframes        
+    skipFrame % num of frames skipped bwt two keyframes        
     numImag % total num of images
     numKeyFrames % num of keyframes
-        %% run-time variables 
+    %% run-time variables 
     t % frame translation 
     q % frame quaternion orientation 
     posp % previous frame ground truth pose (per frame, given)

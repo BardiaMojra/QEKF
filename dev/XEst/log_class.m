@@ -44,20 +44,16 @@ classdef log_class < matlab.System
       % quest
       for alg = length(obj.algorithms)
 
-        disp(obj.algorithms(alg));
-        disp(TQ_sols{alg, 3});
-        msg = sprintf("[log_class]> obj.algorithms(%d): %s  DOES NOT match TQ_sols(%d, 3): %s", ...
-          alg, obj.algorithms(alg), alg, TQ_sols(alg, 3));
-        
-
-        assert(strcmp(obj.algorithms(alg), TQ_sols(alg, 3)), msg); 
+        msg = sprintf("[log_class]--> obj.algorithms{%d}: %s  DOES NOT match , TQ_sols{%d, 3}{1}: %s", ...
+          alg, obj.algorithms{alg}, alg, TQ_sols{alg, 3}{1});
+        assert(strcmp(obj.algorithms{alg}, TQ_sols{alg, 3}{1}), msg); 
           
-        obj.T_hist(idx, alg)      =  TQ_sols(alg, 1);
-        obj.Q_hist(idx, alg)      = TQ_sols(alg, 2);
+        obj.T_hist{idx, alg}      =  TQ_sols{alg, 1};
+        obj.Q_hist{idx, alg}      =  TQ_sols{alg, 2};
       end
       % vest
-      obj.V_hist(idx, 1)      = V;
-      obj.W_hist(idx, 1)     = W;
+      obj.V_hist{idx, 1}      = V';
+      obj.W_hist{idx, 1}     = W';
       % qekf
       
     end % function log_state(obj, benchName, idx, frame_idx, T, Q, V, W)

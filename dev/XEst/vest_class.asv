@@ -37,7 +37,7 @@ classdef vest_class < matlab.System % & config_class
       dist = obj.phi03_dist(Q, Q_VEst); 
       if dist > obj.check_w_QuEst_threshold % 
         disp('QuEst and VEst orientation estimates NOT AN EXACT match!');
-        msg = sprintf('Phi03 dist: %f ', dist);
+        msg = printf('Phi03 dist: %f ', dist);
         disp(msg);
       end
     end

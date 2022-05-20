@@ -40,7 +40,7 @@ classdef dlogger_class < matlab.System
       % check log BenchName and current benchtype
       msg = sprintf("dlog.log{%d}: %s  DOES NOT match benchName: %s", b, ... 
         obj.logs{b}.benchtype, bName);
-      assert(strcmp(obj.logs{b}.benchtype, bName), msg);
+      assert(strcmp(obj.logs{b}.benchtype{1}, bName), msg);
   
       obj.logs{b}.log_state(idx, f_idx, TQ_sols, V, W);
     end
