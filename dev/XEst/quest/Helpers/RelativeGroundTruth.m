@@ -16,7 +16,7 @@ elseif strcmp(benchtype, 'TUM')
     
     fname = dataset.fnames{i};
     ftime = str2double( fname(1:end-4) ); % Time at the current frame       
-    [q2, t2] = InterpPoseVer1_1(ftime,dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
+    [q2, t2] = InterpPoseVer1_1(ftime, dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
 
 else
     error('Undefined dataset.')
