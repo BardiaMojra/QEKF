@@ -1,10 +1,11 @@
-classdef vest_class < matlab.System 
-  properties % public vars
+classdef vest_class < matlab.System % & config_class
+  %% public vars
+  properties 
     % features 
     prt_exp_map_w_Q_en   =  false;
     exp_map_threshold        =  0.04;
     
-    % cfg argin
+    % overwritten by cfg
     test_ID
     test_outDir
     benchmarks

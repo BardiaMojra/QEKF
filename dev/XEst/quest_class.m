@@ -31,16 +31,16 @@ classdef quest_class < matlab.System % & config_class
     numBenchmarks 
     numMethods  % num of algs used for comparison 
     %% private constants 
-    RowNames  = {'Rot err mean';...
-                              'Rot err std';...
-                              'Rot err median'; 
-                              'Rot err Q_1';...
-                              'Rot err Q_3';...
-                              'Tran err mean';...
-                              'Tran err std';...
-                              'Tran err median';...
-                              'Tran err Q_1';...
-                              'Tran err Q_3'};
+    RowNames  = {'Rot err mean     ';
+                              'Rot err std         ';
+                              'Rot err median  '; 
+                              'Rot err Q_1        ';
+                              'Rot err Q_3        ';
+                              'Tran err mean    ';
+                              'Tran err std        ';
+                              'Tran err median ';
+                              'Tran err Q_1       ';
+                              'Tran err Q_3       '};
   end
 
   methods % constructor
@@ -287,8 +287,7 @@ classdef quest_class < matlab.System % & config_class
     end % function get_log_errs(log, dat) 
 
     function res_table = get_res_table(obj, data)
-      %table = FormalTable(headerContent,bodyContent,footerContent);
-      %table.Style = tableStyle;
+
       if obj.numMethods == 1
         res_table  = table(data(:,1), ...
                                       'RowNames', obj.RowNames, ...
@@ -323,11 +322,9 @@ classdef quest_class < matlab.System % & config_class
     end %  function res_table = get_res_table(obj, data)
 
     function save_method_est(obj, Q, T, alg) % save res from all methods per frame
-
       obj.pose_est_buff{1, alg}     =    obj.algorithms(alg);
       obj.pose_est_buff{2, alg}     =    Q;
       obj.pose_est_buff{3, alg}     =    T;
-      
     end
 
     function normed = normalize(~, vector)

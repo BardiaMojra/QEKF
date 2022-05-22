@@ -58,9 +58,10 @@ classdef log_class < matlab.System
         % vest
         obj.V_hist{cntr, alg}      = V;
         obj.W_hist{cntr, alg}     = W;
-        % qekf
-      
       end
+
+      % qekf
+      
     end % function log_state(obj, benchName, cntr, frame_idx, T, Q, V, W)
   end % methods (Access = public) % public functions
   methods (Access = private) % private functions
