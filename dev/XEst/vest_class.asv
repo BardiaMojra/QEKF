@@ -1,11 +1,10 @@
-classdef vest_class < matlab.System % & config_class
-  %% public vars
-  properties 
+classdef vest_class < matlab.System 
+  properties % public vars
     % features 
     prt_exp_map_w_Q_en   =  false;
     exp_map_threshold        =  0.04;
     
-    % overwritten by cfg
+    % cfg argin
     test_ID
     test_outDir
     benchmarks
@@ -120,9 +119,6 @@ classdef vest_class < matlab.System % & config_class
       end % for f = kframes
       W_stats = obj.get_stats(log.W_errs);
       res_table  = obj.get_res_table(W_stats);
-
-
-
     end % function get_log_errs(log, dat) 
 
     function dist = phi03_dist(~, qr, q)
@@ -159,7 +155,6 @@ classdef vest_class < matlab.System % & config_class
       end
     end % Qxyzw = exp_map(x)
 
-    
     function res_table = get_res_table(obj, data)
       %table = FormalTable(headerContent,bodyContent,footerContent);
       %table.Style = tableStyle;

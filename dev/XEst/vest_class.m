@@ -95,7 +95,11 @@ classdef vest_class < matlab.System
     function init(obj)
       obj.numBenchmarks    = length(obj.benchmarks);
       obj.numMethods           = length(obj.algorithms);
+
+
+      
     end 
+
     function stats = get_stats(~, errs) 
       stats     =  zeros(5, size(errs,2));
       stats(1, :) = mean(errs,1);  % Mean
@@ -119,9 +123,6 @@ classdef vest_class < matlab.System
       end % for f = kframes
       W_stats = obj.get_stats(log.W_errs);
       res_table  = obj.get_res_table(W_stats);
-
-
-
     end % function get_log_errs(log, dat) 
 
     function dist = phi03_dist(~, qr, q)
@@ -158,7 +159,6 @@ classdef vest_class < matlab.System
       end
     end % Qxyzw = exp_map(x)
 
-    
     function res_table = get_res_table(obj, data)
       %table = FormalTable(headerContent,bodyContent,footerContent);
       %table.Style = tableStyle;
