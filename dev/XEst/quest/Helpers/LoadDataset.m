@@ -8,7 +8,7 @@ dataset.benchnum = benchnum;
 %% Path to the database files
 
 if strcmp(benchtype, 'KITTI')
-    
+    benchnum = 3;
     imgpath = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d')  '/image_0'];
     datapath = [dataroot '/KITTI/poses'];
     
@@ -18,7 +18,7 @@ elseif strcmp(benchtype, 'ICL')
     datapath = [dataroot '/ICL/kt' num2str(benchnum)];
     
 elseif strcmp(benchtype, 'NAIST')
-    
+    benchnum = 0;
     imgpath = [dataroot '/NAIST/naist' num2str(benchnum, '%03d')];
     datapath = [dataroot, '/NAIST'];
     
@@ -66,7 +66,7 @@ elseif strcmp(benchtype, 'NAIST')
     end
 elseif strcmp(benchtype, 'ICL')
     fnames = cell(1,end_frame-1);
-    for i = st_frame-2:length(fnames)
+    for i = st_frame:length(fnames)
         fnames{i} = [num2str(i-1) '.png'];
     end
 elseif strcmp(benchtype, 'TUM')

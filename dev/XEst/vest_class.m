@@ -97,7 +97,7 @@ classdef vest_class < matlab.System
       obj.numMethods           = length(obj.algorithms);
 
 
-      
+
     end 
 
     function stats = get_stats(~, errs) 
@@ -160,8 +160,6 @@ classdef vest_class < matlab.System
     end % Qxyzw = exp_map(x)
 
     function res_table = get_res_table(obj, data)
-      %table = FormalTable(headerContent,bodyContent,footerContent);
-      %table.Style = tableStyle;
       if obj.numMethods == 1
         res_table  = table(data(:,1), ...
                                       'RowNames', obj.RowNames, ...
@@ -192,6 +190,8 @@ classdef vest_class < matlab.System
                                       data(:,5), ...
                                       'RowNames', obj.RowNames, ...
                                       'VariableNames', obj.algorithms);    
+
+   
       end
     end %  function res_table = get_res_table(obj, data)
     %% Backup/restore functions

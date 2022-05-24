@@ -16,8 +16,8 @@ quest.load_cfg(cfg);
 vest = vest_class();
 vest.load_cfg(cfg); 
 
-qekf = qekf_class();
-qekf.load_cfg(cfg); 
+% qekf = qekf_class();
+% qekf.load_cfg(cfg); 
 
 
 %% run 
@@ -30,9 +30,9 @@ for b = 1: length(cfg.benchmarks) % --->> iter benchmarks
     
     [V, W] = vest.get_vel(cfg.dats{b}.matches); % get velocity
 
-    state  = qekf.get_state(TQ_sols, V, W); % get state
+%     state  = qekf.get_state(TQ_sols, V, W); % get state
   
-    dlog.log_state(b, cfg.benchmarks{b}, cntr, frame_idx, TQ_sols, V, W, state);
+    dlog.log_state(b, cfg.benchmarks{b}, cntr, frame_idx, TQ_sols, V, W); %, state);
 
   end % for frame_idx = cfg.dats.keyFrames
 end % for b = 1:length(cfg.benchmarks)
@@ -41,5 +41,5 @@ end % for b = 1:length(cfg.benchmarks)
 
 quest_res   = quest.get_res(cfg, dlog);
 vest_res     = vest.get_res(cfg, dlog);
-qekf_res     = qekf.get_res(cfg, dlog);
+% qekf_res     = qekf.get_res(cfg, dlog);
 

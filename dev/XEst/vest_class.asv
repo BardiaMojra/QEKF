@@ -95,7 +95,11 @@ classdef vest_class < matlab.System
     function init(obj)
       obj.numBenchmarks    = length(obj.benchmarks);
       obj.numMethods           = length(obj.algorithms);
+
+
+
     end 
+
     function stats = get_stats(~, errs) 
       stats     =  zeros(5, size(errs,2));
       stats(1, :) = mean(errs,1);  % Mean
@@ -156,8 +160,6 @@ classdef vest_class < matlab.System
     end % Qxyzw = exp_map(x)
 
     function res_table = get_res_table(obj, data)
-      %table = FormalTable(headerContent,bodyContent,footerContent);
-      %table.Style = tableStyle;
       if obj.numMethods == 1
         res_table  = table(data(:,1), ...
                                       'RowNames', obj.RowNames, ...
@@ -188,6 +190,8 @@ classdef vest_class < matlab.System
                                       data(:,5), ...
                                       'RowNames', obj.RowNames, ...
                                       'VariableNames', obj.algorithms);    
+
+   
       end
     end %  function res_table = get_res_table(obj, data)
     %% Backup/restore functions

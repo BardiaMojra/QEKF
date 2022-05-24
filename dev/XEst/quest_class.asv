@@ -226,9 +226,9 @@ classdef quest_class < matlab.System % & config_class
           t2  =  tTru(:, f); 
 
         elseif strcmp(benchtype, 'TUM')  
-          fname = dataset.fnames{f};
+          fname = dat.dataset.fnames{f};
           ftime = str2double( fname(1:end-4) ); % Time at the current frame       
-          [q2, t2] = InterpPoseVer1_1(ftime, dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
+          [q2, t2] = InterpPoseVer1_1(ftime, dat.dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
         else
           error('Undefined dataset.')
         end

@@ -19,7 +19,7 @@ classdef config_class < matlab.System %& dat_class
                             %'Stewenius';  % dep on opengv
                             'QuEst'}; % algorithms to run 
     benchmarks      = { 'KITTI';
-                        %'NAIST';
+                        'NAIST';
                         'ICL';
                         'TUM'; 
                               } % benchmarks   
