@@ -46,15 +46,15 @@ classdef log_class < matlab.System
   methods (Access = public) 
     function log_state(obj, cntr, frame_idx, QT_sols, V, W)
       % 
-      obj.cntr_hist(cntr, 1)         = cntr;
+      obj.cntr_hist(cntr, 1)     = cntr;
       obj.frame_hist(cntr, 1)    = frame_idx;
       % quest
       for alg = 1:length(obj.algorithms)
         msg = sprintf("[log_class]--> obj.algorithms{%d}: %s  DOES NOT match , TQ_sols{1, %d}{1}: %s", ...
           alg, obj.algorithms{alg}, alg, QT_sols{1, alg}{1});
         assert(strcmp(obj.algorithms{alg}, QT_sols{1, alg}{1}), msg); 
-        obj.Q_hist{cntr, alg}      =  QT_sols{2, alg};  
-        obj.T_hist{cntr, alg}      =  QT_sols{3, alg};
+        obj.Q_hist{cntr, alg}      =  QT_sols{3, alg};  
+        obj.T_hist{cntr, alg}      =  QT_sols{2, alg};
         % vest
         obj.V_hist{cntr, alg}      = V;
         obj.W_hist{cntr, alg}     = W;
@@ -67,21 +67,21 @@ classdef log_class < matlab.System
     function init(obj)
       %todo change cell arrays with matrices 
 
-      obj.numMethods        = length(obj.algorithms);
+      obj.numMethods      = length(obj.algorithms);
       obj.numKeyFrames    = length(obj.keyFrames);
       % 
-      obj.cntr_hist            = NaN(obj.numKeyFrames,1);
-      obj.frame_hist       = NaN(obj.numKeyFrames,1);
+      obj.cntr_hist       = NaN(obj.numKeyFrames,1);
+      obj.frame_hist      = NaN(obj.numKeyFrames,1);
       % quest
-      obj.Q_errs             = NaN(obj.numKeyFrames,obj.numMethods); 
-      obj.T_errs              = NaN(obj.numKeyFrames,obj.numMethods); 
-      obj.Q_hist              = cell(obj.numKeyFrames,obj.numMethods); 
-      obj.T_hist              = cell(obj.numKeyFrames,obj.numMethods);
+      obj.Q_errs          = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.T_errs          = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.Q_hist          = cell(obj.numKeyFrames,obj.numMethods); 
+      obj.T_hist          = cell(obj.numKeyFrames,obj.numMethods);
       % vest
-      obj.V_errs            = NaN(obj.numKeyFrames,obj.numMethods); 
-      obj.W_errs           = NaN(obj.numKeyFrames,obj.numMethods); 
-      obj.V_hist             = cell(obj.numKeyFrames,obj.numMethods); 
-      obj.W_hist            = cell(obj.numKeyFrames,obj.numMethods);
+      obj.V_errs          = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.W_errs          = NaN(obj.numKeyFrames,obj.numMethods); 
+      obj.V_hist          = cell(obj.numKeyFrames,obj.numMethods); 
+      obj.W_hist          = cell(obj.numKeyFrames,obj.numMethods);
       % qekf
 
     end % init(obj)

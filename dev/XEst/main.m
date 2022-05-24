@@ -16,26 +16,24 @@ quest.load_cfg(cfg);
 vest = vest_class();
 vest.load_cfg(cfg); 
 
-% qekf = qekf_class();
-% qekf.load_cfg(cfg); 
+ qekf = qekf_class();
+ qekf.load_cfg(cfg); 
 
 
 %% run 
-for b = 1: length(cfg.benchmarks) % --->> iter benchmarks
-  cntr  = 0;
-  for frame_idx = cfg.dats{b}.keyFrames % --->> iter keyframes 
-    cntr = cntr+1;
+cntr  = 0;
+for frame_idx = cfg.dat.keyFrames % --->> iter keyframes 
+  cntr = cntr+1;
 
-    TQ_sols = quest.get_pose(frame_idx, cfg.dats{b}, cfg); % get pose
+  TQVW_sols = quest.get_pose(frame_idx, cfg.dat, cfg); % get pose
     
-    [V, W] = vest.get_vel(cfg.dats{b}.matches); % get velocity
+  TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity
 
-%     state  = qekf.get_state(TQ_sols, V, W); % get state
+  state_sols  = qekf.get_state(TQVW_sols, state_sols); % get state
   
-    dlog.log_state(b, cfg.benchmarks{b}, cntr, frame_idx, TQ_sols, V, W); %, state);
+  dlog.log_state(cntr, frame_idx, TQVW_sols, state_sols);
 
-  end % for frame_idx = cfg.dats.keyFrames
-end % for b = 1:length(cfg.benchmarks)
+end % for frame_idx = cfg.dats.keyFrames
 
 %% post-processing 
 

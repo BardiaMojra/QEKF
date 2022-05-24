@@ -2,67 +2,82 @@ classdef qekf_class < matlab.System
   properties % public vars
     % features 
     
-    % cfg argin
+    % cfg argin    
+
     test_ID
     test_outDir
-    benchmarks
-    algorithms
-
+    benchmark
+    pose_algorithms
+    numMethods
+    
     %% QEKF config
     dim_x = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
     dim_z = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
     dim_u = 6 % Axyz, Wrpy
-    deltaT 
-    Q_T_xyz         = 1.0e-5  % process noise covar
-    Q_V_xyz         = 1.5e-2
-    Q_quat_xyz    = 0.5e-3
-    R_noise          = 1e-6 % measurement noise covar
-    P_est_0           = 1e-4
-    IC  %  init conditions 
-    K_scale           = 1.0 % kalman gain factor
-
+    T_    = 0.1 % time period 
+    Q_T_xyz     = 1.0e-5  % process noise covar
+    Q_V_xyz     = 1.5e-2
+    Q_quat_xyz  = 0.5e-3
+    R_noise     = 1e-6 % measurement noise covar
+    P_est_0     = 1e-4
+    K_scale     = 1.0 % kalman gain factor    
     %% private 
-    numMethods
-    numBenchmarks
     % run-time variables 
-    
-    
-    %% private constants 
-    RowNames  = {'ang vel err mean     ';
-                              'ang vel err std         ';
-                              'ang vel err median  '; 
-                              'ang vel err Q_1        ';
-                              'ang vel err Q_3        ';
-                              };
-   
+    %x_TVQxyz % state est vec
+    %y_TVQxyz % residual vec
+    %P % posterior noise covariance
+    %F % state transition matrix
+    %K % kalman gain vec
+    %S % system uncertainty
+    %L % state jacobian matrix
+    %I_ % state-vec-sized eye matrix
+    %C % state rotation matrix
+    %H % observation jacobian matrix
+    %Q_c % process noise covar matrix
+    %R % measurement noise covar matrix
+    %% other private constants 
+    RowNames  = {'Ang vel err mean';
+                 'Ang vel err std';
+                 'Ang vel err median'; 
+                 'Ang vel err Q_1';
+                 'Ang vel err Q_3';
+                                    };
+    ylabels = {'Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw'};
   end
   methods % constructor
     function obj = vest_class(varargin) 
-      setProperties(obj,nargin,varargin{:}) % init obj w name-value args
+      setProperties(obj, nargin, varargin{:}) % init obj w name-value args
     end  
   end % methods % constructor
   methods (Access = public) 
     function load_cfg(obj, cfg)
-      obj.test_ID                   =  cfg.test_ID;                   
-      obj.test_outDir            =  cfg.test_outDir;       
-      obj.benchmarks          = cfg.benchmarks;
-      obj.algorithms             =  cfg.pose_algorithms;
+      obj.test_ID               = cfg.test_ID;                   
+      obj.test_outDir           = cfg.test_outDir;       
+      
+      obj.benchmark             = cfg.benchmark;
+      obj.pose_algorithms       = cfg.pose_algorithms;
+      obj.numMethods            = cfg.numMethods;
+      
+      for alg = 1:obj.numMethods
+        obj.state{} = state_class( alg_idx = alg );
+        obj.state
+      end
+      
       obj.init();
     end
-    function state = get_state(obj, TQ_sols, V, W)
-    
+
+    function state_sols = get_state(obj, TQVW_sols, state_sols)
       for alg = 1: length(obj.algorithms)
-        method = obj.algorithms{alg};
-        u_Wrpy, obj.get_method_est(Q, T, alg);
+        [u_Wrpy, x_TVQxyz] = obj.get_method_est(TQVW_sols, state_sols, alg);
+      end 
     end 
 
   end % methods (Access = public) 
 
-  methods (Access = private)
-      
+  methods (Access = private)      
     function init(obj)
-      obj.numBenchmarks    = length(obj.benchmarks);
-      obj.numMethods           = length(obj.algorithms);
+      obj.numMethods       = length(obj.algorithms);
+
     end 
     
     function stats = get_stats(~, errs) 

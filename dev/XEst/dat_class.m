@@ -52,11 +52,11 @@ classdef dat_class < matlab.System
     function init(obj)
       %init 
       [obj.dataset, obj.posp_i] = LoadDataset( ...
-                                                        obj.datDir, ...
-                                                        obj.benchtype, ...
-                                                        obj.benchnum, ...
-                                                        obj.st_frame, ...
-                                                        obj.end_frame); 
+                                              obj.datDir, ...
+                                              obj.benchtype, ...
+                                              obj.benchnum, ...
+                                              obj.st_frame, ...
+                                              obj.end_frame); 
       
       if strcmp(obj.benchtype,'KITTI')
         obj.skipFrame = 1; 
@@ -68,14 +68,14 @@ classdef dat_class < matlab.System
         obj.skipFrame = 1;     
       end
  
-      obj.numImag              = length(obj.dataset.fnames); 
-      obj.keyFrames           = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
+      obj.numImag        = length(obj.dataset.fnames); 
+      obj.keyFrames      = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
       obj.numKeyFrames   = length(obj.keyFrames);            
       [obj.ppoints_i, obj.Ip_i]   = GetFeaturePoints(obj.st_frame, obj.dataset, obj.surfThresh);
       
       obj.posp        = obj.posp_i;
-      obj.ppoints    =  obj.ppoints_i; 
-      obj.Ip              =  obj.Ip_i;
+      obj.ppoints     = obj.ppoints_i; 
+      obj.Ip          = obj.Ip_i;
     end
   end
 end

@@ -7,40 +7,41 @@ classdef quest_class < matlab.System % & config_class
     matches_disp_en   = false; % disp matched features between two keyframes
     sliding_ref_en    = false; % disable sliding_ref mode when running in real-time
     % configs (private constants)
-    ranThresh       = 1e-6;% RANSAC Sampson dist threshold (for outliers)
-    surfThresh      = 200; % SURF feature detection threshold
-    maxPts              = 30; % max num of features used in pose est (fewer points, faster compute)
-    minPts              = 8; % max num of features required (6 to est a unique pose with RANSAC)
+    ranThresh         = 1e-6;% RANSAC Sampson dist threshold (for outliers)
+    surfThresh        = 200; % SURF feature detection threshold
+    maxPts            = 30; % max num of features used in pose est (fewer points, faster compute)
+    minPts            = 8; % max num of features required (6 to est a unique pose with RANSAC)
     %% overwritten by cfg
     test_ID
     test_outDir
     algorithms      = {...
-                                     'EightPt'; 
-                                     'Nister'; 
-                                     %'Kneip';  % dep on opengv
-                                     'Kukelova'; 
-                                     %'Stewenius';  % dep on opengv
-                                     'QuEst'}; % algorithms to run ----> (disabled for now)
+                       'EightPt'; 
+                       'Nister'; 
+                       %'Kneip';  % dep on opengv
+                       'Kukelova'; 
+                       %'Stewenius';  % dep on opengv
+                       'QuEst'}; % algorithms to run ----> (disabled for now)
 
-    benchmarks        = {'KITTI';
-                                      'NAIST';
-                                      'ICL';
-                                      'TUM';  } % benchmarks ----> (disabled for now)
+    %benchmarks        = {'KITTI';
+    %                     'NAIST';
+    %                     'ICL';
+    %                     'TUM';  } % benchmarks ----> (disabled for now)
     %% runtime vars (private)
-    pose_est_buff  % buffer that holds all pose est from diff methods
-    numBenchmarks 
+    pose_vel_est_buff  % buffer that holds all pose est from diff methods
+    %numBenchmarks 
+    benchmark
     numMethods  % num of algs used for comparison 
     %% private constants 
     RowNames  = {'Rot err mean     ';
-                              'Rot err std         ';
-                              'Rot err median  '; 
-                              'Rot err Q_1        ';
-                              'Rot err Q_3        ';
-                              'Tran err mean    ';
-                              'Tran err std        ';
-                              'Tran err median ';
-                              'Tran err Q_1       ';
-                              'Tran err Q_3       '};
+                 'Rot err std         ';
+                 'Rot err median  '; 
+                 'Rot err Q_1        ';
+                 'Rot err Q_3        ';
+                 'Tran err mean    ';
+                 'Tran err std        ';
+                 'Tran err median ';
+                 'Tran err Q_1       ';
+                 'Tran err Q_3       '};
   end
 
   methods % constructor
@@ -51,23 +52,32 @@ classdef quest_class < matlab.System % & config_class
  
   methods (Access = public)  % public functions
     function load_cfg(obj, cfg) %,  extraprop)
-      obj.test_ID                   =  cfg.test_ID;                   
-      obj.test_outDir            =  cfg.test_outDir;              
-      obj.algorithms             =  cfg.pose_algorithms;             
-      obj.benchmarks          =  cfg.benchmarks;          
-      obj.surfThresh            =  cfg.quest_surfThresh;       
+      obj.test_ID            =  cfg.test_ID;                   
+      obj.test_outDir        =  cfg.test_outDir;              
+      obj.algorithms         =  cfg.pose_algorithms;             
+      obj.benchmark          =  cfg.benchmark;          
+      obj.surfThresh         =  cfg.quest_surfThresh;       
       obj.init();
     end
 
-    function [TQ_sols] = get_pose(obj, kframe_idx, dat, cfg)
+    function TQVW_sols = get_pose(obj, kframe_idx, dat)
       % get current frame features and match w prev frame    
-      [dat.npoints,dat.In] = GetFeaturePoints(kframe_idx, dat.dataset, dat.surfThresh);            
-      dat.matches   = MatchFeaturePoints(dat.Ip, dat.ppoints, dat.In, dat.npoints, ...
-                                                                    obj.maxPts, dat.dataset, kframe_idx, ...
-                                                                    obj.matches_disp_en, ... 
-                                                                    obj.matches_sav_en, cfg.test_outDir);
+      [dat.npoints,dat.In] = GetFeaturePoints(kframe_idx, ...
+                                              dat.dataset, ...
+                                              dat.surfThresh);            
+      dat.matches   = MatchFeaturePoints(dat.Ip, ...
+                                         dat.ppoints, ...
+                                         dat.In, ...
+                                         dat.npoints, ...
+                                         obj.maxPts, ...
+                                         dat.dataset, ...
+                                         kframe_idx, ...
+                                         obj.matches_disp_en, ... 
+                                         obj.matches_sav_en, obj.test_outDir);
       % relative ground truth transformation and previous frame gt pose
-      [dat.relPose,dat.posp] = RelativeGroundTruth(kframe_idx, dat.posp, dat.dataset);
+      [dat.relPose, dat.posp] = RelativeGroundTruth(kframe_idx, ...
+                                                    dat.posp, ...
+                                                    dat.dataset);
       
       % skip frame if not enough matches found 
       if (dat.matches.numPts < obj.minPts) % || (obj.matches.status~=0)         
@@ -80,20 +90,20 @@ classdef quest_class < matlab.System % & config_class
           method = obj.algorithms{alg};
           if strcmp(method, 'EightPt') % Eight Point alg
             EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2);
-            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(method, 'Nister') % Five Point alg (Nister)
             EOut          = opengv('fivept_nister',dat.matches.m2u,dat.matches.m1u);
-            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(method, 'Li') % Five Point alg (Li + Hatley)
             EOut          = Ematrix5pt_v2(dat.matches.m2u(:,1:5),dat.matches.m1u(:,1:5));
-            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);
+            [ROut, tOut]  = TransformEssentialsVer2_0(EOut);
             Q             = R2Q(ROut);
           elseif strcmp(method,  'Kneip') % Five Point alg (Kneip)
             ROut          = opengv('fivept_kneip',1:5,dat.matches.m2u,dat.matches.m1u);  
             if ~isempty(ROut) % If a solution is returned
-              Q            = R2Q(ROut);
+              Q             = R2Q(ROut);
               [Q, matchIdx] = FindClosetQVer2_2(dat.relPose.qr, Q); % ...to gtruth 
               %dat.rotErr(dat.cntr,mthd) = QuatError(dat.relPose.qr, q); % est err
             end
@@ -102,15 +112,15 @@ classdef quest_class < matlab.System % & config_class
             continue;
           elseif strcmp(method, 'Kukelova') % Five Point algorithm (Polynomial eigenvalue)
             EOut          = PolyEigWrapper(dat.matches.m1,dat.matches.m2);                
-            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(method, 'Stewenius') % Five Point algorithm (Stewenius)
             EOut          = opengv('fivept_stewenius',dat.matches.m2u,dat.matches.m1u); % Same results as fivep.m                
-            [ROut, tOut]   = TransformEssentialsVer2_0(EOut);          
+            [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(method, 'QuEst') % Five Point algorithm (QuEst)
             sol           = QuEst_Ver1_1(dat.matches.m1, dat.matches.m2);                
-            Q              = obj.normalize_all(sol.Q);
+            Q             = obj.normalize_all(sol.Q);
             tOut          = sol.T;
           else
             error('Undefined algorithm.')
@@ -118,8 +128,8 @@ classdef quest_class < matlab.System % & config_class
           
           % find the closest transform to ground truth    
           [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
-          T                         = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
-          obj.save_method_est(Q, T, alg);
+          T    = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
+          obj.save_method_est(alg, T, Q);
           
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,32 +165,28 @@ classdef quest_class < matlab.System % & config_class
         %end  
       end 
 
-      TQ_sols = obj.pose_est_buff;
-    end %[T, Q] = get_pose(obj, i, dat, cfg)
+      TQVW_sols = obj.pose_vel_est_buff;
+    end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
 
     function res = get_res(obj, cfg, dlog)
-      res = cell( dlog.numBenchmarks, 2);
-      for b = 1:length(obj.benchmarks) % for each test set (benchmark)
-        msg = sprintf("obj.benchmarks(%d): %s  DOES NOT match dlog.logs{%d}.benchtype: %s", ...
-          b, obj.benchmarks{b}, b, dlog.logs{b}.benchtype);
-        assert(strcmp(obj.benchmarks{b}, dlog.logs{b}.benchtype), msg);       
-        
-        % calc per frame err for 
-        dat = cfg.dats{b};
-        log = dlog.logs{b};
-        res{b, 1}   =   dlog.logs{b}.benchtype;
-        res{b, 2}   =   obj.get_log_res(log, dat);  % returns a table object
-        
-        if dlog.res_prt_en
-          disp(res{b, 1}); disp(res{b, 2});
-        end 
-        
-        if dlog.res_sav_en
-          btag = [ '_' res{b, 1} '_' ];
-          fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_QuEst_table.csv');
-          writetable(res{b, 2}, fname);
-        end 
-      end
+      %res = cell( dlog.numBenchmarks, 2);
+      res = cell( 1, 2);
+
+      % calc per frame err for 
+      dat = cfg.dat;
+      log = dlog.log;
+      res{1, 1}   =   dlog.log.benchtype;
+      res{1, 2}   =   obj.get_log_res(log, dat);  % returns a table object
+      
+      if dlog.res_prt_en
+        disp(res{1, 1}); disp(res{1, 2});
+      end 
+      
+      if dlog.res_sav_en
+        btag = [ '_' res{1, 1} '_' ];
+        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_QuEst_table.csv');
+        writetable(res{1, 2}, fname);
+      end 
     end % end of get_res()
 
     %% Backup/restore functions
@@ -204,9 +210,9 @@ classdef quest_class < matlab.System % & config_class
   methods (Access = private)
   
     function init(obj)
-      obj.numBenchmarks    = length(obj.benchmarks);
+      %obj.numBenchmarks       = length(obj.benchmarks);
       obj.numMethods          = length(obj.algorithms);
-      obj.pose_est_buff        = cell(3, obj.numMethods);
+      obj.pose_vel_est_buff   = cell(5, obj.numMethods); % alg,T,Q,V,W
     end 
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
@@ -320,10 +326,10 @@ classdef quest_class < matlab.System % & config_class
       end
     end %  function res_table = get_res_table(obj, data)
 
-    function save_method_est(obj, Q, T, alg) % save res from all methods per frame
-      obj.pose_est_buff{1, alg}     =    obj.algorithms(alg);
-      obj.pose_est_buff{2, alg}     =    Q;
-      obj.pose_est_buff{3, alg}     =    T;
+    function save_method_est(obj, alg, T, Q) % save res from all methods per frame
+      obj.pose_vel_est_buff{1, alg}     =    obj.algorithms(alg);
+      obj.pose_vel_est_buff{2, alg}     =    T;
+      obj.pose_vel_est_buff{3, alg}     =    Q;
     end
 
     function normed = normalize(~, vector)

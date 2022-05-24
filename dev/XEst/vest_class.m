@@ -7,12 +7,13 @@ classdef vest_class < matlab.System
     % cfg argin
     test_ID
     test_outDir
-    benchmarks
+    benchmark
+    %benchmarks
     algorithms
     
     %% private 
     numMethods
-    numBenchmarks
+    %numBenchmarks
     % run-time variables 
     m  % current frame feature points 
     m_dot % m(i) - m(i-1) of matched feature points  
@@ -33,17 +34,18 @@ classdef vest_class < matlab.System
   end 
   methods (Access = public) 
     function load_cfg(obj, cfg)
-      obj.test_ID                   =  cfg.test_ID;                   
-      obj.test_outDir            =  cfg.test_outDir;       
-      obj.benchmarks          = cfg.benchmarks;
-      obj.algorithms             =  cfg.pose_algorithms;
+      obj.test_ID        = cfg.test_ID;                   
+      obj.test_outDir    = cfg.test_outDir;
+      obj.benchmark      = cfg.benchmark;
+      %obj.benchmarks     = cfg.benchmarks;
+      obj.algorithms     = cfg.pose_algorithms;
       obj.init();
     end
-    function [v, w] = get_vel(obj, matches)
+    function TQVW_sols = get_vel(obj, matches)
       [obj.m, obj.m_dot] = obj.prep_matches(matches);
       [v, w]  = PoCo(obj.m, obj.m_dot); % call algorithm 
-%        disp(v);
-%        disp(w);
+      TQVW_sols{4,:} = v;
+      TQVW_sols{5,:} = w;
     end 
 
     function  [v_err, w_err] = get_err(obj, idx, v, w)
@@ -64,28 +66,24 @@ classdef vest_class < matlab.System
     end
 
     function res = get_res(obj, cfg, dlog)
-      res = cell( dlog.numBenchmarks, 2);
-      for b = 1:length(obj.benchmarks) % for each test set (benchmark)
-        msg = sprintf("obj.benchmarks(%d): %s  DOES NOT match dlog.logs{%d}.benchtype: %s", ...
-          b, obj.benchmarks{b}, b, dlog.logs{b}.benchtype);
-        assert(strcmp(obj.benchmarks{b}, dlog.logs{b}.benchtype), msg);       
-        
-        % calc per frame err for 
-        dat = cfg.dats{b};
-        log = dlog.logs{b};
-        res{b, 1}   =   dlog.logs{b}.benchtype;
-        res{b, 2}   =   obj.get_log_res(log, dat);  % returns a table object
+      res = cell( 1, 2);
+      
+      % calc per frame err for 
+      dat = cfg.dat;
+      log = dlog.log;
+      res{1, 1}   =   dlog.log.benchtype;
+      res{1, 2}   =   obj.get_log_res(log, dat);  % returns a table object
 
-        if dlog.res_prt_en
-          disp(res{b, 1}); disp(res{b, 2});
-        end 
-        
-        if dlog.res_sav_en
-          btag = [ '_' res{b, 1} '_' ];
-          fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_VEst_table.csv');
-          writetable(res{b, 2}, fname);
-        end 
-      end
+      if dlog.res_prt_en
+        disp(res{1, 1}); disp(res{1, 2});
+      end 
+      
+      if dlog.res_sav_en
+        btag = [ '_' res{b, 1} '_' ];
+        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_VEst_table.csv');
+        writetable(res{1, 2}, fname);
+      end 
+
     end % function res = get_res(obj, cfg, dlog)
   
   end % end of public access 
@@ -93,11 +91,8 @@ classdef vest_class < matlab.System
   methods (Access = private)
       
     function init(obj)
-      obj.numBenchmarks    = length(obj.benchmarks);
+      %obj.numBenchmarks    = length(obj.benchmarks);
       obj.numMethods           = length(obj.algorithms);
-
-
-
     end 
 
     function stats = get_stats(~, errs) 
