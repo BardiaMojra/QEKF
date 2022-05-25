@@ -1,11 +1,11 @@
 classdef dat_class < matlab.System 
   properties
     %% config (constant)
-    datDir               = [pwd '/data']; % data dir     
-    st_frame          = 1; % start frame index
+    datDir          = [pwd '/data']; % data dir     
+    st_frame        = 1; % start frame index
     end_frame       = nan;% end frame index
     benchtype       = 'KITTI'; % default
-    benchnum       = 3; % aux config, used in KITTI     
+    benchnum        = 3; % aux config, used in KITTI     
     surfThresh      = 200; % SURF feature detection threshold
 
     % vars (private)

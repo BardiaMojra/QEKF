@@ -16,8 +16,8 @@ quest.load_cfg(cfg);
 vest = vest_class();
 vest.load_cfg(cfg); 
 
- qekf = qekf_class();
- qekf.load_cfg(cfg); 
+qekf = qekf_handler_class();
+qekf.load_cfg(cfg); 
 
 
 %% run 
@@ -29,9 +29,9 @@ for frame_idx = cfg.dat.keyFrames % --->> iter keyframes
     
   TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity
 
-  state_sols  = qekf.get_state(TQVW_sols, state_sols); % get state
+  st_sols  = qekf.run_filter(TQVW_sols); % run filter
   
-  dlog.log_state(cntr, frame_idx, TQVW_sols, state_sols);
+  dlog.log_state(cntr, frame_idx, TQVW_sols, st_sols);
 
 end % for frame_idx = cfg.dats.keyFrames
 

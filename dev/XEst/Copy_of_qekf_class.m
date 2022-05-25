@@ -49,10 +49,9 @@ classdef qekf_class___sssss
      
       obj.name       = dname;
       obj.outDir     = outdir;
-     
-      
+
     end
-    %dset, ... % dlog, ...
+
     function [obj, x_TVQxyz] = update(obj,x_TVQxyz,z_TVQxyzw,i)
       z_TVQxyz  = z_TVQxyzw(1:end-1,1);
       % ''' compute Kalman gain '''

@@ -27,7 +27,7 @@ classdef quest_class < matlab.System % & config_class
     %                     'ICL';
     %                     'TUM';  } % benchmarks ----> (disabled for now)
     %% runtime vars (private)
-    pose_vel_est_buff  % buffer that holds all pose est from diff methods
+    TQVW_sols  % buffer that holds all pose est from diff methods
     %numBenchmarks 
     benchmark
     numMethods  % num of algs used for comparison 
@@ -129,7 +129,7 @@ classdef quest_class < matlab.System % & config_class
           % find the closest transform to ground truth    
           [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
           T    = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
-          obj.save_method_est(alg, T, Q);
+          obj.save_method_sols(alg, T, Q);
           
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,7 +165,7 @@ classdef quest_class < matlab.System % & config_class
         %end  
       end 
 
-      TQVW_sols = obj.pose_vel_est_buff;
+      TQVW_sols = obj.TQVW_sols;
     end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
 
     function res = get_res(obj, cfg, dlog)
@@ -212,14 +212,13 @@ classdef quest_class < matlab.System % & config_class
     function init(obj)
       %obj.numBenchmarks       = length(obj.benchmarks);
       obj.numMethods          = length(obj.algorithms);
-      obj.pose_vel_est_buff   = cell(5, obj.numMethods); % alg,T,Q,V,W
+      obj.TQVW_sols   = cell(5, obj.numMethods); % alg,T,Q,V,W
     end 
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
-      
-      benchtype = dat.dataset.benchtype;
+      benchtype  = dat.dataset.benchtype;
       qTru       = dat.dataset.qTru;
-      tTru        = dat.dataset.tTru;
+      tTru       = dat.dataset.tTru;
       cntr = 0;
       q1 = dat.posp_i.q1;
       t1  = dat.posp_i.t1;
@@ -326,10 +325,10 @@ classdef quest_class < matlab.System % & config_class
       end
     end %  function res_table = get_res_table(obj, data)
 
-    function save_method_est(obj, alg, T, Q) % save res from all methods per frame
-      obj.pose_vel_est_buff{1, alg}     =    obj.algorithms(alg);
-      obj.pose_vel_est_buff{2, alg}     =    T;
-      obj.pose_vel_est_buff{3, alg}     =    Q;
+    function save_method_sols(obj, alg, T, Q) % save res from all methods per frame
+      obj.TQVW_sols{1, alg}     =    obj.algorithms(alg);
+      obj.TQVW_sols{2, alg}     =    T;
+      obj.TQVW_sols{3, alg}     =    Q;
     end
 
     function normed = normalize(~, vector)
