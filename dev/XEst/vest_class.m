@@ -71,12 +71,10 @@ classdef vest_class < matlab.System
 
     function res = get_res(obj, cfg, dlog)
       res = cell( 1, 2);
-      
-      % calc per frame err for 
       dat = cfg.dat;
       log = dlog.log;
-      res{1, 1}   =   dlog.log.benchtype;
-      res{1, 2}   =   obj.get_log_res(log, dat);  % returns a table object
+      res{1, 1}   = dlog.log.benchtype;
+      res{1, 2}   = obj.get_log_res(log, dat);  % returns a table object
 
       if dlog.res_prt_en
         disp(res{1, 1}); disp(res{1, 2});
@@ -89,11 +87,9 @@ classdef vest_class < matlab.System
       end 
 
     end % function res = get_res(obj, cfg, dlog)
-  
   end % end of public access 
   
   methods (Access = private)
-      
     function init(obj)
       %obj.numBenchmarks    = length(obj.benchmarks);
       obj.numMethods           = length(obj.algorithms);

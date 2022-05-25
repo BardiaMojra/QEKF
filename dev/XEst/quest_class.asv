@@ -205,9 +205,11 @@ classdef quest_class < matlab.System % & config_class
   end
 
   methods (Access = private)
+  
     function init(obj)
-      obj.numMethods        = length(obj.algorithms);
-      obj.TQVW_sols         = cell(5, obj.numMethods); % alg,T,Q,V,W
+      %obj.numBenchmarks       = length(obj.benchmarks);
+      obj.numMethods          = length(obj.algorithms);
+      obj.TQVW_sols   = cell(5, obj.numMethods); % alg,T,Q,V,W
     end 
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 

@@ -59,6 +59,9 @@ classdef qekf_handler_class < matlab.System
     end
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
+      
+      
+      
       cntr = 0;
       for f = dat.keyFrames
         cntr = cntr + 1;
@@ -70,8 +73,14 @@ classdef qekf_handler_class < matlab.System
           end
         end % for alg = length(log.algorithms)
       end % for f = kframes
+      
+      
       W_stats = obj.get_stats(log.W_errs);
       res_table  = obj.get_res_table(W_stats);
+    
+    
     end % function get_log_errs(log, dat) 
+  
+  
   end % methods ( Access = private)
 end

@@ -334,13 +334,7 @@ classdef qekf_class < matlab.System
          
         % calc and save errs per method
         for alg = 1:length(log.algorithms)
-          x_t
-          x_q
-          x_v
-          
-          y_t
-          y_q
-          y_v
+            
 
 
           t   = log.T_hist{cntr, alg};

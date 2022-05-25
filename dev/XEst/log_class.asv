@@ -39,15 +39,15 @@ classdef log_class < matlab.System
     x_t_errs % st trans est errs
     x_q_errs % st rot est errs
     x_v_errs % st vel est errs
-    % meas - gt
-    z_t_errs % meas trans errs
-    z_v_errs % meas rot errs
-    z_q_errs % meas vel errs
-    % L1 residual
+    % state - obs
+    z_t_errs % obs-st trans errs
+    z_v_errs % obs-st rot errs
+    zx_q_errs % obs-st vel errs
+    %
     y_t_L1 % st trans L1 res
     y_q_L1 % st rot L1 res
     y_v_L1 % st vel L1 res
-    % L2 residual
+    
     y_t_L2 % st trans L2 res
     y_q_L2 % st rot L2 res
     y_v_L2 % st vel L2 res
