@@ -7,8 +7,10 @@ classdef qekf_handler_class < matlab.System
     test_outDir
     benchmark
     pose_algorithms
+    % local vars
     numMethods
-
+    trackers
+    st_sols
   end
 
   methods % constructor
@@ -27,14 +29,17 @@ classdef qekf_handler_class < matlab.System
       obj.trackers          = cell(obj.numMethods, 0);
       obj.st_sols           = cell(7,obj.numMethods); % alg,Z,U,X,Y,P,K 
       for alg = 1:obj.numMethods
-        obj.trackers{alg} = state_class( alg_idx = alg );
+        obj.trackers{alg} = qekf_class( alg_idx = alg );
         obj.trackers{alg}.load_cfg(cfg);
       end
     end
 
     function st_sols = run_filter(obj, TQVW_sols)
       for alg = 1:obj.numMethods
-        obj.st_sols{alg} = obj.trackers{alg}.run_qekf(TQVW_sols, alg);
+        st_sol = obj.trackers{alg}.run_qekf(TQVW_sols, alg);
+        for s = 1:length(st_sol)
+          obj.st_sols{s, alg} = st_sol{s};
+        end
       end 
       st_sols = obj.st_sols;
     end 

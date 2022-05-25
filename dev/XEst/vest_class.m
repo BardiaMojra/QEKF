@@ -41,11 +41,15 @@ classdef vest_class < matlab.System
       obj.algorithms     = cfg.pose_algorithms;
       obj.init();
     end
-    function TQVW_sols = get_vel(obj, matches)
+    function TQVW_sols = get_vel(obj, matches, TQVW_sols)
       [obj.m, obj.m_dot] = obj.prep_matches(matches);
       [v, w]  = PoCo(obj.m, obj.m_dot); % call algorithm 
-      TQVW_sols{4,:} = v;
-      TQVW_sols{5,:} = w;
+      for alg = 1:obj.numMethods
+        assert(strcmp(TQVW_sols{1,alg}, obj.algorithms{alg}), ...
+          '[vest.get_vel()]--> pose_alg mismatch!!')
+        TQVW_sols{4, alg} = v;
+        TQVW_sols{5, alg} = w;
+      end
     end 
 
     function  [v_err, w_err] = get_err(obj, idx, v, w)
@@ -79,7 +83,7 @@ classdef vest_class < matlab.System
       end 
       
       if dlog.res_sav_en
-        btag = [ '_' res{b, 1} '_' ];
+        btag = [ '_' res{1, 1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_VEst_table.csv');
         writetable(res{1, 2}, fname);
       end 
