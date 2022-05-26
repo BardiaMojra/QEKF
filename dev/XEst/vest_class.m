@@ -19,11 +19,11 @@ classdef vest_class < matlab.System
     m_dot % m(i) - m(i-1) of matched feature points  
     
     %% private constants 
-    RowNames  = {'VEst Rot err mean';
-                 'VEst Rot err std';
-                 'VEst Rot err median'; 
-                 'VEst Rot err Q_1';
-                 'VEst Rot err Q_3';
+    RowNames  = {'exp(W) err mean';
+                 'exp(W) err std';
+                 'exp(W) err median'; 
+                 'exp(W) err Q_1';
+                 'exp(W) err Q_3';
                 };
    
   end
@@ -77,7 +77,12 @@ classdef vest_class < matlab.System
       res{1, 2}   = obj.get_log_res(log, dat);  % returns a table object
 
       if dlog.res_prt_en
-        disp(res{1, 1}); disp(res{1, 2});
+        disp('VEst module:');
+        msg = "Here, we compare Q_VEst (exp_map(W)) for each frame with " + ...
+          "the Q_est of each method for the same frame. ";
+        disp(msg);
+        disp(res{1, 1});
+        disp(res{1, 2});
       end 
       
       if dlog.res_sav_en
@@ -137,8 +142,6 @@ classdef vest_class < matlab.System
     end
     
     function Qwxyz = exp_map(~, x)
-      %disp(class(x));
-      %disp(x);
       if isequal(size(x), [3,1]) 
         norm_x = norm(x);
         if norm_x == 0

@@ -18,15 +18,15 @@ classdef qekf_handler_class < matlab.System
                  'median'; 
                  'Q_1';
                  'Q_3';};
-    tabNames = {'St Tran err';
-                'St Rot err';
-                'St Vel err';
-                'St Tran L1';
-                'St Rot L1';
-                'St Vel L1';
-                'St Tran L2';
-                'St Rot L2';
-                'St Vel L2';};
+    tabNames = {'GT-X T err';
+                'GT-X Q err';
+                'GT-X V err';
+                'Z-XH T L1';
+                'Z-XH Q L1';
+                'Z-XH V L1';
+                'Z-XH T L2';
+                'Z-XH Q L2';
+                'Z-XH V L2';};
   end
 
   methods % constructor
@@ -65,6 +65,7 @@ classdef qekf_handler_class < matlab.System
       res_tabs   = obj.get_log_res(dlog.log, cfg.dat);  % returns a table object
      
       if dlog.res_prt_en
+        disp("QEKF module:"); 
         disp(benchName); 
         for tab = 1:length(res_tabs)
           disp(res_tabs{tab});

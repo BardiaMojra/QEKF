@@ -177,6 +177,7 @@ classdef quest_class < matlab.System % & config_class
       res{1, 2}   = obj.get_log_res(log, dat);  % returns a table object
       
       if dlog.res_prt_en
+        disp("Pose estimation module (QuEst+):")
         disp(res{1, 1}); disp(res{1, 2});
       end 
       
