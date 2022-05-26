@@ -47,11 +47,6 @@ classdef qekf_class < matlab.System
     Q_c % process noise covar matrix
     R % measurement noise covar matrix
 
-
-    %ylabels = {'Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw'};
-
-
-     
   end
   methods  % constructor
     function obj = qekf_class(varargin)

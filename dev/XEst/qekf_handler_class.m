@@ -21,12 +21,12 @@ classdef qekf_handler_class < matlab.System
     tabNames = {'St Tran err';
                 'St Rot err';
                 'St Vel err';
-                'St Tran res L1';
-                'St Rot res L1';
-                'St Vel res L1';
-                'St Tran res L2';
-                'St Rot res L2';
-                'St Vel res L2';};
+                'St Tran L1';
+                'St Rot L1';
+                'St Vel L1';
+                'St Tran L2';
+                'St Rot L2';
+                'St Vel L2';};
   end
 
   methods % constructor
