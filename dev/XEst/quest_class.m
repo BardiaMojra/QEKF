@@ -32,16 +32,18 @@ classdef quest_class < matlab.System % & config_class
     benchmark
     numMethods  % num of algs used for comparison 
     %% private constants 
-    RowNames  = {'Rot err mean     ';
-                 'Rot err std         ';
-                 'Rot err median  '; 
-                 'Rot err Q_1        ';
-                 'Rot err Q_3        ';
+    RowNames  = { ...
                  'Tran err mean    ';
                  'Tran err std        ';
                  'Tran err median ';
                  'Tran err Q_1       ';
-                 'Tran err Q_3       '};
+                 'Tran err Q_3       '; 
+                 'Rot err mean     ';
+                 'Rot err std         ';
+                 'Rot err median  '; 
+                 'Rot err Q_1        ';
+                 'Rot err Q_3        ';
+};
   end
 
   methods % constructor
@@ -164,7 +166,6 @@ classdef quest_class < matlab.System % & config_class
         %  disp(['Iteration ' num2str(frame_idx) ' of ' num2str(dat.numKeyFrames)]);
         %end  
       end 
-
       TQVW_sols = obj.TQVW_sols;
     end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
 
@@ -211,12 +212,12 @@ classdef quest_class < matlab.System % & config_class
     end 
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
-      benchtype  = dat.dataset.benchtype;
-      qTru       = dat.dataset.qTru;
-      tTru       = dat.dataset.tTru;
-      cntr = 0;
-      q1 = dat.posp_i.q1;
-      t1  = dat.posp_i.t1;
+      benchtype   = dat.dataset.benchtype;
+      qTru        = dat.dataset.qTru;
+      tTru        = dat.dataset.tTru;
+      cntr        = 0;
+      q1          = dat.posp_i.q1;
+      t1          = dat.posp_i.t1;
       
       for f = dat.keyFrames
         cntr = cntr + 1;
@@ -254,17 +255,13 @@ classdef quest_class < matlab.System % & config_class
           log.Q_errs(cntr, alg)     = QuatError(qr, q);
           log.T_errs(cntr, alg)     = TransError(tr, t);
         end 
-
         q1 = q2;    % store frame pose for the next keyFrame 
         t1 = t2; 
       end % for f = kframes
-
-      T_stats = get_stats(log.T_errs);
-      Q_stats = get_stats(log.Q_errs);
-      data    = [T_stats, Q_stats];
-
-      disp(data);
-
+      T_stats = obj.get_stats(log.T_errs);
+      Q_stats = obj.get_stats(log.Q_errs);
+      data    = [T_stats; Q_stats];
+      %disp(data);
       res_table  = obj.get_res_table(data);
     end % function get_log_errs(log, dat) 
 

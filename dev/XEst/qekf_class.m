@@ -46,15 +46,12 @@ classdef qekf_class < matlab.System
     H % observation jacobian matrix
     Q_c % process noise covar matrix
     R % measurement noise covar matrix
-    %% other private constants 
-    RowNames  = {'Ang vel err mean';
-                 'Ang vel err std';
-                 'Ang vel err median'; 
-                 'Ang vel err Q_1';
-                 'Ang vel err Q_3';
-                                    };
-    ylabels = {'Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw'};
 
+
+    %ylabels = {'Tx','Ty','Tz','vx','vy','vz','qx','qy','qz','qw'};
+
+
+     
   end
   methods  % constructor
     function obj = qekf_class(varargin)
@@ -76,9 +73,10 @@ classdef qekf_class < matlab.System
       obj.st_sol    = cell(7,0);
       obj.init();
     end 
-
   end % methods % constructor 
+
   methods (Access = public) 
+
     function st_sol = run_qekf(obj, TQVW_sols, alg)
       assert(strcmp(TQVW_sols{1,alg}{1},obj.pose_algorithms{obj.alg_idx}), ... 
         'alg mismatch!!');
@@ -105,6 +103,7 @@ classdef qekf_class < matlab.System
       obj.st_sol{7} = obj.K;
       st_sol = obj.st_sol;
     end 
+
 
     function init(obj)
       obj.x_TVQxyz  = vertcat(obj.T_i, obj.V_i, obj.Q_i(2:end)); 
@@ -228,159 +227,34 @@ classdef qekf_class < matlab.System
       C    = quat2rotm(q);
     end
 
-    function losses = get_losses(~, res)
-      losses = zeros(height(res),2);
-      for i = 1:height(res)
-        state_l1 = 0.0;
-        state_l2 = 0.0;
-        for j = 1:width(res)-1 % ignore q.w term
-          l1 = abs(res(i,j));
-          l2 = res(i,j)^2;
-          state_l1 = state_l1 + l1;
-          state_l2 = state_l2 + l2;
-        end
-        losses(i,1) = state_l1;
-        losses(i,2) = state_l2;
-      end
-      losses = array2table(losses,'VariableNames',{'L1','L2'});
-      %head(losses);
-      %res = [res, Losses];
-      %if isstring(outDir)
-      %  fname = strcat(outDir,'losses.txt');
-      %  file = fopen(fname, 'a');
-      %  mssg = strcat('---->> L1:',num2str(sum(L1)),'  L2:',num2str(sum(L2)),'\n');
-      %  disp(mssg);
-      %  fprintf(file,mssg);
-      %end
-    end
 
 
-   
-    function res = get_res(obj, cfg, dlog)
-      res{1, 1}   = dlog.log.benchtype;
-      res{1, 2}   = obj.get_log_res(dlog.log, cfg.dat);  % returns a table object
-     
-      if dlog.res_prt_en
-        disp(res{1, 1}); 
-        disp(res{1, 2});
-      end 
-      
-      if dlog.res_sav_en
-        btag = [ '_' res{1, 1} '_' ];
-        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_QEKF_table.csv');
-        writetable(res{1, 2}, fname);
-      end 
-    end % end of get_res()      
-      
-      
-      res = cell(6,0); % errs bench, Tgt, Qgt, Vgt, Y_L1, Y_L2
-      for alg = 1:log.numMethods
-        res{1, alg} = log.benchmark;
-        res{2, alg} = obj.get_t
-        res{3, alg} = 
-        res{4, alg} = 
-        res{5, alg} = 
-        res{6, alg} = 
-        res{7, alg} = 
+    %function losses = get_losses(~, res)
+    %  losses = zeros(height(res),2);
+    %  for i = 1:height(res)
+    %    state_l1 = 0.0;
+    %    state_l2 = 0.0;
+    %    for j = 1:width(res)-1 % ignore q.w term
+    %      l1 = abs(res(i,j));
+    %      l2 = res(i,j)^2;
+    %      state_l1 = state_l1 + l1;
+    %      state_l2 = state_l2 + l2;
+    %    end
+    %    losses(i,1) = state_l1;
+    %    losses(i,2) = state_l2;
+    %  end
+    %  losses = array2table(losses,'VariableNames',{'L1','L2'});
+    %  %head(losses);
+    %  %res = [res, Losses];
+    %  %if isstring(outDir)
+    %  %  fname = strcat(outDir,'losses.txt');
+    %  %  file = fopen(fname, 'a');
+    %  %  mssg = strcat('---->> L1:',num2str(sum(L1)),'  L2:',num2str(sum(L2)),'\n');
+    %  %  disp(mssg);
+    %  %  fprintf(file,mssg);
+    %  %end
+    %end
 
-
-      end
-      losses  = obj.get_losses(obj.y_hist);
-      res     = array2table(obj.y_hist,'VariableNames',obj.ylabels);
-      res     = [res,losses];
-      fname = strcat(obj.outDir,'res_',obj.name,'_tab.csv');
-      writetable(res,fname);
-      %head(res);
-      
-    
-    function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
-
-      benchtype   = dat.dataset.benchtype;
-      qTru        = dat.dataset.qTru;
-      tTru        = dat.dataset.tTru;
-      cntr        = 0;
-      q1          = dat.posp_i.q1;
-      t1          = dat.posp_i.t1;
-      
-      for f = dat.keyFrames
-        cntr = cntr + 1;
-        % get current pose
-        if strcmp(benchtype, 'KITTI') || strcmp(benchtype, 'ICL') || strcmp(benchtype, 'NAIST')
-          q2 = qTru(:, f);
-          t2 = tTru(:, f); 
-        elseif strcmp(benchtype, 'TUM')  
-          fname = dat.dataset.fnames{f};
-          disp(fname);
-          ftime = str2double( fname(1:end-4) ); % Time at the current frame       
-          [q2, t2] = InterpPoseVer1_1(ftime, dat.dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
-        else
-          error('Undefined dataset.')
-        end
-      
-        % compute incrementation pose wrt prev frame a.k.a. relative pose 
-        if strcmp(benchtype, 'KITTI')  || strcmp(benchtype, 'ICL')  || strcmp(benchtype, 'TUM')
-          % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)
-          qr = QuatMult(QuatConj(q2), q1); 
-          % Relative trans. vec. in current coord. frame (^2t_21 : relative trans given in frame 2)
-          tr  = Q2R(QuatConj(q2)) * (t2 - t1); 
-        elseif strcmp(benchtype, 'NAIST') 
-          % In this dataset the absolute pose is given in the camera coordinate frame, i.e.,  
-          % c^R_w, c^t_w.(This is opposite of what is claimed in their website, unfortunately!)
-          % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)
-          qr = QuatMult(q2,QuatConj(q1)); 
-          % Relative trans. vec. in current coord. frame (^2t_21 : relative trans given in frame 2)
-          tr = t2 - Q2R(q2)*Q2R(QuatConj(q1)) * t1;  
-        end
-         
-        % calc and save errs per method
-        for alg = 1:length(log.algorithms)
-          x_t
-          x_q
-          x_v
-          
-          y_t
-          y_q
-          y_v
-
-
-          t   = log.T_hist{cntr, alg};
-          q   = log.Q_hist{cntr, alg};
-          
-
-          log.Q_errs(cntr, alg)     = QuatError(qr, q);
-          log.T_errs(cntr, alg)     = TransError(tr, t);
-        end % for alg = length(log.algorithms)
-
-        q1 = q2;   t1 = t2;  % store frame pose for the next keyFrame 
-      end % for f = kframes
-
-      % statistics of error for rotation and translation estimates
-      rotErrM     = mean(log.Q_errs,1);           % Mean
-      rotErrS     = std(log.Q_errs,1);            % Standard deviation
-      rotErrMd    = median(log.Q_errs,1);         % Median
-      rotErrQ1    = quantile(log.Q_errs,0.25, 1); % 25% quartile
-      rotErrQ3    = quantile(log.Q_errs,0.75, 1); % 75% quartile
-      
-      tranErrM    = mean(log.T_errs,1);
-      tranErrS    = std(log.T_errs,1);
-      tranErrMd   = median(log.T_errs,1);
-      tranErrQ1   = quantile(log.T_errs,0.25, 1);
-      tranErrQ3   = quantile(log.T_errs,0.75, 1);
-      
-      data  = [rotErrM; 
-                   rotErrS;
-                   rotErrMd;
-                   rotErrQ1;
-                   rotErrQ3;
-                   tranErrM;
-                   tranErrS;
-                   tranErrMd;
-                   tranErrQ1;
-                   tranErrQ3;];
-
-      res_table  = obj.get_res_table(data);
-    end % function get_log_errs(log, dat) 
-  
 
   end % methods (Access = private) % private functions
 end
@@ -388,10 +262,6 @@ end
 
 %% local functions
 %  
-function head(dat)
-  disp(dat(1:5,:));
-end
-
 function [x,y,z] = Qxyz2Qxyzw(Qxyz)
   q = Qxyz2Q(Qxyz);
   [~,x,y,z] = q.parts();

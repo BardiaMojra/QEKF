@@ -24,7 +24,7 @@ qekf.load_cfg(cfg);
 cntr  = 0;
 for frame_idx = cfg.dat.keyFrames % --->> iter keyframes 
   cntr = cntr+1;
-
+ 
   TQVW_sols = quest.get_pose(frame_idx, cfg.dat); % get pose
     
   TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity

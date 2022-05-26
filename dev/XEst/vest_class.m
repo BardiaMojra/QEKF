@@ -19,12 +19,12 @@ classdef vest_class < matlab.System
     m_dot % m(i) - m(i-1) of matched feature points  
     
     %% private constants 
-    RowNames  = {'ang vel err mean     ';
-                              'ang vel err std         ';
-                              'ang vel err median  '; 
-                              'ang vel err Q_1        ';
-                              'ang vel err Q_3        ';
-                              };
+    RowNames  = {'VEst - Rot err mean';
+                 'VEst - Rot err std';
+                 'VEst - Rot err median'; 
+                 'VEst - Rot err Q_1';
+                 'VEst - Rot err Q_3';
+                };
    
   end
   methods % constructor
