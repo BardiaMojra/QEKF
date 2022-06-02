@@ -1,7 +1,7 @@
 classdef dlogger_class < matlab.System 
   properties
     res_prt_en  = true;
-    res_sav_en = true;
+    res_sav_en  = true;
     % config (inarg)
     test_ID
     test_outDir

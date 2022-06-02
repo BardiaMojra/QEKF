@@ -43,7 +43,7 @@ classdef qekf_handler_class < matlab.System
       obj.pose_algorithms   = cfg.pose_algorithms;
       obj.numMethods        = length(obj.pose_algorithms);
       obj.trackers          = cell(obj.numMethods, 0);
-      obj.st_sols           = cell(7,obj.numMethods); % alg,Z,U,X,Y,P,K 
+      obj.st_sols           = cell(7, obj.numMethods); % alg,Z,U,X,Y,P,K 
       for alg = 1:obj.numMethods
         obj.trackers{alg} = qekf_class( alg_idx = alg );
         obj.trackers{alg}.load_cfg(cfg);

@@ -9,10 +9,8 @@ classdef qekf_class < matlab.System
     benchmark    
     benchnum
     pose_algorithms
-    
     numMethods
     st_sol
-    
    
     %% QEKF config (argin)
     dim_x = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)

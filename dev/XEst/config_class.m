@@ -15,7 +15,8 @@ classdef config_class < matlab.System %& dat_class
                             %'Kneip';  % dep on opengv
                             'Kukelova'; 
                             %'Stewenius';  % dep on opengv
-                            'QuEst'}; % algorithms to run 
+                            'QuEst'; 
+                            'VEst_Q'}; % algorithms to run 
     %% benchmarks
     benchmark       = 'KITTI'
     %benchmark       = 'NAIST'

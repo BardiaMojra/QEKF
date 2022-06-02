@@ -13,13 +13,10 @@ matchedPoints2 = vp2(indexPairs(:,2));
 
 p1 = matchedPoints1.Location;
 p2 = matchedPoints2.Location;     
-if matches_disp_en
-  figure; im = showMatchedFeatures(Ip,In,p1,p2);
-  if matches_sav_en
-    outpath = [outDir 'matched_features_' num2str(i, '%02d') '.png'];
-    imwrite(im, outpath);
-  end
-end 
+%if matches_disp_en % all matched feature points
+%  figure; 
+%  showMatchedFeatures(Ip,In,p1,p2);
+%end 
 % Feature points
 numMatch = size(p1, 1);  % Number of matched feature points
 numPts = min(numMatch, maxPts);
@@ -49,17 +46,21 @@ if matches_disp_en
   drawnow;    
   hold off;
   if matches_sav_en
-    path = [outDir 'matched_features_fig_' num2str(i, '%02d') '.png'];
-    set(gcf, 'Position', [100 100 150 150]);
-    saveas(gcf, path); 
-    close
+    outpath = [outDir 'matched_features_fig_' num2str(i, '%02d') '.png' ];
+    print(outpath, '-dpng');
   end
+
+    %path = [outDir 'matched_features_ num2str(i, '%02d') ];
+    %set(gcf, 'Position', [100 100 150 150]);
+    %saveas(gcf, path); 
+    %close
+  %end
 end
   
 if matches_sav_en
   % save the matched data points in pixels (padded with row of 1s)
   dat = cat(2,p11',p21');
-  path = [outDir 'matches_p11p21_' num2str(i,'%02d') '.txt'];
+  path = [outDir 'matched_features_points_' num2str(i,'%02d') '.txt'];
   writematrix(dat,path,'Delimiter',' ') 
 end
 
