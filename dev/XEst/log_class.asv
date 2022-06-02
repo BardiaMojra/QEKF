@@ -70,25 +70,34 @@ classdef log_class < matlab.System
     function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
       obj.cntr_hist(cntr, 1)     = cntr;
       obj.frame_hist(cntr, 1)    = frame_idx;
+
       for alg = 1:length(obj.algorithms)
         assert(strcmp(obj.algorithms{alg}, TQVW_sols{1, alg}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
+        
+        if strcmp(obj.algorithms{alg}, 'VEst_Q')
+          v = TQVW_sols{4, alg}; 
+          w = TQVW_sols{5, alg};
+          obj.T_hist{cntr, alg}      = vel2trans(v, delta_t);
+          obj.Q_hist{cntr, alg}      = exp_map(w);
+        else
+          obj.T_hist{cntr, alg}      = TQVW_sols{2, alg}; % other pose_algs
+          obj.Q_hist{cntr, alg}      = TQVW_sols{3, alg};
+        end
 
-        obj.T_hist{cntr, alg}      = TQVW_sols{2, alg}; % quest
-        obj.Q_hist{cntr, alg}      = TQVW_sols{3, alg};
 
         obj.V_hist{cntr, alg}      = TQVW_sols{4, alg}; % vest
         obj.W_hist{cntr, alg}      = TQVW_sols{5, alg};
-        
+
         obj.Z_hist{cntr, alg}      = st_sols{2, alg}; % qekf
         obj.U_hist{cntr, alg}      = st_sols{3, alg};
         obj.X_hist{cntr, alg}      = st_sols{4, alg};
         obj.Y_hist{cntr, alg}      = st_sols{5, alg};
         obj.P_hist{cntr, alg}      = st_sols{6, alg};
         obj.K_hist{cntr, alg}      = st_sols{7, alg};
+
       end
     end % function log_state(obj, benchName, cntr, frame_idx, T, Q, V, W)
-  
   end % methods (Access = public) % public functions
   methods (Access = private) % private functions
     

@@ -4,8 +4,9 @@ classdef config_class < matlab.System %& dat_class
     test_single_bench_en    = true;
     test_ID                 =  'quest_unit_test'; % test ID 
     outDir                  = [pwd '/out/'];      
-    st_frame   = 1 % start frame index
-    end_frame  = nan % end frame index
+    st_frame                = 1 % start frame index
+    end_frame               = nan % end frame index
+    del_T                   = 0.1 % time period 
     % test config dependent 
     test_outDir
     quest_surfThresh     = 200; % SURF feature detection threshold

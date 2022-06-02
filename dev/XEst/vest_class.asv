@@ -2,7 +2,7 @@ classdef vest_class < matlab.System
   properties % public vars
     % features 
     prt_exp_map_w_Q_en   =  false;
-    exp_map_threshold        =  0.04;
+    exp_map_threshold    =  0.04;
     
     % cfg argin
     test_ID
@@ -10,7 +10,7 @@ classdef vest_class < matlab.System
     benchmark
     %benchmarks
     algorithms
-    
+    del_T % time period
     %% private 
     numMethods
     %numBenchmarks
@@ -46,21 +46,25 @@ classdef vest_class < matlab.System
       obj.benchmark      = cfg.benchmark;
       %obj.benchmarks     = cfg.benchmarks;
       obj.algorithms     = cfg.pose_algorithms;
+      obj.del_T          = cfg.del_T;
       obj.init();
     end
+
     function TQVW_sols = get_vel(obj, matches, TQVW_sols)
       [obj.m, obj.m_dot] = obj.prep_matches(matches);
       [v, w]  = PoCo(obj.m, obj.m_dot); % call algorithm 
       for alg = 1:obj.numMethods
         assert(strcmp(TQVW_sols{1,alg}, obj.algorithms{alg}), ...
           '[vest.get_vel()]--> pose_alg mismatch!!')
-        TQVW_sols{4, alg} = v;
-        TQVW_sols{5, alg} = w;
-        if strcmp(obj.algorithms{alg}, 'VEst_Q')
-          TQVW_sols{3, alg} = obj.exp_map(w);
+        if strcmp(obj.algorithms{alg}, 'VEst_Q') % --->> VEst_Q
+          TQVW_sols{2, alg}  = v .* obj.del_T; % T
+          %disp(TQVW_sols{2, alg});
+          TQVW_sols{3, alg}  = exp_map(w); % Q
         end
-      end
-      disp(TQVW_sols);
+        TQVW_sols{4, alg} = v; % V
+        TQVW_sols{5, alg} = w; % W
+      end 
+      %disp(TQVW_sols);
     end 
 
     function res = get_res(obj, cfg, dlog)
@@ -92,7 +96,7 @@ classdef vest_class < matlab.System
     end 
   
     function dist = cmp_exp_map_w_Q(obj, W, Q)
-      Q_VEst = obj.exp_map(W);   
+      Q_VEst = exp_map(W);   
       dist = obj.phi03_dist(Q, Q_VEst); 
       if dist > obj.exp_map_threshold  && obj.prt_exp_map_w_Q_en % 
         disp('exp map of W NOT AN EXACT match!');
@@ -127,16 +131,20 @@ classdef vest_class < matlab.System
       for f = dat.keyFrames
         cntr = cntr + 1;
         for alg = 1:length(log.algorithms) % calc and save errs per method
-          if strcmp(log.algorithms{alg}, 'VEst_Q')
-            [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
-            w    = log.W_hist{cntr, alg};
-            if isequal(size(w), [3, 1]) 
-              log.Q_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, qr);
+          [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
+          w    = log.W_hist{cntr, alg};
+          v    = log.V_hist{cntr, alg};
+
+          
+          log.V_errs(cntr, alg)   = TransError(tr, t);
+          if isequal(size(w), [3, 1]) 
+            
+            log.W_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, qr);
+            log.Q_errs(cntr, alg)   = TransError(tr, t);
             end
           else % other pose_algs
-            % pass 
-            %log.W_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, qr);
-            
+            log.W_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, qr);
+            % add v_errs
           end
         end % for alg = length(log.algorithms)
         q1 = q2; % store frame pose for the next keyFrame 
@@ -147,10 +155,11 @@ classdef vest_class < matlab.System
       data    = [T_stats; Q_stats];
       disp(data);
       Q_stats       = obj.get_stats(log.Q_errs);
-      W_stats       = obj.get_stats(log.W_errs);
+      %W_stats       = obj.get_stats(log.W_errs);
       Q_res_table   = obj.get_res_table(Q_stats, obj.Q_RowNames);
-      W_res_table   = obj.get_res_table(W_stats, obj.W_RowNames);
-      res_table     = vertcat(Q_res_table, W_res_table); 
+      %W_res_table   = obj.get_res_table(W_stats, obj.W_RowNames);
+      %res_table     = vertcat(Q_res_table, W_res_table);
+      res_table      = Q_res_table;
     end % function get_log_errs(log, dat) 
 
     function dist = phi03_dist(~, qr, q)
@@ -169,21 +178,7 @@ classdef vest_class < matlab.System
         end 
     end
     
-    function Qwxyz = exp_map(~, x)
-      if isequal(size(x), [3,1]) 
-        norm_x = norm(x);
-        if norm_x == 0
-          Qwxyz = [1; 0; 0; 0];
-        else
-          qxyz = sin(norm_x/2) .* x/norm_x;
-          qw = cos(norm_x/2);
-          Qwxyz = [qw; qxyz(1); qxyz(2); qxyz(3)];
-        end
-      else
-        disp(x);
-        assert(false, "[VEst.exp_map]--> x size is not [3 1]! ");
-      end
-    end % Qxyzw = exp_map(x)
+
 
     function res_table = get_res_table(obj, data, RowNames)
       if obj.numMethods == 1

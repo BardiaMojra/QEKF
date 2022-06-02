@@ -19,6 +19,9 @@ vest.load_cfg(cfg);
 qekf = qekf_handler_class();
 qekf.load_cfg(cfg); 
 
+%% todo: keep track features for x number of frames
+
+
 %% run 
 cntr  = 0;
 for frame_idx = cfg.dat.keyFrames % --->> iter keyframes 
