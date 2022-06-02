@@ -2,13 +2,13 @@ classdef quest_class < matlab.System % & config_class
   properties % public vars
     % configs (passed in via cfg obj or set manually)
     % features (private constants)
-    all_feat_sav_en   = true;
-    all_feat_disp_en  = true;
-    mat_feat_sav_en   = false;
-    mat_feat_disp_en  = false; % disp matched features between two keyframes
-    masked_feat_sav_en   = true;
-    masked_feat_disp_en  = true;
-    sliding_ref_en    = false; % disable sliding_ref mode when running in real-time
+    all_feat_sav_en       = true;
+    all_feat_disp_en      = false;
+    mat_feat_sav_en       = true;
+    mat_feat_disp_en      = false; % disp matched features between two keyframes
+    masked_feat_sav_en    = true;
+    masked_feat_disp_en   = false;
+    sliding_ref_en        = false; % disable sliding_ref mode when running in real-time
     % configs (private constants)
     ranThresh         = 1e-6;% RANSAC Sampson dist threshold (for outliers)
     surfThresh        = 200; % SURF feature detection threshold
@@ -37,16 +37,16 @@ classdef quest_class < matlab.System % & config_class
     numMethods  % num of algs used for comparison 
     %% private constants 
     RowNames  = { ...
-                 'Tran err mean    ';
-                 'Tran err std        ';
-                 'Tran err median ';
-                 'Tran err Q_1       ';
-                 'Tran err Q_3       '; 
-                 'Rot err mean     ';
-                 'Rot err std         ';
-                 'Rot err median  '; 
-                 'Rot err Q_1        ';
-                 'Rot err Q_3        ';
+                 'T err mean    ';
+                 'T err std        ';
+                 'T err median ';
+                 'T err Q_1       ';
+                 'T err Q_3       '; 
+                 'R err mean     ';
+                 'R err std         ';
+                 'R err med'; 
+                 'R err Q1';
+                 'R err Q3        ';
 };
   end
 
@@ -222,31 +222,28 @@ classdef quest_class < matlab.System % & config_class
     end 
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
-      benchtype   = dat.dataset.benchtype;
-      qTru        = dat.dataset.qTru;
-      tTru        = dat.dataset.tTru;
-      cntr        = 0;
-      q1          = dat.posp_i.q1;
-      t1          = dat.posp_i.t1;
+      btype   = dat.dataset.benchtype;
+      qTru    = dat.dataset.qTru;
+      tTru    = dat.dataset.tTru;
+      cntr    = 0;
+      q1      = dat.posp_i.q1;
+      t1      = dat.posp_i.t1;
       
       for f = dat.keyFrames
         cntr = cntr + 1;
-        
-        get_gtruth();
-         
+        [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
         % calc and save errs per method
         for alg = 1:length(log.algorithms)
-          if strcmp(log.algorithms{alg}{1}, 'VEst_Q')
+          if strcmp(log.algorithms{alg}, 'VEst_Q')
             % pass for now
           else % other pose_algs
-            q                         = log.Q_hist{cntr, alg};
-            t                         = log.T_hist{cntr, alg};
-            log.Q_errs(cntr, alg)     = QuatError(qr, q);
-            log.T_errs(cntr, alg)     = TransError(tr, t);
+            q                       = log.Q_hist{cntr, alg};
+            t                       = log.T_hist{cntr, alg};
+            log.Q_errs(cntr, alg)   = QuatError(qr, q);
+            log.T_errs(cntr, alg)   = TransError(tr, t);
           end
-
-        end 
-        q1 = q2;    % store frame pose for the next keyFrame 
+        end % for alg = length(log.algorithms)
+        q1 = q2; % store frame pose for the next keyFrame 
         t1 = t2; 
       end % for f = kframes
 
@@ -260,34 +257,34 @@ classdef quest_class < matlab.System % & config_class
     function res_table = get_res_table(obj, data)
       if obj.numMethods == 1
         res_table  = table(data(:,1), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms); 
+                          'RowNames', obj.RowNames, ...
+                          'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 2
         res_table  = table(data(:,1), ...
-                                       data(:,2), ...
-                                       'RowNames', obj.RowNames, ...
-                                       'VariableNames', obj.algorithms); 
+                           data(:,2), ...
+                           'RowNames', obj.RowNames, ...
+                           'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 3
         res_table  = table(data(:,1), ...
-                                      data(:,2), ...
-                                      data(:,3), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms); 
+                          data(:,2), ...
+                          data(:,3), ...
+                          'RowNames', obj.RowNames, ...
+                          'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 4
         res_table  = table(data(:,1), ...
-                                      data(:,2), ...
-                                      data(:,3), ...
-                                      data(:,4), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms); 
+                          data(:,2), ...
+                          data(:,3), ...
+                          data(:,4), ...
+                          'RowNames', obj.RowNames, ...
+                          'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 5
         res_table  = table(data(:,1), ...
-                                      data(:,2), ...
-                                      data(:,3), ...
-                                      data(:,4), ...
-                                      data(:,5), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms);    
+                          data(:,2), ...
+                          data(:,3), ...
+                          data(:,4), ...
+                          data(:,5), ...
+                          'RowNames', obj.RowNames, ...
+                          'VariableNames', obj.algorithms);    
       end
     end %  function res_table = get_res_table(obj, data)
 
@@ -309,7 +306,7 @@ classdef quest_class < matlab.System % & config_class
     function normed = normalize(~, vector)
       normed  = vector/ vecnorm(vector); % normalize v answer 
       if normed(3) < 0 
-          normed = - normed; 
+        normed = - normed; 
       end 
     end
 
@@ -320,34 +317,5 @@ classdef quest_class < matlab.System % & config_class
       end
     end
 
-    function [tr, qr] = get_groundTruth(benchtype, qTru, tTru)
-      % get current pose
-      if strcmp(benchtype, 'KITTI') || strcmp(benchtype, 'ICL') || strcmp(benchtype, 'NAIST')
-        q2 = qTru(:, f);
-        t2 = tTru(:, f); 
-      elseif strcmp(benchtype, 'TUM')  
-        fname = dat.dataset.fnames{f};
-        ftime = str2double( fname(1:end-4) ); % Time at the current frame       
-        [q2, t2] = InterpPoseVer1_1(ftime, dat.dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
-      else
-        error('Undefined dataset.')
-      end
-      
-      % compute incrementation pose wrt prev frame a.k.a. relative pose 
-      if strcmp(benchtype, 'KITTI')  || strcmp(benchtype, 'ICL')  || strcmp(benchtype, 'TUM')
-        % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)
-        qr = QuatMult(QuatConj(q2), q1); 
-        % Relative trans. vec. in current coord. frame (^2t_21 : relative trans given in frame 2)
-        tr  = Q2R(QuatConj(q2)) * (t2 - t1); 
-      elseif strcmp(benchtype, 'NAIST') 
-        % In this dataset the absolute pose is given in the camera coordinate frame, i.e.,  
-        % c^R_w, c^t_w.(This is opposite of what is claimed in their website, unfortunately!)
-        % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)
-        qr = QuatMult(q2,QuatConj(q1)); 
-        % Relative trans. vec. in current coord. frame (^2t_21 : relative trans given in frame 2)
-        tr = t2 - Q2R(q2)*Q2R(QuatConj(q1)) * t1;  
-      end
-    end % function [tr, qr] = get_groundTruth(benchtype, qTru, tTru)
-  
   end % methods (Access = private)
 end

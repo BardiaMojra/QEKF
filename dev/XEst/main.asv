@@ -6,9 +6,10 @@ addpath(genpath('./'));
 
 % config - datasets handled by cfg object
 cfg = config_class( test_ID     = 'test_001', ...
-                    benchmark   = 'KITTI', ...
-                    st_frame   = 650, % start frame index
-    end_frame  = 680 % end frame index);
+                    benchmark   = 'KITTI');
+                    %st_frame   = 650, ... % start frame index
+                    %end_frame  = 680);
+                    
 dlog = dlogger_class(); 
 dlog.load_cfg(cfg); 
 quest = quest_class();
@@ -17,6 +18,9 @@ vest = vest_class();
 vest.load_cfg(cfg); 
 qekf = qekf_handler_class();
 qekf.load_cfg(cfg); 
+
+%% todo: keep track features for x number of frames
+
 
 %% run 
 cntr  = 0;

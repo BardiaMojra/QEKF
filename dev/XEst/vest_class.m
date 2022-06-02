@@ -19,12 +19,19 @@ classdef vest_class < matlab.System
     m_dot % m(i) - m(i-1) of matched feature points  
     
     %% private constants 
-    RowNames  = {'exp(W) err mean';
-                 'exp(W) err std';
-                 'exp(W) err median'; 
-                 'exp(W) err Q_1';
-                 'exp(W) err Q_3';
-                };
+    W_RowNames  = {'exp(W) err mean';
+                   'exp(W) err std';
+                   'exp(W) err med'; 
+                   'exp(W) err Q1';
+                   'exp(W) err Q3';
+                  };
+    Q_RowNames  = {'Q err mean';
+                   'Q err std';
+                   'Q err med'; 
+                   'Q err Q1';
+                   'Q err Q3';
+                  };
+
    
   end
   methods % constructor
@@ -49,7 +56,11 @@ classdef vest_class < matlab.System
           '[vest.get_vel()]--> pose_alg mismatch!!')
         TQVW_sols{4, alg} = v;
         TQVW_sols{5, alg} = w;
+        if strcmp(obj.algorithms{alg}, 'VEst_Q')
+          TQVW_sols{3, alg} = obj.exp_map(w);
+        end
       end
+      disp(TQVW_sols);
     end 
 
     function res = get_res(obj, cfg, dlog)
@@ -67,7 +78,7 @@ classdef vest_class < matlab.System
         disp(res{1, 2});
       end 
       if dlog.res_sav_en
-        btag = [ '_' res{1, 1} '_' ];
+        btag = ['_' res{1, 1} '_'];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_VEst_table.csv');
         writetable(res{1, 2}, fname);
       end 
@@ -107,29 +118,39 @@ classdef vest_class < matlab.System
     end
     
     function res_table = get_log_res(obj, log, dat) % get per benchmark log errs 
-      cntr = 0;
+      btype   = dat.dataset.benchtype;
+      qTru    = dat.dataset.qTru;
+      tTru    = dat.dataset.tTru;
+      cntr    = 0;
+      q1      = dat.posp_i.q1;
+      t1      = dat.posp_i.t1;
       for f = dat.keyFrames
         cntr = cntr + 1;
         for alg = 1:length(log.algorithms) % calc and save errs per method
-          if strcmp(log.algorithms{alg}{1}, 'VEst_Q')
-           
-            
-            
-            get_groundTruth(benchtype, qTru, tTru)
-            
+          if strcmp(log.algorithms{alg}, 'VEst_Q')
+            [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
             w    = log.W_hist{cntr, alg};
             if isequal(size(w), [3, 1]) 
-              log.W_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, q);
+              log.Q_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, qr);
             end
           else % other pose_algs
             % pass 
+            %log.W_errs(cntr, alg)     = obj.cmp_exp_map_w_Q(w, qr);
+            % add v_errs
           end
-          
-          
         end % for alg = length(log.algorithms)
+        q1 = q2; % store frame pose for the next keyFrame 
+        t1 = t2; 
       end % for f = kframes
-      W_stats = obj.get_stats(log.W_errs);
-      res_table  = obj.get_res_table(W_stats);
+      T_stats = obj.get_stats(log.T_errs);
+      Q_stats = obj.get_stats(log.Q_errs);
+      data    = [T_stats; Q_stats];
+      disp(data);
+      Q_stats       = obj.get_stats(log.Q_errs);
+      W_stats       = obj.get_stats(log.W_errs);
+      Q_res_table   = obj.get_res_table(Q_stats, obj.Q_RowNames);
+      W_res_table   = obj.get_res_table(W_stats, obj.W_RowNames);
+      res_table     = vertcat(Q_res_table, W_res_table); 
     end % function get_log_errs(log, dat) 
 
     function dist = phi03_dist(~, qr, q)
@@ -164,68 +185,41 @@ classdef vest_class < matlab.System
       end
     end % Qxyzw = exp_map(x)
 
-    function res_table = get_res_table(obj, data)
+    function res_table = get_res_table(obj, data, RowNames)
       if obj.numMethods == 1
         res_table  = table(data(:,1), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms); 
+                           'RowNames', RowNames, ...
+                           'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 2
         res_table  = table(data(:,1), ...
-                                       data(:,2), ...
-                                       'RowNames', obj.RowNames, ...
-                                       'VariableNames', obj.algorithms); 
+                           data(:,2), ...
+                           'RowNames', RowNames, ...
+                           'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 3
         res_table  = table(data(:,1), ...
-                                      data(:,2), ...
-                                      data(:,3), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms); 
+                           data(:,2), ...
+                           data(:,3), ...
+                           'RowNames', RowNames, ...
+                           'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 4
         res_table  = table(data(:,1), ...
-                                      data(:,2), ...
-                                      data(:,3), ...
-                                      data(:,4), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms); 
+                           data(:,2), ...
+                           data(:,3), ...
+                           data(:,4), ...
+                           'RowNames', RowNames, ...
+                           'VariableNames', obj.algorithms); 
       elseif obj.numMethods == 5
         res_table  = table(data(:,1), ...
-                                      data(:,2), ...
-                                      data(:,3), ...
-                                      data(:,4), ...
-                                      data(:,5), ...
-                                      'RowNames', obj.RowNames, ...
-                                      'VariableNames', obj.algorithms);       
+                           data(:,2), ...
+                           data(:,3), ...
+                           data(:,4), ...
+                           data(:,5), ...
+                           'RowNames', RowNames, ...
+                           'VariableNames', obj.algorithms);       
       end
     end %  function res_table = get_res_table(obj, data)
 
-    function [tr, qr] = get_groundTruth(benchtype, qTru, tTru)
-      % get current pose
-      if strcmp(benchtype, 'KITTI') || strcmp(benchtype, 'ICL') || strcmp(benchtype, 'NAIST')
-        q2 = qTru(:, f);
-        t2 = tTru(:, f); 
-      elseif strcmp(benchtype, 'TUM')  
-        fname = dat.dataset.fnames{f};
-        ftime = str2double( fname(1:end-4) ); % Time at the current frame       
-        [q2, t2] = InterpPoseVer1_1(ftime, dat.dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
-      else
-        error('Undefined dataset.')
-      end
-      
-      % compute incrementation pose wrt prev frame a.k.a. relative pose 
-      if strcmp(benchtype, 'KITTI')  || strcmp(benchtype, 'ICL')  || strcmp(benchtype, 'TUM')
-        % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)
-        qr = QuatMult(QuatConj(q2), q1); 
-        % Relative trans. vec. in current coord. frame (^2t_21 : relative trans given in frame 2)
-        tr  = Q2R(QuatConj(q2)) * (t2 - t1); 
-      elseif strcmp(benchtype, 'NAIST') 
-        % In this dataset the absolute pose is given in the camera coordinate frame, i.e.,  
-        % c^R_w, c^t_w.(This is opposite of what is claimed in their website, unfortunately!)
-        % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)
-        qr = QuatMult(q2,QuatConj(q1)); 
-        % Relative trans. vec. in current coord. frame (^2t_21 : relative trans given in frame 2)
-        tr = t2 - Q2R(q2)*Q2R(QuatConj(q1)) * t1;  
-      end
-    end % function [tr, qr] = get_groundTruth(benchtype, qTru, tTru)
+    
 
     %% Backup/restore functions
     function s = save(obj)
