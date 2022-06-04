@@ -18,15 +18,16 @@ classdef quest_class < matlab.System
     %% overwritten by cfg
     test_ID
     test_outDir
-    algorithms      = {...
-                       'EightPt'; 
-                       'Nister'; 
-                       %'Kneip';  % dep on opengv
-                       'Kukelova'; 
-                       %'Stewenius';  % dep on opengv
-                       'QuEst'; 
-                       'VEst'}; % algorithms to run ----> (disabled for now)
-
+    res
+    %vel_algs
+    pos_algs      = {...
+                     'EightPt'; 
+                     'Nister'; 
+                     %'Kneip';  % dep on opengv
+                     'Kukelova'; 
+                     %'Stewenius';  % dep on opengv
+                     'QuEst'; 
+                     'VEst'}; % pos_algs to run ----> (disabled for now)
     %benchmarks        = {'KITTI';
     %                     'NAIST';
     %                     'ICL';
@@ -35,7 +36,8 @@ classdef quest_class < matlab.System
     TQVW_sols  % buffer that holds all pose est from diff methods
     %numBenchmarks 
     benchmark
-    numMethods  % num of algs used for comparison 
+    pos_numMethods  % num of algs used for comparison 
+    %vel_numMethods
     %% private constants 
     T_RowNames  = {'T err mean';
                    'T err std';
@@ -47,8 +49,10 @@ classdef quest_class < matlab.System
                    'Q err med'; 
                    'Q err Q1';
                    'Q err Q3';};
+    % rpt constants 
+    name          = "QEKF"
+    rpt_note      = " "
   end
-
   methods % constructor
     
     function obj = quest_class(varargin)
@@ -59,11 +63,12 @@ classdef quest_class < matlab.System
   methods (Access = public)  % public functions
     
     function load_cfg(obj, cfg) %,  extraprop)
-      obj.test_ID            =  cfg.test_ID;                   
-      obj.test_outDir        =  cfg.test_outDir;              
-      obj.algorithms         =  cfg.pose_algorithms;             
-      obj.benchmark          =  cfg.benchmark;          
-      obj.surfThresh         =  cfg.quest_surfThresh;       
+      obj.test_ID           =  cfg.test_ID;                   
+      obj.test_outDir       =  cfg.test_outDir;              
+      obj.pos_algs          =  cfg.pos_algs;
+      %obj.vel_algs          =  cfg.vel_algs;
+      obj.benchmark         =  cfg.benchmark;          
+      obj.surfThresh        =  cfg.surfThresh;       
       obj.init();
     end
 
@@ -91,8 +96,8 @@ classdef quest_class < matlab.System
         disp('Not enough matched feature points. Frame skipped!');
       else
         % recover pose and calc its err by comparing w ground truth     
-        for alg = 1: length(obj.algorithms)
-          method = obj.algorithms{alg};
+        for alg = 1: length(obj.pos_algs)
+          method = obj.pos_algs{alg};
           if strcmp(method, 'EightPt') % Eight Point alg
             EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2);
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
@@ -175,19 +180,20 @@ classdef quest_class < matlab.System
     end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
 
     function res = get_res(obj, cfg, dlog)
-      res = cell( 1, 2);
-      res{1, 1}   = dlog.log.benchtype;
-      res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
+      obj.res{1, 1}   = dlog.log.benchtype;
+      obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp("Pose estimation module (QuEst+):")
-        disp(res{1, 1}); disp(res{1, 2});
+        disp(strcat(obj.name, ' module:')); disp(obj.rpt_note);
+        disp(obj.res{1, 1}); disp(obj.res{1, 2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' res{1, 1} '_' ];
-        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_pose_est_table.csv');
-        writetable(res{1, 2}, fname);
+        btag = [ '_' obj.res{1, 1} '_' ];
+        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
+          obj.name, '_table.csv');
+        writetable(obj.res{1, 2}, fname);
       end 
-    end % end of get_res()
+      res = obj.res;
+    end % get_res()      
 
     %% Backup/restore functions
     function s = save(obj)
@@ -210,8 +216,9 @@ classdef quest_class < matlab.System
   methods (Access = private)
     
     function init(obj)
-      obj.numMethods        = length(obj.algorithms);
-      obj.TQVW_sols         = cell(5, obj.numMethods); % alg,T,Q,V,W
+      obj.pos_numMethods      = length(obj.pos_algs);
+      obj.TQVW_sols           = cell(5, obj.pos_numMethods); % alg,T,Q,V,W
+      obj.res                 = cell( 1, 2); % benchmark, res_table
     end 
     
     function res_table = get_res_tab(obj, log, dat) % get per benchmark log errs 
@@ -224,7 +231,7 @@ classdef quest_class < matlab.System
       for f = dat.keyFrames
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
-        for alg = 1:length(log.algorithms) % calc errs per pose alg
+        for alg = 1:length(log.pos_algs) % calc errs per pose alg
           q                       = log.Q_hist{cntr, alg};
           t                       = log.T_hist{cntr, alg};
           log.Q_errs(cntr, alg)   = QuatError(qr, q);
@@ -241,36 +248,36 @@ classdef quest_class < matlab.System
     end % get_res_tab(log, dat) 
 
     function res_table = get_res_table(obj, data, RowNames)
-      if obj.numMethods == 1
+      if obj.pos_numMethods == 1
         res_table  = table(data(:,1), ...
                           'RowNames', RowNames, ...
-                          'VariableNames', obj.algorithms); 
-      elseif obj.numMethods == 2
+                          'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 2
         res_table  = table(data(:,1), ...
                            data(:,2), ...
                            'RowNames', RowNames, ...
-                           'VariableNames', obj.algorithms); 
-      elseif obj.numMethods == 3
+                           'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 3
         res_table  = table(data(:,1), ...
                           data(:,2), ...
                           data(:,3), ...
                           'RowNames', RowNames, ...
-                          'VariableNames', obj.algorithms); 
-      elseif obj.numMethods == 4
+                          'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 4
         res_table  = table(data(:,1), ...
                            data(:,2), ...
                            data(:,3), ...
                            data(:,4), ...
                            'RowNames', RowNames, ...
-                           'VariableNames', obj.algorithms); 
-      elseif obj.numMethods == 5
+                           'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 5
         res_table  = table(data(:,1), ...
                           data(:,2), ...
                           data(:,3), ...
                           data(:,4), ...
                           data(:,5), ...
                           'RowNames', RowNames, ...
-                          'VariableNames', obj.algorithms);    
+                          'VariableNames', obj.pos_algs);    
       end
     end %  function res_table = get_res_table(obj, data)
 
@@ -284,7 +291,7 @@ classdef quest_class < matlab.System
     end
 
     function save_method_sols(obj, alg, T, Q) % save res from all methods per frame
-      obj.TQVW_sols{1, alg}     =    obj.algorithms(alg);
+      obj.TQVW_sols{1, alg}     =    obj.pos_algs(alg);
       obj.TQVW_sols{2, alg}     =    T;
       obj.TQVW_sols{3, alg}     =    Q;
     end

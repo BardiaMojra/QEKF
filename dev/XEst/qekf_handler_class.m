@@ -7,12 +7,14 @@ classdef qekf_handler_class < matlab.System
     test_ID
     test_outDir
     benchmark
-    pose_algorithms
+    pos_algs
+    vel_algs
     % local vars
-    numMethods
+    pos_numMethods
+    vel_numMethods
     trackers
     st_sols
-    
+    res
     %% other private constants 
     metNames  = {'mean';
                  'std';
@@ -28,6 +30,9 @@ classdef qekf_handler_class < matlab.System
                 'Z-X T L2';
                 'Z-X Q L2';
                 'Z-X V L2';};
+    % rpt constants 
+    name          = "QEKF"
+    rpt_note      = " "
   end
   methods % constructor
     
@@ -42,18 +47,21 @@ classdef qekf_handler_class < matlab.System
       obj.test_ID           = cfg.test_ID;                   
       obj.test_outDir       = cfg.test_outDir;       
       obj.benchmark         = cfg.benchmark;
-      obj.pose_algorithms   = cfg.pose_algorithms;
-      obj.numMethods        = length(obj.pose_algorithms);
-      obj.trackers          = cell(obj.numMethods, 0);
-      obj.st_sols           = cell(7, obj.numMethods); % alg,Z,U,X,Y,P,K 
-      for alg = 1:obj.numMethods
+      obj.pos_algs          = cfg.pos_algs;
+      obj.pos_numMethods    = length(obj.pos_algs);
+      obj.vel_algs          = cfg.vel_algs;
+      obj.vel_numMethods    = length(obj.vel_algs);
+      obj.trackers          = cell(obj.pos_numMethods, 0);
+      obj.st_sols           = cell(7, obj.pos_numMethods); % alg,Z,U,X,Y,P,K 
+      obj.res               = cell( 1, 2); % benchmark, res_tab
+      for alg = 1:obj.pos_numMethods
         obj.trackers{alg} = qekf_class( alg_idx = alg );
         obj.trackers{alg}.load_cfg(cfg);
       end
     end
 
     function st_sols = run_filter(obj, TQVW_sols)
-      for alg = 1:obj.numMethods
+      for alg = 1:obj.pos_numMethods
         st_sol = obj.trackers{alg}.run_qekf(TQVW_sols, alg);
         for s = 1:length(st_sol)
           obj.st_sols{s, alg} = st_sol{s};
@@ -63,18 +71,19 @@ classdef qekf_handler_class < matlab.System
     end 
 
     function res = get_res(obj, cfg, dlog)
-      res = cell( 1, 2);
-      res{1, 1}   = dlog.log.benchtype;
-      res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
+      obj.res{1, 1}   = dlog.log.benchtype;
+      obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp("QEKF module:"); 
-        disp(res{1, 1}); disp(res{1, 2});
+        disp(strcat(obj.name, ' module:')); disp(obj.rpt_note);
+        disp(obj.res{1, 1}); disp(obj.res{1, 2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' res{1, 1} '_' ];
-        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_QEKF_table.csv');
-        writetable(res{1, 2}, fname);
+        btag = [ '_' obj.res{1, 1} '_' ];
+        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
+          obj.name, '_table.csv');
+        writetable(obj.res{1, 2}, fname);
       end 
+      res = obj.res;
     end % get_res()      
 
     function res_table = get_res_tab(obj, log, dat) % get per benchmark log errs 
@@ -87,7 +96,7 @@ classdef qekf_handler_class < matlab.System
       for f = dat.keyFrames
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
-        for alg = 1:length(log.algorithms) % calc and save errs per method 
+        for alg = 1:length(log.pos_algs) % calc and save errs per method 
           %Z_hist % z_TVQw 
           %U_hist % u_Wrpy
           X = log.X_hist{cntr, alg}; % x_TVQw
@@ -149,36 +158,36 @@ classdef qekf_handler_class < matlab.System
     end
 
     function res_table = get_res_table(obj, data, rNames)
-      if obj.numMethods == 1
+      if obj.pos_numMethods == 1
         res_table  = table(data(:,1), ...
                           'RowNames', rNames, ...
-                          'VariableNames', obj.pose_algorithms); 
-      elseif obj.numMethods == 2
+                          'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 2
         res_table  = table(data(:,1), ...
                            data(:,2), ...
                            'RowNames', rNames, ...
-                           'VariableNames', obj.pose_algorithms); 
-      elseif obj.numMethods == 3
+                           'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 3
         res_table   = table(data(:,1), ...
                             data(:,2), ...
                             data(:,3), ...
                             'RowNames', rNames, ...
-                            'VariableNames', obj.pose_algorithms); 
-      elseif obj.numMethods == 4
+                            'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 4
         res_table  = table(data(:,1), ...
                            data(:,2), ...
                            data(:,3), ...
                            data(:,4), ...
                            'RowNames', rNames, ...
-                           'VariableNames', obj.pose_algorithms); 
-      elseif obj.numMethods == 5
+                           'VariableNames', obj.pos_algs); 
+      elseif obj.pos_numMethods == 5
         res_table   = table(data(:,1), ...
                             data(:,2), ...
                             data(:,3), ...
                             data(:,4), ...
                             data(:,5), ...
                             'RowNames', rNames, ...
-                            'VariableNames', obj.pose_algorithms);    
+                            'VariableNames', obj.pos_algs);    
       end
     end %  function res_table = get_res_table(obj, data)
   end % methods (Access = public) 

@@ -2,19 +2,20 @@
 
 %% init
 close all; clear; clc; addpath(genpath('./'));
-cfg = config_class( test_ID     = 'test_001', ... % --->> config 
-                    benchmark   = 'KITTI');
+
+cfg   = config_class(test_ID    = 'test_001', ... % --->> config on the fly
+                     benchmark  = 'KITTI');
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 
 quest = quest_class(); quest.load_cfg(cfg); 
 vest  = vest_class(); vest.load_cfg(cfg); 
 qekf  = qekf_handler_class(); qekf.load_cfg(cfg); 
-
+rpt   = report_class(); rpt.load_cfg(cfg);
 %% todo: keep track features for x number of frames
 
 %% run 
 cntr  = 0;  
 for frame_idx = cfg.dat.keyFrames % --->> iter keyframes 
-  cntr = cntr+1;
+  cntr      = cntr+1;
   TQVW_sols = quest.get_pose(frame_idx, cfg.dat); % get pose
   TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity
   st_sols   = qekf.run_filter(TQVW_sols); % run filter
@@ -22,18 +23,11 @@ for frame_idx = cfg.dat.keyFrames % --->> iter keyframes
 end 
 
 %% results
-quest_res   = quest.get_res(cfg, dlog);
-vest_res    = vest.get_res(cfg, dlog);
-qekf_res    = qekf.get_res(cfg, dlog);
-disp("end of process...");
+quest.get_res(cfg, dlog);
+vest.get_res(cfg, dlog);
+qekf.get_res(cfg, dlog);
 
 %% report
-import mlreportgen.report.* 
-import mlreportgen.dom.* 
-rpt = Report(rpt_title,'html'); 
-tp = TitlePage; 
-tp.Title = 'XEst'; 
-%tp.Subtitle = 'Columns, Rows, Diagonals: All Equal Sums'; 
-tp.Author = 'Bardia Mojra'; 
-append(rpt,tp); 
-append(rpt,TableOfContents); 
+%rpt.gen_plots(quest, vest, qekf);
+rpt.gen_report(quest, vest, qekf);
+disp("end of process...");

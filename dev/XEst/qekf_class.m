@@ -8,10 +8,11 @@ classdef qekf_class < matlab.System
     test_outDir
     benchmark    
     benchnum
-    pose_algorithms
-    numMethods
+    pos_algs
+    pos_numMethods
+    vel_algs
+    vel_numMethods
     st_sol
-   
     %% QEKF config (argin)
     dim_x = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
     dim_z = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
@@ -23,7 +24,6 @@ classdef qekf_class < matlab.System
     R_noise     = 1e-6 % measurement noise covar
     P_est_0     = 1e-4
     K_scale     = 1.0 % kalman gain factor   
-
     %% local vars 
     T_i 
     Q_i 
@@ -56,8 +56,10 @@ classdef qekf_class < matlab.System
       obj.test_ID           = cfg.test_ID;
       obj.test_outDir       = cfg.test_outDir;
       obj.benchmark         = cfg.benchmark;
-      obj.pose_algorithms   = cfg.pose_algorithms;
-      obj.numMethods        = cfg.numMethods;
+      obj.pos_algs          = cfg.pos_algs;
+      obj.pos_numMethods    = cfg.pos_numMethods;
+      obj.vel_algs          = cfg.vel_algs;
+      obj.vel_numMethods    = cfg.vel_numMethods;
       obj.T_                = cfg.del_T;
       obj.T_i               = cfg.dat.posp_i.t1; % init conditions 
       obj.Q_i               = cfg.dat.posp_i.q1;      
@@ -71,7 +73,7 @@ classdef qekf_class < matlab.System
   methods (Access = public) 
 
     function st_sol = run_qekf(obj, TQVW_sols, alg)
-      assert(strcmp(TQVW_sols{1,alg}{1},obj.pose_algorithms{obj.alg_idx}), ... 
+      assert(strcmp(TQVW_sols{1,alg}{1},obj.pos_algs{obj.alg_idx}), ... 
         'alg mismatch!!');
       mthd          = TQVW_sols{1, alg}{1}; % load 
       T             = TQVW_sols{2, alg}; 

@@ -32,18 +32,18 @@ classdef dat_class < matlab.System
   end
 
   methods % constructor
-    function obj = dat_class(varargin) % Constructor
+    function obj = dat_class(varargin) 
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end 
   end % methods % constructor
   methods (Access = public) 
-    function load_cfg(obj, cfg) %,  extraprop)
-      % obj.datDir           =   cfg.datDir;          
-      % obj.benchtype   =   cfg.benchtype;  % keep out for multiple datasets
-      % obj.benchnum   =   cfg.benchnum;  
-      obj.st_frame      =   cfg.st_frame;      
-      obj.end_frame   =   cfg.end_frame;  
-      obj.surfThresh  =    cfg.quest_surfThresh; 
+    function load_cfg(obj, cfg) 
+      %obj.datDir        = cfg.datDir;          
+      %obj.benchtype     = cfg.benchtype;  % keep out for multiple datasets
+      %obj.benchnum      = cfg.benchnum;  
+      obj.st_frame      = cfg.st_frame;      
+      obj.end_frame     = cfg.end_frame;  
+      obj.surfThresh    = cfg.surfThresh; 
       obj.init();
     end
   end 
@@ -51,13 +51,9 @@ classdef dat_class < matlab.System
   methods  (Access = private)
     function init(obj)
       %init 
-      [obj.dataset, obj.posp_i] = LoadDataset( ...
-                                              obj.datDir, ...
-                                              obj.benchtype, ...
-                                              obj.benchnum, ...
-                                              obj.st_frame, ...
+      [obj.dataset, obj.posp_i] = LoadDataset(obj.datDir, obj.benchtype, ...
+                                              obj.benchnum, obj.st_frame, ...
                                               obj.end_frame); 
-      
       if strcmp(obj.benchtype,'KITTI')
         obj.skipFrame = 1; 
       elseif strcmp(obj.benchtype,'NAIST')
@@ -67,12 +63,11 @@ classdef dat_class < matlab.System
       elseif strcmp(obj.benchtype,'TUM')
         obj.skipFrame = 1;     
       end
- 
       obj.numImag        = length(obj.dataset.fnames); 
       obj.keyFrames      = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
       obj.numKeyFrames   = length(obj.keyFrames);            
-      [obj.ppoints_i, obj.Ip_i]   = GetFeaturePoints(obj.st_frame, obj.dataset, obj.surfThresh);
-      
+      [obj.ppoints_i, obj.Ip_i]   = GetFeaturePoints(obj.st_frame, ...
+        obj.dataset, obj.surfThresh);
       obj.posp        = obj.posp_i;
       obj.ppoints     = obj.ppoints_i; 
       obj.Ip          = obj.Ip_i;

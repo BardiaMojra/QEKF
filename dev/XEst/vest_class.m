@@ -1,28 +1,26 @@
 classdef vest_class < matlab.System 
   properties % public vars
-    % features 
+    %% features 
     res_tab_sav_en        = true;
     res_tab_prt_en        = true;
     prt_exp_map_w_Q_en   =  false;
-    exp_map_threshold    =  0.04;
-    % cfg argin
+    %% cfg argin
     test_ID
     test_outDir
     benchmark
     %benchmarks
-    %pos_algs  % over written 
-    algorithms
-    vel_algs  = {'VEst'} % over written by cfg module when multiple vel est methods used
+    pos_algs
+    vel_algs  = {'VEst'} 
     del_T % time period
-    %% private 
+    %% private vars
+    res
     vel_numMethods
-    numMethods % change to pos_numMethods
+    pos_numMethods 
     %numBenchmarks
-    % run-time variables 
     m  % current frame feature points 
     m_dot % m(i) - m(i-1) of matched feature points  
-    
     %% private constants 
+    exp_map_threshold    =  0.04;
     T_RowNames  = {'T err mean';
                    'T err std';
                    'T err med'; 
@@ -33,6 +31,11 @@ classdef vest_class < matlab.System
                    'Q err med'; 
                    'Q err Q1';
                    'Q err Q3';};
+    % rpt constants 
+    name        = "VEst"
+    rpt_note    = "Since VEst outputs V and W, we compute the integral " + ...
+                  "of the two and compute the error with respect to the " + ...
+                  "ground truth for each frame. ";
   end
   methods % constructor
     
@@ -48,7 +51,8 @@ classdef vest_class < matlab.System
       obj.test_outDir    = cfg.test_outDir;
       obj.benchmark      = cfg.benchmark;
       %obj.benchmarks     = cfg.benchmarks;
-      obj.algorithms     = cfg.pose_algorithms;
+      obj.pos_algs       = cfg.pos_algs;
+      obj.vel_algs       = cfg.vel_algs;
       obj.del_T          = cfg.del_T;
       obj.init();
     end
@@ -59,8 +63,8 @@ classdef vest_class < matlab.System
       %% log Vest T and Q as a pose est method
       TQVW_sols{2, end}  = normalizeVec(v .* obj.del_T); % VEst_T
       TQVW_sols{3, end}  = exp_map(w); % VEst_Q
-      for alg = 1:length(obj.algorithms) % log VEst V W for all pose algs
-        assert(strcmp(obj.algorithms{alg}, TQVW_sols{1, alg}{1}), ... 
+      for alg = 1:length(obj.pos_algs) % log VEst V W for all pose algs
+        assert(strcmp(obj.pos_algs{alg}, TQVW_sols{1, alg}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
         TQVW_sols{4, alg} = v; % VEst_V
         TQVW_sols{5, alg} = w; % VEst_W
@@ -68,23 +72,20 @@ classdef vest_class < matlab.System
     end 
 
     function res = get_res(obj, cfg, dlog)
-      res = cell( 1, 2);
-      dat = cfg.dat;
-      log = dlog.log;
-      res{1, 1}   = dlog.log.benchtype;
-      res{1, 2}   = obj.get_res_tab(log, dat);  % returns a table object
+      obj.res{1, 1}   = dlog.log.benchtype;
+      obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp('VEst module:');
-        msg = "Since VEst outputs V and W, we compute the integral of the " + ...
-          "two and compute the error with respect to the ground truth for each frame";
-        disp(msg); disp(res{1, 1}); disp(res{1, 2});
+        disp(strcat(obj.name, ' module:')); disp(obj.rpt_note);
+        disp(obj.res{1, 1}); disp(obj.res{1, 2});
       end 
       if obj.res_tab_sav_en
-        btag = ['_' res{1, 1} '_'];
-        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_VEst_table.csv');
-        writetable(res{1, 2}, fname);
+        btag = [ '_' obj.res{1, 1} '_' ];
+        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
+          obj.name, '_table.csv');
+        writetable(obj.res{1, 2}, fname);
       end 
-    end % get_res(obj, cfg, dlog)
+      res = obj.res;
+    end % get_res()      
 
     function  [v_err, w_err] = get_err(obj, idx, v, w)
       v = obj.normalize(v);
@@ -107,9 +108,10 @@ classdef vest_class < matlab.System
   methods (Access = private)
     
     function init(obj)
-      %obj.numBenchmarks    = length(obj.benchmarks);
-      obj.numMethods            = length(obj.algorithms);
+      %obj.numBenchmarks         = length(obj.benchmarks);
+      obj.pos_numMethods        = length(obj.pos_algs);
       obj.vel_numMethods        = length(obj.vel_algs);
+      obj.res                   = cell( 1, 2); % benchmark, res_table
     end 
 
     function stats = get_stats(~, errs) 
@@ -196,8 +198,6 @@ classdef vest_class < matlab.System
       end
     end %  function res_table = get_res_table(obj, data)
 
-    
-
     %% Backup/restore functions
     function s = save(obj)
       % Set properties in structure s to values in object obj
@@ -213,5 +213,6 @@ classdef vest_class < matlab.System
       % Set public properties and states
       load@matlab.System(obj,s,wasLocked);
     end
+    
   end % methods (Access = private)
 end
