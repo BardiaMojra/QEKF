@@ -31,7 +31,7 @@ classdef qekf_handler_class < matlab.System
                 'Z-X Q L2';
                 'Z-X V L2';};
     % rpt constants 
-    name          = "QEKF"
+    mod_name      = "QEKF"
     rpt_note      = " "
   end
   methods % constructor
@@ -74,13 +74,13 @@ classdef qekf_handler_class < matlab.System
       obj.res{1, 1}   = dlog.log.benchtype;
       obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp(strcat(obj.name, ' module:')); disp(obj.rpt_note);
+        disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
         disp(obj.res{1, 1}); disp(obj.res{1, 2});
       end 
       if obj.res_tab_sav_en
         btag = [ '_' obj.res{1, 1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
-          obj.name, '_table.csv');
+          obj.mod_name, '_table.csv');
         writetable(obj.res{1, 2}, fname);
       end 
       res = obj.res;
@@ -96,11 +96,11 @@ classdef qekf_handler_class < matlab.System
       for f = dat.keyFrames
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
-        for alg = 1:length(log.pos_algs) % calc and save errs per method 
+        for a = 1:length(log.pos_algs) % calc and save errs per method 
           %Z_hist % z_TVQw 
           %U_hist % u_Wrpy
-          X = log.X_hist{cntr, alg}; % x_TVQw
-          Y = log.Y_hist{cntr, alg}; % y_TVQw
+          X = log.X_hist(cntr,((a-1)*log.d_X)+1:((a-1)*log.d_X)+log.d_X)'; % x_TVQw
+          Y = log.Y_hist(cntr,((a-1)*log.d_Y)+1:((a-1)*log.d_Y)+log.d_Y)'; % y_TVQw
           % state pose and vel vs GT 
           x_t = X(1:3,1);
           x_q = X(7:10,1); % Qxyzw
@@ -110,15 +110,15 @@ classdef qekf_handler_class < matlab.System
           y_q = Y(7:10,1); % Qxyzw
           y_v = Y(4:6,1);
           % get errs 
-          log.x_t_errs(cntr, alg)     = TransError(tr, x_t);
-          log.x_q_errs(cntr, alg)     = QuatError(qr,  x_q);
-          log.x_v_errs(cntr, alg)     = TransError(tr, x_v);
-          log.y_t_L1(cntr, alg)       = sum(abs(y_t));
-          log.y_q_L1(cntr, alg)       = sum(abs(y_q));
-          log.y_v_L1(cntr, alg)       = sum(abs(y_v));
-          log.y_t_L2(cntr, alg)       = sum(y_t.^2);
-          log.y_q_L2(cntr, alg)       = sum(y_q.^2);
-          log.y_v_L2(cntr, alg)       = sum(y_v.^2);
+          log.x_t_errs(cntr, a)     = TransError(tr, x_t);
+          log.x_q_errs(cntr, a)     = QuatError(qr,  x_q);
+          log.x_v_errs(cntr, a)     = TransError(tr, x_v);
+          log.y_t_L1(cntr, a)       = sum(abs(y_t));
+          log.y_q_L1(cntr, a)       = sum(abs(y_q));
+          log.y_v_L1(cntr, a)       = sum(abs(y_v));
+          log.y_t_L2(cntr, a)       = sum(y_t.^2);
+          log.y_q_L2(cntr, a)       = sum(y_q.^2);
+          log.y_v_L2(cntr, a)       = sum(y_v.^2);
         end % for alg = length(log.algorithms)
         q1 = q2;    % store frame pose for the next keyFrame 
         t1 = t2; 

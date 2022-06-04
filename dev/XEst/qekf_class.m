@@ -62,7 +62,8 @@ classdef qekf_class < matlab.System
       obj.vel_numMethods    = cfg.vel_numMethods;
       obj.T_                = cfg.del_T;
       obj.T_i               = cfg.dat.posp_i.t1; % init conditions 
-      obj.Q_i               = cfg.dat.posp_i.q1;      
+      obj.Q_i(1:3,1)        = cfg.dat.posp_i.q1(2:end,1);      
+      obj.Q_i(4,1)          = cfg.dat.posp_i.q1(1,1);      
       obj.V_i               = zeros(3, 1);
       obj.W_i               = zeros(3, 1);
       obj.st_sol            = cell(7,0);
@@ -100,7 +101,7 @@ classdef qekf_class < matlab.System
     end 
 
     function init(obj)
-      obj.x_TVQxyz  = vertcat(obj.T_i, obj.V_i, obj.Q_i(2:end)); 
+      obj.x_TVQxyz  = vertcat(obj.T_i, obj.V_i, obj.Q_i(1:end-1)); 
       obj.x_TVQw    = zeros(obj.dim_x+1, 1); 
       obj.u_Wrpy    = zeros(obj.dim_u, 1);
       obj.z_TVQw    = zeros(obj.dim_z+1, 1);

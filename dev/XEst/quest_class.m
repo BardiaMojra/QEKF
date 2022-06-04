@@ -50,7 +50,7 @@ classdef quest_class < matlab.System
                    'Q err Q1';
                    'Q err Q3';};
     % rpt constants 
-    name          = "QEKF"
+    mod_name      = "QEKF"
     rpt_note      = " "
   end
   methods % constructor
@@ -183,13 +183,13 @@ classdef quest_class < matlab.System
       obj.res{1, 1}   = dlog.log.benchtype;
       obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp(strcat(obj.name, ' module:')); disp(obj.rpt_note);
+        disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
         disp(obj.res{1, 1}); disp(obj.res{1, 2});
       end 
       if obj.res_tab_sav_en
         btag = [ '_' obj.res{1, 1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
-          obj.name, '_table.csv');
+          obj.mod_name, '_table.csv');
         writetable(obj.res{1, 2}, fname);
       end 
       res = obj.res;
@@ -231,11 +231,11 @@ classdef quest_class < matlab.System
       for f = dat.keyFrames
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
-        for alg = 1:length(log.pos_algs) % calc errs per pose alg
-          q                       = log.Q_hist{cntr, alg};
-          t                       = log.T_hist{cntr, alg};
-          log.Q_errs(cntr, alg)   = QuatError(qr, q);
-          log.T_errs(cntr, alg)   = TransError(tr, t);
+        for a = 1:length(log.pos_algs) % calc errs per pose alg
+          q  = log.Q_hist(cntr,((a-1)*log.d_Q)+1:((a-1)*log.d_Q)+log.d_Q)';
+          t  = log.T_hist(cntr,((a-1)*log.d_T)+1:((a-1)*log.d_T)+log.d_T)';
+          log.Q_errs(cntr, a)   = QuatError(qr, q);
+          log.T_errs(cntr, a)   = TransError(tr, t);
         end 
         q1 = q2; % store frame pose for the next keyFrame 
         t1 = t2; 

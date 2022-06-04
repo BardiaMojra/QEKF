@@ -32,7 +32,7 @@ classdef vest_class < matlab.System
                    'Q err Q1';
                    'Q err Q3';};
     % rpt constants 
-    name        = "VEst"
+    mod_name        = 'VEst'
     rpt_note    = "Since VEst outputs V and W, we compute the integral " + ...
                   "of the two and compute the error with respect to the " + ...
                   "ground truth for each frame. ";
@@ -75,13 +75,13 @@ classdef vest_class < matlab.System
       obj.res{1, 1}   = dlog.log.benchtype;
       obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp(strcat(obj.name, ' module:')); disp(obj.rpt_note);
+        disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
         disp(obj.res{1, 1}); disp(obj.res{1, 2});
       end 
       if obj.res_tab_sav_en
         btag = [ '_' obj.res{1, 1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
-          obj.name, '_table.csv');
+          obj.mod_name, '_table.csv');
         writetable(obj.res{1, 2}, fname);
       end 
       res = obj.res;
@@ -133,8 +133,8 @@ classdef vest_class < matlab.System
       for f = dat.keyFrames
         cntr          = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
-        w             = log.W_hist{cntr, end};
-        v             = log.V_hist{cntr, end};
+        w             = log.W_hist(cntr,1:log.d_W)';
+        v             = log.V_hist(cntr,1:log.d_V)';
         assert(isequal(size(w),[3,1]),"[vest.get_log_res]--->> w is not [3,1]!");
         log.VEst_Q_errs(cntr, 1)   = obj.cmp_exp_map_w_Q(w, qr);          
         log.VEst_T_errs(cntr, 1)   = TransError(tr, v);

@@ -2,25 +2,31 @@ classdef log_class < matlab.System
   properties
     %% config (argin)
     benchtype  % single benchmark    
-    keyFrames  % corresponding keyframes 
+    kFrames  % corresponding keyframes 
     pos_algs
     vel_algs
-    % private vars
-    numKeyFrames
-    pos_numMethods
-    vel_numMethods
-    % datalog arrays for each module
-    %log_labels = { ...
+    %% config
+    d_T = 3
+    d_Q = 4
+    d_V = 3
+    d_W = 3
+    d_Z = 10
+    d_U = 3
+    d_X = 10
+    d_Y = 10
+    %d_P 
+    %d_K
+    %% private vars
+    numKF
+    pos_numAlgs
+    vel_numAlgs
     cntr_hist
-    frame_hist
-    % quest 
-    T_hist % recovered translations
-    Q_hist % recovered quaternions 
-    % vest 
-    V_hist
+    kf_hist 
+    T_hist % quest
+    Q_hist 
+    V_hist % vest
     W_hist 
-    % qekf Z,U,X,Y,P,K 
-    Z_hist
+    Z_hist % qekf
     U_hist
     X_hist
     Y_hist
@@ -68,20 +74,20 @@ classdef log_class < matlab.System
 
     function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
       obj.cntr_hist(cntr, 1)     = cntr;
-      obj.frame_hist(cntr, 1)    = frame_idx;
-      for alg = 1:length(obj.pos_algs) % log pose algs
-        assert(strcmp(obj.pos_algs{alg}, TQVW_sols{1, alg}{1}), ... 
+      obj.kf_hist(cntr, 1)    = frame_idx;
+      for a = 1:length(obj.pos_algs) % log pose algs
+        assert(strcmp(obj.pos_algs{a}, TQVW_sols{1, a}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
-        obj.T_hist{cntr, alg}      = TQVW_sols{2, alg}; % quest
-        obj.Q_hist{cntr, alg}      = TQVW_sols{3, alg};
-        obj.V_hist{cntr, 1}        = TQVW_sols{4, end}; % vest
-        obj.W_hist{cntr, 1}        = TQVW_sols{5, end};
-        obj.Z_hist{cntr, alg}      = st_sols{2, alg}; % qekf
-        obj.U_hist{cntr, alg}      = st_sols{3, alg};
-        obj.X_hist{cntr, alg}      = st_sols{4, alg};
-        obj.Y_hist{cntr, alg}      = st_sols{5, alg};
-        obj.P_hist{cntr, alg}      = st_sols{6, alg};
-        obj.K_hist{cntr, alg}      = st_sols{7, alg};
+        obj.T_hist(cntr,((a-1)*obj.d_T)+1:((a-1)*obj.d_T)+obj.d_T)=TQVW_sols{2,a}; % quest
+        obj.Q_hist(cntr,((a-1)*obj.d_Q)+1:((a-1)*obj.d_Q)+obj.d_Q)=TQVW_sols{3,a};
+        obj.V_hist(cntr,1:obj.d_V)                                =TQVW_sols{4,end}; % vest
+        obj.W_hist(cntr,1:obj.d_W)                                =TQVW_sols{5,end};
+        obj.Z_hist(cntr,((a-1)*obj.d_Z)+1:((a-1)*obj.d_Z)+obj.d_Z)=st_sols{2,a}; % qekf
+        obj.U_hist(cntr,((a-1)*obj.d_U)+1:((a-1)*obj.d_U)+obj.d_U)=st_sols{3,a};
+        obj.X_hist(cntr,((a-1)*obj.d_X)+1:((a-1)*obj.d_X)+obj.d_X)=st_sols{4,a};
+        obj.Y_hist(cntr,((a-1)*obj.d_Y)+1:((a-1)*obj.d_Y)+obj.d_Y)=st_sols{5,a};
+        obj.P_hist{cntr, a}      = st_sols{6, a};
+        obj.K_hist{cntr, a}      = st_sols{7, a};
       end
     end % function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
   
@@ -90,32 +96,27 @@ classdef log_class < matlab.System
     
     function init(obj) 
       % consider changing to matrices instead of cells, (matrix runs faster)
-      obj.pos_numMethods      = length(obj.pos_algs);
-      obj.vel_numMethods      = length(obj.vel_algs);
-      obj.numKeyFrames        = length(obj.keyFrames);
-      obj.cntr_hist           = NaN(obj.numKeyFrames,1);
-      obj.frame_hist          = NaN(obj.numKeyFrames,1);
+      obj.pos_numAlgs         = length(obj.pos_algs);
+      obj.vel_numAlgs         = length(obj.vel_algs);
+      obj.numKF               = length(obj.kFrames);
+      obj.cntr_hist           = NaN(obj.numKF,1);
+      obj.kf_hist             = NaN(obj.numKF,1);
       %% --->> logs
-      % quest
-      obj.T_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.Q_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      % vest
-      obj.V_hist          = cell(obj.numKeyFrames,obj.vel_numMethods);
-      obj.W_hist          = cell(obj.numKeyFrames,obj.vel_numMethods);
-      % qekf
-      obj.Z_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.U_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.X_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.Y_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.P_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.K_hist          = cell(obj.numKeyFrames,obj.pos_numMethods); 
-      %% --->> errs
-      % quest
-      obj.T_errs          = NaN(obj.numKeyFrames,obj.pos_numMethods); 
-      obj.Q_errs          = NaN(obj.numKeyFrames,obj.pos_numMethods); 
-      % vest
-      obj.VEst_T_errs     = NaN(obj.numKeyFrames,1); % or num of vel_est methods
-      obj.VEst_Q_errs     = NaN(obj.numKeyFrames,1); % or num of vel_est methods
+      obj.T_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_T); % quest
+      obj.Q_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_Q); 
+      obj.V_hist              = NaN(obj.numKF,obj.vel_numAlgs * obj.d_V); % vest
+      obj.W_hist              = NaN(obj.numKF,obj.vel_numAlgs * obj.d_W);
+      obj.Z_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_Z); % qekf
+      obj.U_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_U); 
+      obj.X_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_X); 
+      obj.Y_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_Y); 
+      obj.P_hist              = cell(obj.numKF,obj.pos_numAlgs); 
+      obj.K_hist              = cell(obj.numKF,obj.pos_numAlgs); 
+      %% --->> errs    
+      obj.T_errs              = NaN(obj.numKF,obj.pos_numAlgs); % quest
+      obj.Q_errs              = NaN(obj.numKF,obj.pos_numAlgs); 
+      obj.VEst_T_errs         = NaN(obj.numKF,obj.vel_numAlgs); % vest
+      obj.VEst_Q_errs         = NaN(obj.numKF,obj.vel_numAlgs); 
       % qekf
       % not needed???
 

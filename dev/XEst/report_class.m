@@ -19,8 +19,8 @@ classdef report_class < matlab.System
     pos_algs
     vel_algs
     % private vars
-    pos_numMethods
-    vel_numMethods
+    pos_numAlgs
+    vel_numAlgs
     rpt
     %numBenchmarks
     % private constants 
@@ -62,10 +62,39 @@ classdef report_class < matlab.System
       end
     end
 
-    function get_plots(obj,  quest, vest, qekf)
-       quest_log = quest.res;  
-       vest_log = vest.res;
-       qekf_log = qekf.log;
+    function gen_plots(obj, dlog)
+      log = dlog.log;
+      idx  = log.cntr_hist;
+      kf   = log.kf_hist;
+      
+      
+      T    = log.T_hist;
+      Tx   = [];
+      for a = 1:obj.pos_numAlgs
+        Tx = horxcat(Tx, T(:,a_cols(1)));
+
+      end
+      % 
+      a = 1;
+      figure(1); % 10 subplots
+      subplot(10,1,1)
+      a_cols = get_cols(a,log.d_T);
+      T_x = horxcat(T_x, a_cols(1))
+      plot(idx, T(:,cols(1), 'b', ...
+            );
+
+
+      
+      Q_hist     = log.Q_hist;
+      V_hist     = log.V_hist;
+      W_hist     = log.W_hist;
+      Z_hist     = log.Z_hist;
+      U_hist     = log.U_hist;
+      X_hist     = log.X_hist;
+      Y_hist     = log.Y_hist;
+
+
+      disp("gen plots!");
     end 
 
   end % end of public access 
@@ -73,8 +102,8 @@ classdef report_class < matlab.System
     
     function init(obj)
       %obj.numBenchmarks     = length(obj.benchmarks);
-      obj.pos_numMethods    = length(obj.pos_algs);
-      obj.vel_numMethods    = length(obj.vel_algs);
+      obj.pos_numAlgs    = length(obj.pos_algs);
+      obj.vel_numAlgs    = length(obj.vel_algs);
     end
 
     function add_sec(obj, mod)
