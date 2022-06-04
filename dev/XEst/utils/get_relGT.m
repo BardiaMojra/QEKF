@@ -10,7 +10,6 @@ function [tr,qr,t2,q2] = get_relGT(kframe_i, btype, tTru, qTru, t1, q1)
   else
     error('Undefined dataset.')
   end
-  
   % compute incrementation pose wrt prev frame a.k.a. relative pose 
   if strcmp(btype, 'KITTI')  || strcmp(btype, 'ICL')  || strcmp(btype, 'TUM')
     % Relative rotation between two frames (^2R_1 : rotation of frame 1 given in frame 2)

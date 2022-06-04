@@ -47,6 +47,7 @@ classdef qekf_class < matlab.System
 
   end
   methods  % constructor
+
     function obj = qekf_class(varargin)
       setProperties(obj, nargin, varargin{:}) 
     end
@@ -58,17 +59,15 @@ classdef qekf_class < matlab.System
       obj.pose_algorithms   = cfg.pose_algorithms;
       obj.numMethods        = cfg.numMethods;
       obj.T_                = cfg.del_T;
-      %  init conditions 
-      obj.T_i       = cfg.dat.posp_i.t1;
-      obj.Q_i       = cfg.dat.posp_i.q1;
-      obj.V_i       = zeros(3, 1);
-      obj.W_i       = zeros(3, 1);
-
-      obj.st_sol    = cell(7,0);
+      obj.T_i               = cfg.dat.posp_i.t1; % init conditions 
+      obj.Q_i               = cfg.dat.posp_i.q1;      
+      obj.V_i               = zeros(3, 1);
+      obj.W_i               = zeros(3, 1);
+      obj.st_sol            = cell(7,0);
       obj.init();
     end 
-  end % methods % constructor 
 
+  end % methods % constructor 
   methods (Access = public) 
 
     function st_sol = run_qekf(obj, TQVW_sols, alg)
@@ -84,7 +83,7 @@ classdef qekf_class < matlab.System
       obj.x_TVQxyz  = obj.predict(obj.x_TVQxyz, obj.u_Wrpy); % run 
       obj.x_TVQxyz  = obj.update(obj.x_TVQxyz, obj.z_TVQw);
       st_sol        = obj.get_st_sol(mthd); % save
-    end % function obj = run_qekf(obj, TQVW_sols, st_sols, alg)
+    end 
 
     function st_sol = get_st_sol(obj, mthd)
       % load state sols alg,Z,U,X,Y,P,K 
@@ -97,7 +96,6 @@ classdef qekf_class < matlab.System
       obj.st_sol{7} = obj.K;
       st_sol = obj.st_sol;
     end 
-
 
     function init(obj)
       obj.x_TVQxyz  = vertcat(obj.T_i, obj.V_i, obj.Q_i(2:end)); 
@@ -220,42 +218,10 @@ classdef qekf_class < matlab.System
       q    = Qxyz2Q(Qxyz);
       C    = quat2rotm(q);
     end
-
-
-
-    %function losses = get_losses(~, res)
-    %  losses = zeros(height(res),2);
-    %  for i = 1:height(res)
-    %    state_l1 = 0.0;
-    %    state_l2 = 0.0;
-    %    for j = 1:width(res)-1 % ignore q.w term
-    %      l1 = abs(res(i,j));
-    %      l2 = res(i,j)^2;
-    %      state_l1 = state_l1 + l1;
-    %      state_l2 = state_l2 + l2;
-    %    end
-    %    losses(i,1) = state_l1;
-    %    losses(i,2) = state_l2;
-    %  end
-    %  losses = array2table(losses,'VariableNames',{'L1','L2'});
-    %  %head(losses);
-    %  %res = [res, Losses];
-    %  %if isstring(outDir)
-    %  %  fname = strcat(outDir,'losses.txt');
-    %  %  file = fopen(fname, 'a');
-    %  %  mssg = strcat('---->> L1:',num2str(sum(L1)),'  L2:',num2str(sum(L2)),'\n');
-    %  %  disp(mssg);
-    %  %  fprintf(file,mssg);
-    %  %end
-    %end
-
-
   end % methods (Access = private) % private functions
 end
 
-
 %% local functions
-%  
 function [x,y,z] = Qxyz2Qxyzw(Qxyz)
   q = Qxyz2Q(Qxyz);
   [~,x,y,z] = q.parts();

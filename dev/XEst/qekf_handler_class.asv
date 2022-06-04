@@ -67,11 +67,11 @@ classdef qekf_handler_class < matlab.System
       res{1, 1}   = dlog.log.benchtype;
       res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
-        disp("QEKF module:"); 
+        disp("XEst module:"); 
         disp(res{1, 1}); disp(res{1, 2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' res{1, 1} '_' ];
+        btag = [ '_' benchName '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_QEKF_table.csv');
         writetable(res{1, 2}, fname);
       end 
@@ -87,6 +87,7 @@ classdef qekf_handler_class < matlab.System
       for f = dat.keyFrames
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
+        
         for alg = 1:length(log.algorithms) % calc and save errs per method 
           %Z_hist % z_TVQw 
           %U_hist % u_Wrpy
@@ -124,8 +125,8 @@ classdef qekf_handler_class < matlab.System
       stats_tabs{7} = obj.get_stats_table(log.y_t_L2,   obj.tabNames{7});
       stats_tabs{8} = obj.get_stats_table(log.y_q_L2,   obj.tabNames{8});
       stats_tabs{9} = obj.get_stats_table(log.y_v_L2,   obj.tabNames{9});
-      res_table     = vertcat(stats_tabs{:});
-    end % function get_res_tab(log, dat) 
+      res_table     = stats_tabs{:};
+    end % function get_log_errs(log, dat) 
 
     function stats_tab = get_stats_table(obj, errs, tabName) 
       stats       = zeros(5, size(errs,2));

@@ -7,23 +7,16 @@ benchtype = dataset.benchtype;
 qTru = dataset.qTru;
 tTru = dataset.tTru;
 
-
-
 if strcmp(benchtype, 'KITTI') || strcmp(benchtype, 'ICL') || strcmp(benchtype, 'NAIST')
-
     q2 = qTru(:,i);
     t2 = tTru(:,i);
-
 elseif strcmp(benchtype, 'TUM')
-    
     fname = dataset.fnames{i};
     ftime = str2double( fname(1:end-4) ); % Time at the current frame       
     [q2, t2] = InterpPoseVer1_1(ftime, dataset.times, qTru, tTru); % Interpolate data to find the pose of the current camera frame  
-
 else
     error('Undefined dataset.')
 end
-
 % Relative pose
 if strcmp(benchtype, 'KITTI')  || strcmp(benchtype, 'ICL')  || strcmp(benchtype, 'TUM')
     
