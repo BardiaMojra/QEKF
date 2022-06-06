@@ -6,14 +6,12 @@ dataset.benchtype = benchtype;
 dataset.benchnum = benchnum;
 
 %% Path to the database files
-
 if strcmp(benchtype, 'KITTI')
     %benchnum = 3;
     imgpath = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d')  '/image_0'];
     datapath = [dataroot '/KITTI/poses'];
     
 elseif strcmp(benchtype, 'ICL')
-    
     imgpath = [dataroot '/ICL/kt' num2str(benchnum) '/rgb'];
     datapath = [dataroot '/ICL/kt' num2str(benchnum)];
     
@@ -23,7 +21,6 @@ elseif strcmp(benchtype, 'NAIST')
     datapath = [dataroot, '/NAIST'];
     
 elseif strcmp(benchtype, 'TUM')   
-    
     tum_names = {'rgbd_dataset_freiburg1_360', ...
     'rgbd_dataset_freiburg1_desk', ...
     'rgbd_dataset_freiburg1_desk2', ...
@@ -48,7 +45,7 @@ dataset.datapath = datapath;
 
 %% Image files
 files  = dir(fullfile(imgpath, '*.png'));
-% disp(files);
+disp(files);
 % st_frame = st_frame; % dir('.') lists . and .. 
 if isnan(end_frame)
   end_frame = length(files);
@@ -58,6 +55,7 @@ if strcmp(benchtype, 'KITTI')
   fnames = cell(1,end_frame);
     for i = st_frame:end_frame
         fnames{i} = files(i).name;
+        disp(fnames{i});
     end
 elseif strcmp(benchtype, 'NAIST')
     fnames = cell(1,end_frame-1);
@@ -81,10 +79,8 @@ dataset.end_frame = end_frame;
 
 %% Calibration matrix
 if strcmp(benchtype, 'KITTI')
-    
     %Use textscan to load the calibration matrix
-    calibfile = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d') ...
-               '/calib.txt'];
+    calibfile = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d') '/calib.txt'];
     fileid = fopen(calibfile);
     C = textscan(fileid, '%s %f %f %f %f %f %f %f %f %f %f %f %f');
     fclose(fileid);

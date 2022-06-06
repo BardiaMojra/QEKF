@@ -45,6 +45,8 @@ classdef dat_class < matlab.System
       obj.end_frame     = cfg.end_frame;  
       obj.surfThresh    = cfg.surfThresh; 
       obj.init();
+      cfg.st_frame      = obj.st_frame; % write back to cfg obj after dat obj init
+      cfg.end_frame     = obj.end_frame;
     end
   end 
 
@@ -63,9 +65,11 @@ classdef dat_class < matlab.System
       elseif strcmp(obj.benchtype,'TUM')
         obj.skipFrame = 1;     
       end
-      obj.numImag        = length(obj.dataset.fnames); 
-      obj.keyFrames      = 2+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
-      obj.numKeyFrames   = length(obj.keyFrames);            
+      obj.st_frame      = obj.dataset.st_frame;
+      obj.end_frame     = obj.dataset.end_frame;
+      obj.numImag       = obj.end_frame - obj.st_frame; 
+      obj.keyFrames     = obj.st_frame+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
+      obj.numKeyFrames  = length(obj.keyFrames);            
       [obj.ppoints_i, obj.Ip_i]   = GetFeaturePoints(obj.st_frame, ...
         obj.dataset, obj.surfThresh);
       obj.posp        = obj.posp_i;

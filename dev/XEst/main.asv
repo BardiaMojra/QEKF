@@ -15,7 +15,7 @@ rpt   = report_class(); rpt.load_cfg(cfg);
 
 %% run 
 cntr  = 0;  
-disp(cfg.dat.keyFrames);
+disp(cfg.da.)
 for frame_idx = cfg.dat.keyFrames % --->> iter keyframes 
   cntr      = cntr+1;
   TQVW_sols = quest.get_pose(frame_idx, cfg.dat); % get pose
