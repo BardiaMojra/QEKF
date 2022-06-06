@@ -5,26 +5,24 @@ classdef config_class < matlab.System %& dat_class
     %% configs
     test_ID           = 'XEst_dev_test'
     outDir            = [pwd '/out/']   
-    datDir            = ['/home/smerx/DATA']
+    datDir            = ['/home/smerx/DATA/KITTI']
     %datDir            = [pwd '/data']   
     st_frame          = 1 % start frame index
     end_frame         = nan % end frame index
     del_T             = 0.1 % time period 
     surfThresh        = 200 % SURF feature detection threshold
-    benchnum          = 3 % benchmark subset
     benchmark         = 'KITTI'
     %benchmark         = 'NAIST'
     %benchmark         = 'ICL'
     %benchmark         = 'TUM' 
-
     pos_algs          = { ...
-                         'EightPt'; 
-                         'Nister'; 
-                         %'Kneip';  % dep on opengv
-                         'Kukelova'; 
-                         %'Stewenius';  % dep on opengv
-                         'QuEst'; 
-                         'VEst'}; % algorithms to run % state machine vars
+                        'EightPt'; 
+                        'Nister'; 
+                        %'Kneip';  % dep on opengv
+                        'Kukelova'; 
+                        %'Stewenius';  % dep on opengv
+                        'QuEst'; 
+                        'VEst'}; % algorithms to run % state machine vars
     vel_algs          = {'VEst'};
     %% private
     test_outDir

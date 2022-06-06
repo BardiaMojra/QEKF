@@ -9,7 +9,7 @@ dataset.benchnum = benchnum;
 
 if strcmp(benchtype, 'KITTI')
     %benchnum = 3;
-    imgpath = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d')  '/image_0'];
+    imgpath = [dataroot '/KITTI/sequences/' num2str(benchnum, '%02d')  '/image_2'];
     datapath = [dataroot '/KITTI/poses'];
     
 elseif strcmp(benchtype, 'ICL')

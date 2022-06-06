@@ -38,9 +38,9 @@ classdef dat_class < matlab.System
   end % methods % constructor
   methods (Access = public) 
     function load_cfg(obj, cfg) 
-      %obj.datDir        = cfg.datDir;          
-      %obj.benchtype     = cfg.benchtype;  % keep out for multiple datasets
-      %obj.benchnum      = cfg.benchnum;  
+      obj.datDir        = cfg.datDir;          
+      obj.benchtype     = cfg.benchmark;  
+      obj.benchnum      = cfg.benchnum;  
       obj.st_frame      = cfg.st_frame;      
       obj.end_frame     = cfg.end_frame;  
       obj.surfThresh    = cfg.surfThresh; 

@@ -24,8 +24,7 @@ classdef report_class < matlab.System
     rpt
     %numBenchmarks
     % private constants 
-    plt_clrs = ['#A2142F', '#77AC30', '#0072BD', '#7E2F8E', '#EDB120', ...
-                '#4DBEEE', '#D95319','#77AC30'] % unique per alg
+    plt_clrs = ['r', 'g', 'b', 'm', 'y','','','',''] % unique per alg
   end
   methods % constructor
     
@@ -67,7 +66,7 @@ classdef report_class < matlab.System
     function gen_plots(obj, dlog)
       log = dlog.log;
       idx  = log.cntr_hist;
-      %kf   = log.kf_hist;
+      kf   = log.kf_hist;
       
       
       T  = log.T_hist;
@@ -79,6 +78,7 @@ classdef report_class < matlab.System
         Tz = horxcat(Tz, T(:,cols(3)));
       end
       % 
+      a = 1;
       figure(1); % 10 subplots
       for a = 1:obj.pos_numAlgs
         subplot(10,1,1); % all Tx
