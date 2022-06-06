@@ -11,7 +11,7 @@ classdef report_class < matlab.System
     num_font_size     = '10pt'
     font_style        = 'Times New Roman'
     num_format        = "%1.4f"
-    rpt_outFormat     = 'pdf'
+    rpt_outFormat     = 'docx'
     % cfg (argin)
     test_ID
     test_outDir
@@ -79,12 +79,8 @@ classdef report_class < matlab.System
       figure(1); % 10 subplots
       subplot(10,1,1)
       a_cols = get_cols(a,log.d_T);
-      T_x = horxcat(T_x, a_cols(1))
-      plot(idx, T(:,cols(1), 'b', ...
-            );
-
-
-      
+      T_x = horxcat(T_x, a_cols(1));
+      plot(idx, T(:,cols(1)));
       Q_hist     = log.Q_hist;
       V_hist     = log.V_hist;
       W_hist     = log.W_hist;
@@ -110,7 +106,7 @@ classdef report_class < matlab.System
       import mlreportgen.report.* 
       import mlreportgen.dom.* 
       %open(obj.rpt);
-      h1 = Heading1(mod.name); % heading 
+      h1 = Heading1(mod.mod_name); % heading 
       h1.Bold = true;
       append(obj.rpt, h1); 
       t1 = Text(mod.rpt_note); % note 
