@@ -50,7 +50,7 @@ classdef quest_class < matlab.System
                    'Q err Q1';
                    'Q err Q3';};
     % rpt constants 
-    mod_name      = "QEKF"
+    mod_name      = "QuEst+"
     rpt_note      = " "
   end
   methods % constructor
@@ -94,21 +94,21 @@ classdef quest_class < matlab.System
         disp('Not enough matched feature points. Frame skipped!');
       else
         % recover pose and calc its err by comparing w ground truth     
-        for alg = 1: length(obj.pos_algs)
-          method = obj.pos_algs{alg};
-          if strcmp(method, 'EightPt') % Eight Point alg
+        for a = 1:length(obj.pos_algs)
+          alg = obj.pos_algs{a};
+          if strcmp(alg, 'EightPt') % Eight Point alg
             EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2);
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
-          elseif strcmp(method, 'Nister') % Five Point alg (Nister)
+          elseif strcmp(alg, 'Nister') % Five Point alg (Nister)
             EOut          = opengv('fivept_nister',dat.matches.m2u,dat.matches.m1u);
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
-          elseif strcmp(method, 'Li') % Five Point alg (Li + Hatley)
+          elseif strcmp(alg, 'Li') % Five Point alg (Li + Hatley)
             EOut          = Ematrix5pt_v2(dat.matches.m2u(:,1:5),dat.matches.m1u(:,1:5));
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);
             Q             = R2Q(ROut);
-          elseif strcmp(method,  'Kneip') % Five Point alg (Kneip)
+          elseif strcmp(alg,  'Kneip') % Five Point alg (Kneip)
             ROut          = opengv('fivept_kneip',1:5,dat.matches.m2u,dat.matches.m1u);  
             if ~isempty(ROut) % If a solution is returned
               Q             = R2Q(ROut);
@@ -118,27 +118,28 @@ classdef quest_class < matlab.System
             % Kneip does not return a translation estimate, so continue to
             % the next iteration.
             continue;
-          elseif strcmp(method, 'Kukelova') % Five Point algorithm (Polynomial eigenvalue)
+          elseif strcmp(alg, 'Kukelova') % Five Point algorithm (Polynomial eigenvalue)
             EOut          = PolyEigWrapper(dat.matches.m1,dat.matches.m2);                
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
-          elseif strcmp(method, 'Stewenius') % Five Point algorithm (Stewenius)
+          elseif strcmp(alg, 'Stewenius') % Five Point algorithm (Stewenius)
             EOut          = opengv('fivept_stewenius',dat.matches.m2u,dat.matches.m1u); % Same results as fivep.m                
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
-          elseif strcmp(method, 'QuEst') % Five Point algorithm (QuEst)
+          elseif strcmp(alg, 'QuEst') % Five Point algorithm (QuEst)
             sol           = QuEst_Ver1_1(dat.matches.m1, dat.matches.m2);                
             Q             = obj.normalize_all(sol.Q);
             tOut          = sol.T;
-          elseif strcmp(method, 'VEst') 
+          elseif strcmp(alg, 'VEst') 
             % pass 
           else
             error('Undefined algorithm.')
           end
+          Q = check_quats(Q);
           %% find the closest transform to ground truth    
           [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
           T    = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
-          obj.save_method_sols(alg, T, Q);
+          obj.save_method_sols(a, T, Q);
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         if obj.masked_feat_disp_en  

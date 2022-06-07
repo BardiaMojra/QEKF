@@ -1,5 +1,7 @@
-function matches = MatchFeaturePoints(Ip,ppoints,In,npoints,maxPts,dataset,i,...
-  matches_disp_en, matches_sav_en, outDir)
+function matches = MatchFeaturePoints(Ip,ppoints,In,npoints,maxPts,dataset,kfi,...
+  mat_feat_disp_en, mat_feat_sav_en, outDir)
+
+kf_tag = strcat("kf", num2str(kfi,"%05d"));
 
 % Extract feature points
 [f1,vp1] = extractFeatures(Ip,ppoints);
@@ -13,62 +15,52 @@ matchedPoints2 = vp2(indexPairs(:,2));
 
 p1 = matchedPoints1.Location;
 p2 = matchedPoints2.Location;     
-%if matches_disp_en % all matched feature points
-%  figure; 
-%  showMatchedFeatures(Ip,In,p1,p2);
-%end 
 % Feature points
 numMatch = size(p1, 1);  % Number of matched feature points
 numPts = min(numMatch, maxPts);
 p1 = p1(1:numPts, :);
 p2 = p2(1:numPts, :);
-
 % pad with a col of 1s and transpose
 p11 = double( [p1 ones(numPts, 1)].' );
 p21 = double( [p2 ones(numPts, 1)].' );
 % Point coordinates on image plane
 m1 = dataset.K \ p11;
 m2 = dataset.K \ p21 ;
-
 % Unit norm coordinates
 m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1))); 
 m2u = bsxfun(@rdivide, m2, sqrt(sum(m2.^2,1)));
 
-% % Display images with matched feature points    
-if matches_disp_en
+ 
+if mat_feat_disp_en
+  %showMatchedFeatures(Ip,In,p1,p2);
+  fig = figure();
   imshow(In);
+  title(kf_tag);
   hold on;
   plot(p1(:,1), p1(:,2), 'g+');
-  plot(p2(:,1), p2(:,2), 'yo');    
+  plot(p2(:,1), p2(:,2), 'ro');    
   for j = 1 : numPts
-      plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'g');
+      plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'm');
   end
-  drawnow;    
+  drawnow;  
+  lg  = legend(["$kf(i-1)$", "$kf(i)$"], "Interpreter", "latex"); 
+  lg.Position(1:2) = [.8 .3];
+  lg.FontSize = 12;  
   hold off;
-  if matches_sav_en
-    outpath = [outDir 'matched_features_fig_' num2str(i, '%02d') '.png' ];
-    print(outpath, '-dpng');
+  if mat_feat_sav_en
+    fname = strcat(outDir,'fig_mat-feat_',kf_tag,'.png');
+    saveas(fig, fname);
   end
-
-    %path = [outDir 'matched_features_ num2str(i, '%02d') ];
-    %set(gcf, 'Position', [100 100 150 150]);
-    %saveas(gcf, path); 
-    %close
-  %end
+  waitforbuttonpress;
+  close(fig);
 end
   
-if matches_sav_en
-  % save the matched data points in pixels (padded with row of 1s)
+if mat_feat_sav_en % save the matched data points in pixels (padded with row of 1s)
   dat = cat(2,p11',p21');
-  path = [outDir 'matched_features_points_' num2str(i,'%02d') '.txt'];
-  writematrix(dat,path,'Delimiter',' ') 
+  fname = strcat(outDir, 'pts_mat-feat_',kf_tag,'.txt');
+  writematrix(dat,fname,'Delimiter',' ') 
 end
 
-
-% % save the matched data points in unit frame lengths 
-% dat = cat(2,m1',m2');
-% path = ['./out/KITTI/feature_matches/matches_dat_m1m2_' num2str(i, '%02d') '.txt'];
-% writematrix(dat,path,'Delimiter',' ') 
 
 matches.p1 = p1;
 matches.p2 = p2;

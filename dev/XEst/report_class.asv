@@ -27,10 +27,8 @@ classdef report_class < matlab.System
     %numBenchmarks
     % private constants 
     plt_lclrs = ["#A2142F", "#77AC30", "#0072BD", "#7E2F8E", ...
-                 "#EDB120", "#4DBEEE", "#D95319", "#77AC30"] % unique per alg
-    plt_mrkrs = ["o", "+", "*", ".", ...
-                 "x", "s", "d", "^", ...
-                 "v", ">", "<", "h"]
+                   "#EDB120", "#4DBEEE", "#D95319", "#77AC30"] % unique per alg
+    plt_mrkrs = ["o", "+", "*", ".", "x", "s", "d", "^", "v", ">", "<", "h"]
   
   end
   methods % constructor
@@ -197,36 +195,6 @@ classdef report_class < matlab.System
       lg  = legend([obj.pos_algs; "Groundtruth"]); 
       lg.Position(1:2) = [.8 .3];
       lg.FontSize = obj.plt_txt_size-4;
-
-      if mat_feat_disp_en
-  %showMatchedFeatures(Ip,In,p1,p2);
-  fig = figure();
-  imshow(In);
-  title(kf_tag);
-  hold on;
-  plot(p1(:,1), p1(:,2), 'g+');
-  plot(p2(:,1), p2(:,2), 'ro');    
-  for j = 1 : numPts
-      plot([p1(j,1) p2(j, 1)], [p1(j,2) p2(j, 2)], 'm');
-  end
-  drawnow;  
-  lg  = legend(["$kf(i-1)$", "$kf(i)$"], "Interpreter", "latex"); 
-  lg.Position(1:2) = [.8 .3];
-  lg.FontSize = 12;  
-  hold off;
-  if mat_feat_sav_en
-    fname = strcat(outDir,'fig_mat-feat_',kf_tag,'.png');
-    saveas(fig, fname);
-  end
-  waitforbuttonpress;
-  close(fig);
-      end
-      %if mat_feat_sav_en % save the matched data points in pixels (padded with row of 1s)
-      %  dat = cat(2,p11',p21');
-      %  fname = strcat(outDir, 'pts_mat-feat_',kf_tag,'.txt');
-      %  writematrix(dat,fname,'Delimiter',' ') 
-      %end
-
 
       if obj.plt_sav_questp_en
         % sav to file

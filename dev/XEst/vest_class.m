@@ -32,7 +32,7 @@ classdef vest_class < matlab.System
                    'Q err Q1';
                    'Q err Q3';};
     % rpt constants 
-    mod_name        = 'VEst'
+    mod_name        = 'VEst+'
     rpt_note    = "Since VEst outputs V and W, we compute the integral " + ...
                   "of the two and compute the error with respect to the " + ...
                   "ground truth for each frame. ";
