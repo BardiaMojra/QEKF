@@ -72,9 +72,9 @@ classdef quest_class < matlab.System
       obj.init();
     end
 
-    function TQVW_sols = get_pose(obj, kframe_idx, dat)
+    function TQVW_sols = get_pose(obj, kfi, dat)
       % get current frame features and match w prev frame    
-      [dat.npoints,dat.In] = GetFeaturePoints(kframe_idx, ...
+      [dat.npoints,dat.In] = GetFeaturePoints(kfi, ...
                                               dat.dataset, ...
                                               dat.surfThresh);            
       dat.matches   = MatchFeaturePoints(dat.Ip, ...
@@ -83,12 +83,10 @@ classdef quest_class < matlab.System
                                          dat.npoints, ...
                                          obj.maxPts, ...
                                          dat.dataset, ...
-                                         kframe_idx, ...
+                                         kfi, ...
                                          obj.mat_feat_disp_en, ... 
                                          obj.mat_feat_sav_en, obj.test_outDir);
-      [dat.relPose, dat.posp] = RelativeGroundTruth(kframe_idx, ...
-                                                    dat.posp, ...
-                                                    dat.dataset);
+      [dat.relPose, dat.posp] = RelativeGroundTruth(kfi, dat.posp, dat.dataset);
       % skip frame if not enough matches found 
       if (dat.matches.numPts < obj.minPts) % || (obj.matches.status~=0)         
         dat.Ip      = dat.In; % use current frame as the next previous frame
@@ -163,7 +161,7 @@ classdef quest_class < matlab.System
           if obj.masked_feat_sav_en
             outpath = [obj.test_outDir obj.test_ID ...
               '_matched_features_inlier_outlier_fig_' ...
-              num2str(kframe_idx, '%02d') '.png' ];
+              num2str(kfi, '%02d') '.png' ];
             print(outpath, '-dpng');
           end
         end % if obj.masked_feat_disp_en  
@@ -228,7 +226,7 @@ classdef quest_class < matlab.System
       cntr    = 0;
       q1      = dat.posp_i.q1;
       t1      = dat.posp_i.t1;
-      for f = dat.keyFrames
+      for f = dat.kframes
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
         for a = 1:length(log.pos_algs) % calc errs per pose alg
@@ -239,7 +237,7 @@ classdef quest_class < matlab.System
         end 
         q1 = q2; % store frame pose for the next keyFrame 
         t1 = t2; 
-      end % for f = dat.keyFrames
+      end % for f = dat.kframes
       T_stats     = obj.get_stats(log.T_errs);
       Q_stats     = obj.get_stats(log.Q_errs);
       T_res_tab   = obj.get_res_table(T_stats, obj.T_RowNames);

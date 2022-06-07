@@ -2,7 +2,7 @@ classdef config_class < matlab.System %& dat_class
   properties
     %% features
     test_single_bench_en    = true
-    %% configs
+    %% configs --->> write to other modules
     test_ID           = 'XEst_dev_test'
     outDir            = [pwd '/out/']   
     datDir            = ['/home/smerx/DATA']
@@ -16,7 +16,6 @@ classdef config_class < matlab.System %& dat_class
     %benchmark         = 'NAIST'
     %benchmark         = 'ICL'
     %benchmark         = 'TUM' 
-
     pos_algs          = { ...
                          'EightPt'; 
                          'Nister'; 
@@ -26,6 +25,8 @@ classdef config_class < matlab.System %& dat_class
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars
     vel_algs          = {'VEst'};
+    %% cfgs <<--- read from a submod and write to other submods 
+    kframes % read from dat_class obj 
     %% private
     test_outDir
     %dats  % dataset handler array for multi-data mode 
@@ -53,7 +54,7 @@ classdef config_class < matlab.System %& dat_class
         mkdir(obj.test_outDir);
       end 
       obj.dat = dat_class(benchtype = obj.benchmark);
-      obj.dat.load_cfg(obj); 
+      obj.dat.load_cfg(obj);
       %obj.init(); % move all this there 
       %obj.numBenchmarks = length(obj.benchmarks);
       %obj.dats = cell(obj.numBenchmarks,1); % create corresponding dat_class objs

@@ -93,7 +93,7 @@ classdef qekf_handler_class < matlab.System
       cntr    = 0;
       q1      = dat.posp_i.q1;
       t1      = dat.posp_i.t1;
-      for f = dat.keyFrames
+      for f = dat.kframes
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
         for a = 1:length(log.pos_algs) % calc and save errs per method 

@@ -130,7 +130,7 @@ classdef vest_class < matlab.System
       cntr    = 0;
       q1      = dat.posp_i.q1;
       t1      = dat.posp_i.t1;
-      for f = dat.keyFrames
+      for f = dat.kframes
         cntr          = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
         w             = log.W_hist(cntr,1:log.d_W)';

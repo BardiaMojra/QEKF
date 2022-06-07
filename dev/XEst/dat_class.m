@@ -8,17 +8,17 @@ classdef dat_class < matlab.System
     benchnum        = 3; % aux config, used in KITTI     
     surfThresh      = 200; % SURF feature detection threshold
 
-    % vars (private)
+    % vars (init internally)
     dataset % dataset obj
     %imgpath
     %datapath
-    keyFrames
+    kframes
     posp_i % init frame ground truth pose (given)
     ppoints_i; % init frame points 
     Ip_i; % init frame image 
     skipFrame % num of frames skipped bwt two keyframes        
-    numImag % total num of images
-    numKeyFrames % num of keyframes
+    %numImag % total num of images
+    num_kframes % num of keyframes
     %% run-time variables 
     t % frame translation 
     q % frame quaternion orientation 
@@ -37,6 +37,7 @@ classdef dat_class < matlab.System
     end 
   end % methods % constructor
   methods (Access = public) 
+    
     function load_cfg(obj, cfg) 
       obj.datDir        = cfg.datDir;          
       obj.benchtype     = cfg.benchmark;  
@@ -47,10 +48,31 @@ classdef dat_class < matlab.System
       obj.init();
       cfg.st_frame      = obj.st_frame; % write back to cfg obj after dat obj init
       cfg.end_frame     = obj.end_frame;
+      cfg.kframes       = obj.kframes; 
+      %disp(cfg.kframes);
+      %pause(5);
     end
-  end 
 
+    function [rgt_T, rgt_Q] = get_kframe_rgtruths(obj) % get ground truth relative translation
+      t1      = obj.posp_i.t1;
+      q1      = obj.posp_i.q1;
+      rgt_T   = nan(length(obj.kframes), 3);  
+      rgt_Q   = nan(length(obj.kframes), 4);      
+      
+      for i = 1: length(obj.kframes)
+        [tr,qr,t2,q2] = get_relGT(obj.kframes(i), obj.benchtype, obj.dataset.tTru, ...
+          obj.dataset.qTru, t1, q1);
+        rgt_T(i,:) = tr';
+        rgt_Q(i,:) = qr';        
+        t1 = t2; q1 = q2;
+      end
+      %disp(rgt_T);
+      %disp(rgt_Q);
+    end 
+
+  end 
   methods  (Access = private)
+    
     function init(obj)
       %init 
       [obj.dataset, obj.posp_i] = LoadDataset(obj.datDir, obj.benchtype, ...
@@ -67,9 +89,8 @@ classdef dat_class < matlab.System
       end
       obj.st_frame      = obj.dataset.st_frame;
       obj.end_frame     = obj.dataset.end_frame;
-      obj.numImag       = obj.end_frame - obj.st_frame; 
-      obj.keyFrames     = obj.st_frame+obj.skipFrame:1+obj.skipFrame:obj.numImag; 
-      obj.numKeyFrames  = length(obj.keyFrames);            
+      obj.kframes       = obj.st_frame+obj.skipFrame:1+obj.skipFrame:obj.end_frame; 
+      obj.num_kframes   = length(obj.kframes);            
       [obj.ppoints_i, obj.Ip_i]   = GetFeaturePoints(obj.st_frame, ...
         obj.dataset, obj.surfThresh);
       obj.posp        = obj.posp_i;

@@ -1,8 +1,8 @@
-function [tr,qr,t2,q2] = get_relGT(kframe_i, btype, tTru, qTru, t1, q1)
+function [tr,qr,t2,q2] = get_relGT(kfi, btype, tTru, qTru, t1, q1)
   % get current pose
   if strcmp(btype, 'KITTI') || strcmp(btype, 'ICL') || strcmp(btype, 'NAIST')
-    q2 = qTru(:, kframe_i);
-    t2 = tTru(:, kframe_i); 
+    q2 = qTru(:, kfi);
+    t2 = tTru(:, kfi); 
   elseif strcmp(btype, 'TUM')  
     fname = dat.dataset.fnames{f};
     ftime = str2double( fname(1:end-4) ); % Time at the current frame       

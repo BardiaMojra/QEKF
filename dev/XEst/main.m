@@ -15,13 +15,12 @@ rpt   = report_class(); rpt.load_cfg(cfg);
 
 %% run 
 cntr  = 0;  
-disp(cfg.dat.keyFrames);
-for frame_idx = cfg.dat.keyFrames % --->> iter keyframes 
+for kf = cfg.kframes % --->> iter keyframes 
   cntr      = cntr+1;
-  TQVW_sols = quest.get_pose(frame_idx, cfg.dat); % get pose
+  TQVW_sols = quest.get_pose(kf, cfg.dat); % get pose
   TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity
   st_sols   = qekf.run_filter(TQVW_sols); % run filter
-  dlog.log_state(cntr, frame_idx, TQVW_sols, st_sols);
+  dlog.log_state(cntr, kf, TQVW_sols, st_sols);
 end 
 
 %% results
@@ -30,6 +29,6 @@ vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);
 
 %% report
-rpt.gen_plots(dlog);
+rpt.gen_plots(cfg.dat, dlog);
 rpt.gen_report(quest, vest, qekf);
 disp("end of process...");

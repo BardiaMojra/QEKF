@@ -2,7 +2,7 @@ classdef log_class < matlab.System
   properties
     %% config (argin)
     benchtype  % single benchmark    
-    kFrames  % corresponding keyframes 
+    kframes  % corresponding keyframes 
     pos_algs
     vel_algs
     %% config
@@ -72,9 +72,9 @@ classdef log_class < matlab.System
   end % methods  % constructor
   methods (Access = public) 
 
-    function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
-      obj.cntr_hist(cntr, 1)     = cntr;
-      obj.kf_hist(cntr, 1)    = frame_idx;
+    function log_state(obj, cntr, kfi, TQVW_sols, st_sols)
+      obj.cntr_hist(cntr, 1)    = cntr;
+      obj.kf_hist(cntr, 1)      = kfi;
       for a = 1:length(obj.pos_algs) % log pose algs
         assert(strcmp(obj.pos_algs{a}, TQVW_sols{1, a}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
@@ -98,7 +98,7 @@ classdef log_class < matlab.System
       % consider changing to matrices instead of cells, (matrix runs faster)
       obj.pos_numAlgs         = length(obj.pos_algs);
       obj.vel_numAlgs         = length(obj.vel_algs);
-      obj.numKF               = length(obj.kFrames);
+      obj.numKF               = length(obj.kframes);
       obj.cntr_hist           = NaN(obj.numKF,1);
       obj.kf_hist             = NaN(obj.numKF,1);
       %% --->> logs

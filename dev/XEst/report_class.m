@@ -2,7 +2,8 @@ classdef report_class < matlab.System
   
   properties % public vars
     % features 
-    rpt_shw_en        = true
+    rpt_shw_en          = true
+    plt_sav_questp_en   = false
     %% config
     rpt_title         = 'XEst main()'
     rpt_subtitle      = 'Real-time vision-based navigation module'
@@ -12,6 +13,7 @@ classdef report_class < matlab.System
     font_style        = 'Times New Roman'
     num_format        = "%1.4f"
     rpt_outFormat     = 'docx'
+    plt_txt_size      = 16;
     % cfg (argin)
     test_ID
     test_outDir
@@ -24,8 +26,8 @@ classdef report_class < matlab.System
     rpt
     %numBenchmarks
     % private constants 
-    plt_clrs = ['#A2142F', '#77AC30', '#0072BD', '#7E2F8E', '#EDB120', ...
-                '#4DBEEE', '#D95319','#77AC30'] % unique per alg
+    plt_clrs = ["#A2142F", "#77AC30", "#0072BD", "#7E2F8E", ...
+                "#EDB120", "#4DBEEE", "#D95319", "#77AC30"] % unique per alg
   end
   methods % constructor
     
@@ -64,40 +66,23 @@ classdef report_class < matlab.System
       end
     end
 
-    function gen_plots(obj, dlog)
-      log = dlog.log;
-      idx  = log.cntr_hist;
-      %kf   = log.kf_hist;
+    function gen_plots(obj, dat, dlog)
+      log               = dlog.log;
+      %idx               = log.cntr_hist;
+      %kf                = log.kf_hist;
+      [rgt_T, rgt_Q]    = dat.get_kframe_rgtruths();
       
-      
-      T  = log.T_hist;
-      Tx = []; Ty = []; Tz = [];
-      for a = 1:obj.pos_numAlgs
-        cols = get_cols(a,log.d_T);
-        Tx = horxcat(Tx, T(:,cols(1)));
-        Ty = horxcat(Ty, T(:,cols(2)));
-        Tz = horxcat(Tz, T(:,cols(3)));
-      end
-      % 
-      figure(1); % 10 subplots
-      for a = 1:obj.pos_numAlgs
-        subplot(10,1,1); % all Tx
-        plot(idx, Tx(:,a), obj.plt_clrs(a));
-        subplot(10,2,1); % all Ty
-        plot(idx, Ty(:,a), obj.plt_clrs(a));
-        subplot(10,3,1); % all Tz
-        plot(idx, Tz(:,a), obj.plt_clrs(a));
-      
-      end
-      
-      T_x = horxcat(T_x, a_cols(1));
-      Q_hist     = log.Q_hist;
-      V_hist     = log.V_hist;
-      W_hist     = log.W_hist;
-      Z_hist     = log.Z_hist;
-      U_hist     = log.U_hist;
-      X_hist     = log.X_hist;
-      Y_hist     = log.Y_hist;
+      T     = log.T_hist;
+      Q     = log.Q_hist;
+ 
+      questp_plt = obj.get_questp_plt(log, T, Q, rgt_T, rgt_Q);
+
+      %V_hist     = log.V_hist;
+      %W_hist     = log.W_hist;
+      %Z_hist     = log.Z_hist;
+      %U_hist     = log.U_hist;
+      %X_hist     = log.X_hist;
+      %Y_hist     = log.Y_hist;
 
 
       disp("gen plots!");
@@ -144,6 +129,79 @@ classdef report_class < matlab.System
       tab.TableEntriesHAlign = "center";
       tab.TableEntriesVAlign = "middle";
       append(obj.rpt, tab);
+    end 
+
+    function questp_plt = get_questp_plt(obj, log, T, Q, rgt_T, rgt_Q)
+      idx  = log.cntr_hist;
+      for a = 1:obj.pos_numAlgs
+        Tcols = get_cols(a, log.d_T);
+        Qcols = get_cols(a, log.d_Q);
+        if a == 1 
+          Tx = T(:,Tcols(1)); Ty = T(:,Tcols(2)); Tz = T(:,Tcols(3));
+          Qw = Q(:,Qcols(1)); Qx = Q(:,Qcols(2)); Qy = Q(:,Qcols(3)); Qz = Q(:,Qcols(4));
+        else
+          Tx = horzcat(Tx, T(:,Tcols(1)));
+          Ty = horzcat(Ty, T(:,Tcols(2)));
+          Tz = horzcat(Tz, T(:,Tcols(3)));    
+          Qw = horzcat(Qw, Q(:,Qcols(1)));
+          Qx = horzcat(Qx, Q(:,Qcols(1)));
+          Qy = horzcat(Qy, Q(:,Qcols(2)));
+          Qz = horzcat(Qz, Q(:,Qcols(3)));
+        end
+      end
+      % concat ground truth
+      Tx = horzcat(Tx, rgt_T(:,1));
+      Ty = horzcat(Ty, rgt_T(:,2));
+      Tz = horzcat(Tz, rgt_T(:,3));
+      Qw = horzcat(Qw, rgt_Q(:,1));
+      Qx = horzcat(Qx, rgt_Q(:,1));
+      Qy = horzcat(Qy, rgt_Q(:,2));
+      Qz = horzcat(Qz, rgt_Q(:,3));
+
+      questp_plt = figure(); % 7 subplots
+      hold on
+      for a = 1:obj.pos_numAlgs+1 % +gt
+        subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Tx
+        plot(idx, Tx(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+        subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Ty
+        plot(idx, Ty(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+        subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Tz
+        plot(idx, Tz(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+        
+        subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Qw
+        plot(idx, Qw(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+        subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Qx
+        plot(idx, Qx(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+        subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Qy
+        plot(idx, Qy(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+        subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ...
+          'fontsize',obj.plt_txt_size); % Qz
+        plot(idx, Qz(:,a), "Color", obj.plt_clrs(a));
+        %yline(0,'--');
+      end
+
+      hold off
+      lg  = legend([obj.pos_algs; "Groundtruth"]); 
+      lg.Position(1:2) = [.8 .3];
+      %lg.Location = 'northeast_outside';
+      %lg.Layout.Tile = 'North'; 
+      lg.FontSize = obj.plt_txt_size-4;
+
+      if obj.plt_sav_questp_en
+        % sav to file
+      end
     end 
     
     %% Backup/restore functions
