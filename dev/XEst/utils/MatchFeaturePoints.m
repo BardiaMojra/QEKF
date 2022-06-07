@@ -44,7 +44,7 @@ if mat_feat_disp_en
   end
   drawnow;  
   lg  = legend(["$kf(i-1)$", "$kf(i)$"], "Interpreter", "latex"); 
-  lg.Position(1:2) = [.8 .3];
+  lg.Position(1:2) = [1 1];
   lg.FontSize = 12;  
   hold off;
   if mat_feat_sav_en

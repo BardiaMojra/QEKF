@@ -52,8 +52,8 @@ classdef qekf_handler_class < matlab.System
       obj.vel_algs          = cfg.vel_algs;
       obj.vel_numMethods    = length(obj.vel_algs);
       obj.trackers          = cell(obj.pos_numMethods, 0);
-      obj.st_sols           = cell(7, obj.pos_numMethods); % alg,Z,U,X,Y,P,K 
-      obj.res               = cell( 1, 2); % benchmark, res_tab
+      obj.st_sols           = cell(7,obj.pos_numMethods); % alg,Z,U,X,Y,P,K 
+      obj.res               = cell(3,0); % benchmark, res_tab
       for alg = 1:obj.pos_numMethods
         obj.trackers{alg} = qekf_class( alg_idx = alg );
         obj.trackers{alg}.load_cfg(cfg);
@@ -71,17 +71,17 @@ classdef qekf_handler_class < matlab.System
     end 
 
     function res = get_res(obj, cfg, dlog)
-      obj.res{1, 1}   = dlog.log.benchtype;
-      obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
+      obj.res{1}   = dlog.log.benchtype;
+      obj.res{2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
         disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
-        disp(obj.res{1, 1}); disp(obj.res{1, 2});
+        disp(obj.res{1}); disp(obj.res{1});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' obj.res{1, 1} '_' ];
+        btag = [ '_' obj.res{1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
           obj.mod_name, '_table.csv');
-        writetable(obj.res{1, 2}, fname);
+        writetable(obj.res{2}, fname);
       end 
       res = obj.res;
     end % get_res()      

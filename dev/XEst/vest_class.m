@@ -62,7 +62,7 @@ classdef vest_class < matlab.System
       [v, w]  = PoCo(obj.m, obj.m_dot); % --->> run VEst
       %% log Vest T and Q as a pose est method
       TQVW_sols{2, end}  = normalizeVec(v .* obj.del_T); % VEst_T
-      TQVW_sols{3, end}  = exp_map(w); % VEst_Q
+      TQVW_sols{3, end}  = check_quats(exp_map(w)); % VEst_Q
       for alg = 1:length(obj.pos_algs) % log VEst V W for all pose algs
         assert(strcmp(obj.pos_algs{alg}, TQVW_sols{1, alg}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
@@ -72,17 +72,17 @@ classdef vest_class < matlab.System
     end 
 
     function res = get_res(obj, cfg, dlog)
-      obj.res{1, 1}   = dlog.log.benchtype;
-      obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
+      obj.res{1}   = dlog.log.benchtype;
+      obj.res{2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
         disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
-        disp(obj.res{1, 1}); disp(obj.res{1, 2});
+        disp(obj.res{1}); disp(obj.res{2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' obj.res{1, 1} '_' ];
+        btag = [ '_' obj.res{1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
           obj.mod_name, '_table.csv');
-        writetable(obj.res{1, 2}, fname);
+        writetable(obj.res{2}, fname);
       end 
       res = obj.res;
     end % get_res()      
@@ -111,16 +111,16 @@ classdef vest_class < matlab.System
       %obj.numBenchmarks         = length(obj.benchmarks);
       obj.pos_numMethods        = length(obj.pos_algs);
       obj.vel_numMethods        = length(obj.vel_algs);
-      obj.res                   = cell( 1, 2); % benchmark, res_table
+      obj.res                   = cell(3,0); % benchmark, res_tab, res_fig
     end 
 
     function stats = get_stats(~, errs) 
-      stats       = zeros(5, size(errs,2));
-      stats(1, :) = mean(errs,1);  % Mean
-      stats(2, :) = std(errs,1);  % Standard deviation
-      stats(3, :) = median(errs,1); % Median
-      stats(4, :) = quantile(errs, 0.25, 1); % 25% quartile
-      stats(5, :) = quantile(errs, 0.75, 1); % 75% quartile
+      stats      = zeros(5, size(errs,2));
+      stats(1,:) = mean(errs,1);  % Mean
+      stats(2,:) = std(errs,1);  % Standard deviation
+      stats(3,:) = median(errs,1); % Median
+      stats(4,:) = quantile(errs, 0.25, 1); % 25% quartile
+      stats(5,:) = quantile(errs, 0.75, 1); % 75% quartile
     end
     
     function res_table = get_res_tab(obj, log, dat) % get per benchmark log errs 

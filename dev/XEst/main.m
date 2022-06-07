@@ -29,6 +29,6 @@ vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);
 
 %% report
-rpt.gen_plots(cfg.dat, dlog);
+rpt.gen_plots(cfg.dat, dlog, quest, vest, qekf);
 rpt.gen_report(quest, vest, qekf);
 disp("end of process...");

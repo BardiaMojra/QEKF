@@ -161,7 +161,7 @@ classdef quest_class < matlab.System
           hold off;
           if obj.masked_feat_sav_en
             outpath = [obj.test_outDir obj.test_ID ...
-              '_matched_features_inlier_outlier_fig_' ...
+              '_mat-feat_mask_fig_' ...
               num2str(kfi, '%02d') '.png' ];
             print(outpath, '-dpng');
           end
@@ -179,17 +179,17 @@ classdef quest_class < matlab.System
     end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
 
     function res = get_res(obj, cfg, dlog)
-      obj.res{1, 1}   = dlog.log.benchtype;
-      obj.res{1, 2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
+      obj.res{1}   = dlog.log.benchtype;
+      obj.res{2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
         disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
-        disp(obj.res{1, 1}); disp(obj.res{1, 2});
+        disp(obj.res{1}); disp(obj.res{2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' obj.res{1, 1} '_' ];
+        btag = [ '_' obj.res{1} '_' ];
         fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
           obj.mod_name, '_table.csv');
-        writetable(obj.res{1, 2}, fname);
+        writetable(obj.res{2}, fname);
       end 
       res = obj.res;
     end % get_res()      
@@ -217,7 +217,7 @@ classdef quest_class < matlab.System
     function init(obj)
       obj.pos_numMethods      = length(obj.pos_algs);
       obj.TQVW_sols           = cell(5, obj.pos_numMethods); % alg,T,Q,V,W
-      obj.res                 = cell( 1, 2); % benchmark, res_table
+      obj.res                 = cell(3, 0); % btype, res_tab, log_fig
     end 
     
     function res_table = get_res_tab(obj, log, dat) % get per benchmark log errs 
