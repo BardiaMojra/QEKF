@@ -1,11 +1,16 @@
 classdef log_class < matlab.System
   properties
-    %% config (argin)
+    % features 
+    TQ_hist_sav_en    = true
+    % config (argin)
+    TID     
+    ttag    
+    toutDir 
     benchtype  % single benchmark    
     kframes  % corresponding keyframes 
     pos_algs
     vel_algs
-    %% config
+    % cfg (private constants)
     d_T = 3
     d_Q = 4
     d_V = 3
@@ -64,6 +69,9 @@ classdef log_class < matlab.System
     end
     
     function load_cfg(obj, cfg) % load config from cfg
+      obj.TID            = cfg.TID;
+      obj.ttag           = cfg.ttag;
+      obj.toutDir        = cfg.toutDir;
       obj.pos_algs       = cfg.pos_algs;
       obj.vel_algs       = cfg.vel_algs;
       obj.init();
@@ -91,6 +99,27 @@ classdef log_class < matlab.System
       end
     end % function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
   
+    %%
+    function save_TQ_hists(obj)
+      TQ = nan(obj.numKF,7); % Txyz Qwxyz
+      for a = 1:obj.pos_numAlgs % create logs per pos alg
+        Tcols   = get_cols(a, obj.d_T); % --->> get var cols
+        Qcols   = get_cols(a, obj.d_Q);
+        TQ(:,1) = obj.T_hist(:, Tcols(1)); % Txyz
+        TQ(:,2) = obj.T_hist(:, Tcols(2));
+        TQ(:,3) = obj.T_hist(:, Tcols(3));
+        TQ(:,4) = obj.Q_hist(:, Qcols(1)); % Qwxyz
+        TQ(:,5) = obj.Q_hist(:, Qcols(2));
+        TQ(:,6) = obj.Q_hist(:, Qcols(3));
+        TQ(:,7) = obj.Q_hist(:, Qcols(4));
+        %disp(TQ);
+        if obj.TQ_hist_sav_en
+          fname = strcat(obj.toutDir,"TQ_hist_",obj.pos_algs{a},"_log.csv");
+          writematrix(TQ, fname); 
+        end
+      end % for a = 1:obj.pos_numAlgs
+    end % function save_log2file(obj)
+
   end % methods (Access = public) % public functions
   methods (Access = private) % private functions
     

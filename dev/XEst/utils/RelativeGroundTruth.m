@@ -41,9 +41,9 @@ elseif strcmp(benchtype, 'NAIST')
 end
 
 % Store the current pose for the next iteration
-posp.q1 = normalize_all(q2);
+posp.q1 = normalizeVec(q2);
 posp.t1 = t2;
 
 % Relative pose
-relPos.qr = normalize_all(qr);
+relPos.qr = normalizeVec(qr);
 relPos.tr = tr;

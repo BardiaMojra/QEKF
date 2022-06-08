@@ -3,11 +3,11 @@ classdef report_class < matlab.System
   properties % public vars
     % features 
     rpt_shw_en          = false
-    plt_questp_shw_en   = true
+    plt_questp_shw_en   = false
     plt_questp_sav_en   = true
-    plt_vestp_shw_en    = true
+    plt_vestp_shw_en    = false
     plt_vestp_sav_en    = true
-    plt_qekf_shw_en     = true
+    plt_qekf_shw_en     = false
     plt_qekf_sav_en     = true
     %% config
     rpt_title         = 'XEst Report'
@@ -112,8 +112,7 @@ classdef report_class < matlab.System
       append(obj.rpt, chap);
       chap = obj.get_chap(qekf);
       append(obj.rpt, chap);
-      close(obj.rpt)
-
+      close(obj.rpt);
       if obj.rpt_shw_en 
         rptview(obj.rpt); 
       end
@@ -121,30 +120,12 @@ classdef report_class < matlab.System
 
     function gen_plots(obj, dat, dlog, quest, vest, qekf)
       log               = dlog.log;
-      %idx               = log.cntr_hist;
-      %kf                = log.kf_hist;
       [rgt_T, rgt_Q]    = dat.get_kframe_rgtruths();
-      
-      T     = log.T_hist;
-      Q     = log.Q_hist;
-      V     = log.V_hist;
-      W     = log.W_hist;
- 
-      quest.res{3} = obj.plt_log_QuEstp(log, rgt_T, rgt_Q);
-      %vest_figname  = obj.plt_log_VEstp(log, rgt_T, rgt_Q);
-      qekf.res{3} = obj.plt_log_QEKF(log, rgt_T, rgt_Q);
-      vest.res{3} = nan;
-      qekf.res{3} = nan;
-      
-      
-      %V_hist     = log.V_hist;
-      %W_hist     = log.W_hist;
-      %Z_hist     = log.Z_hist;
-      %U_hist     = log.U_hist;
-      %X_hist     = log.X_hist;
-      %Y_hist     = log.Y_hist;
-
-      disp("gen plots!");
+      quest.res{3}      = obj.plt_log_QuEstp(log, rgt_T, rgt_Q);
+      %vest_figname      = obj.plt_log_VEstp(log, rgt_T, rgt_Q);
+      vest.res{3}       = nan;
+      qekf.res{3}       = obj.plt_log_QEKF(log, rgt_T, rgt_Q);
+      disp("plots generated!");
     end 
 
   end % end of public access 
@@ -188,7 +169,6 @@ classdef report_class < matlab.System
       tab.TableEntriesHAlign = "center";
       tab.TableEntriesVAlign = "middle";      
       append(chap, tab);
-
       % append log_fig
       %if isstring(mod.res{3}) % --->> log_fig
       %  % shrink
@@ -211,8 +191,8 @@ classdef report_class < matlab.System
       Qy    = nan(log.numKF, log.pos_numAlgs+1);
       Qz    = nan(log.numKF, log.pos_numAlgs+1);
       for a = 1:obj.pos_numAlgs
-        Tcols = get_cols(a, log.d_T); % --->> get var cols
-        Qcols = get_cols(a, log.d_Q);
+        Tcols   = get_cols(a, log.d_T); % --->> get var cols
+        Qcols   = get_cols(a, log.d_Q);
         Tx(:,a) = T(:, Tcols(1)); % --->> load to plt cols
         Ty(:,a) = T(:, Tcols(2));
         Tz(:,a) = T(:, Tcols(3));    
@@ -262,22 +242,20 @@ classdef report_class < matlab.System
       lg.Position = obj.leg_pos;
       lg.FontSize = obj.fig_txt_size-4;
       if obj.plt_questp_sav_en
-        figname = strcat(obj.toutDir,"fig_QuEst+_logs.png");
+        figname = strcat(obj.toutDir,"plt_QuEst+_logs.png");
         saveas(fig, figname);
       end
       if obj.plt_questp_shw_en
         waitforbuttonpress;
       end
       close(fig);
-
     end % function figname = plt_log_QuEstp(obj, log, rgt_T, rgt_Q)
+    
     function fname = plt_log_QEKF(obj, log, rgt_T, rgt_Q)
-
       idx   = log.cntr_hist;
       Z     = log.Z_hist; 
       X     = log.X_hist;
       Y     = log.Y_hist; % separate fig
-
       Tx    = nan(log.numKF, log.pos_numAlgs+1); % kfs vs ests+GT
       Ty    = nan(log.numKF, log.pos_numAlgs+1);
       Tz    = nan(log.numKF, log.pos_numAlgs+1);
@@ -350,7 +328,7 @@ classdef report_class < matlab.System
       lg.Position = obj.leg_pos;
       lg.FontSize = obj.fig_txt_size-4;
       if obj.plt_questp_sav_en
-        fname = strcat(obj.toutDir,'fig_QEKF_logs.png');
+        fname = strcat(obj.toutDir,'plt_QEKF_logs.png');
         saveas(fig, fname);
       end
       if obj.plt_questp_shw_en

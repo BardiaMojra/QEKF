@@ -5,17 +5,19 @@ classdef quest_class < matlab.System
     res_tab_prt_en        = false;
     all_feat_sav_en       = false;
     all_feat_disp_en      = false;
-    mat_feat_sav_fig_en   = false;
-    mat_feat_disp_fig_en  = true; % disp matched features between two keyframes
+    mat_feat_sav_fig_en   = true;
+    mat_feat_disp_fig_en  = false; % disp matched features between two keyframes
     mat_feat_sav_pts_en   = false; 
     masked_feat_sav_en    = false;
     masked_feat_disp_en   = false;
     sliding_ref_en        = false; % disable sliding_ref mode when running in real-time
+    
     % configs (private constants)
-    ranThresh         = 1e-6;% RANSAC Sampson dist threshold (for outliers)
-    surfThresh        = 200; % SURF feature detection threshold
-    maxPts            = 30; % max num of features used in pose est (fewer points, faster compute)
-    minPts            = 8; % max num of features required (6 to est a unique pose with RANSAC)
+    ranThresh         = 1e-6 % RANSAC Sampson dist threshold (for outliers)
+    surfThresh        = 200 % SURF feature detection threshold
+    maxPts            = 30 % max num of features used in pose est (fewer points, faster compute)
+    minPts            = 8 % max num of features required (6 to est a unique pose with RANSAC)
+    normThresh        = 1.5
     %% overwritten by cfg
     TID
     ttag
@@ -135,17 +137,20 @@ classdef quest_class < matlab.System
             Q             = R2Q(ROut);
           elseif strcmp(alg, 'QuEst') % Five Point algorithm (QuEst)
             sol           = QuEst_Ver1_1(dat.matches.m1, dat.matches.m2);                
-            Q             = obj.normalize_all(sol.Q);
+            Q             = normalize_all(sol.Q);
             tOut          = sol.T;
           elseif strcmp(alg, 'VEst') 
-            % pass 
+            % pass, VEst is computed by a separate class
           else
             error('Undefined algorithm.')
           end
           Q = check_quats(Q);
+          tOut = normalize_tOuts(tOut);
           %% find the closest transform to ground truth    
           [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
           T    = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
+          assert(sqrt(sum(T.*T))<obj.normThresh,"[quest.run]->> T not normalized!");
+          assert(sqrt(sum(Q.*Q))<obj.normThresh,"[quest.run]->> Q not normalized!");
           obj.save_method_sols(a, T, Q);
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -178,9 +183,6 @@ classdef quest_class < matlab.System
           dat.Ip = dat.In;
           dat.ppoints = dat.npoints;                              
         end
-        %if mod(frame_idx,10) == 0 % Print iteration number
-        %  disp(['Iteration ' num2str(frame_idx) ' of ' num2str(dat.numKeyFrames)]);
-        %end  
       end 
       TQVW_sols = obj.TQVW_sols;
     end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
@@ -303,19 +305,19 @@ classdef quest_class < matlab.System
       obj.TQVW_sols{3, alg}     =    Q;
     end
 
-    function normed = normalize(~, vector)
-      normed  = vector/ vecnorm(vector); % normalize v answer 
-      if normed(3) < 0 
-        normed = - normed; 
-      end 
-    end
+    %function normed = normalize(~, vector)
+    %  normed  = vector/ vecnorm(vector); % normalize v answer 
+    %  if normed(3) < 0 
+    %    normed = - normed; 
+    %  end 
+    %end
 
-    function normedv = normalize_all(obj, vectors)
-      normedv  = zeros(size(vectors));
-      for v = 1: size(vectors, 2)
-        normedv(:, v) = obj.normalize(vectors(:, v));
-      end
-    end
+    %function normedv = normalize_all(obj, vectors)
+    %  normedv  = zeros(size(vectors));
+    %  for v = 1: size(vectors, 2)
+    %    normedv(:, v) = obj.normalize(vectors(:, v));
+    %  end
+    %end
 
   end % methods (Access = private)
 end

@@ -43,5 +43,9 @@ classdef dlogger_class < matlab.System
       obj.log.log_state(cntr, frame_idx, TQVW_sols, state_sols);
     end
 
+    function save_logs(obj)
+      obj.log.save_TQ_hists()
+    end % function save_log(obj)
+
   end % methods (Access = public) 
 end

@@ -3,8 +3,7 @@
 %% init
 close all; clear; clc; addpath(genpath('./'));
 addpath(genpath('/home/smerx/DATA'));
-
-cfg   = config_class(TID        = 't00001', ... % --->> config on the fly
+cfg   = config_class(TID        = 'T00001', ... % --->> config on the fly
                      benchmark  = 'KITTI');
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 
 quest = quest_class(); quest.load_cfg(cfg); 
@@ -24,6 +23,7 @@ for kf = cfg.kframes % --->> iter keyframes
 end 
 
 %% results
+dlog.save_logs();
 quest.get_res(cfg, dlog);
 vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);
