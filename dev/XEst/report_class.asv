@@ -3,7 +3,7 @@ classdef report_class < matlab.System
   properties % public vars
     % features 
     rpt_shw_en          = false
-    plt_questp_shw_en   = true
+    plt_questp_shw_en   = false
     plt_questp_sav_en   = true
     plt_vestp_shw_en    = true
     plt_vestp_sav_en    = true
@@ -130,7 +130,7 @@ classdef report_class < matlab.System
  
       quest.res{3} = obj.plt_log_QuEstp(log, rgt_T, rgt_Q);
       %vest_figname  = obj.plt_log_VEstp(log, rgt_T, rgt_Q);
-      qekf.res{3} = obj.plt_log_QEKF(log, rgt_T, rgt_Q);
+      %qekf.res{3} = obj.plt_log_QEKF(log, rgt_T, rgt_Q);
       vest.res{3} = nan;
       qekf.res{3} = nan;
       

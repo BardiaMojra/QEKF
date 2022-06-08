@@ -18,8 +18,9 @@ classdef quest_class < matlab.System
     %% overwritten by cfg
     test_ID
     test_outDir
+    del_T
     res
-    %vel_algs
+    vel_algs
     pos_algs      = {...
                      'EightPt'; 
                      'Nister'; 
@@ -37,7 +38,7 @@ classdef quest_class < matlab.System
     %numBenchmarks 
     benchmark
     pos_numMethods  % num of algs used for comparison 
-    %vel_numMethods
+    vel_numMethods
     %% private constants 
     T_RowNames  = {'T err mean';
                    'T err std';
@@ -51,7 +52,7 @@ classdef quest_class < matlab.System
                    'Q err Q3';};
     % rpt constants 
     mod_name      = "QuEst+"
-    rpt_note      = " "
+    rpt_note      = "This module contains multipl"
   end
   methods % constructor
     
@@ -66,7 +67,8 @@ classdef quest_class < matlab.System
       obj.test_ID           =  cfg.test_ID;                   
       obj.test_outDir       =  cfg.test_outDir;              
       obj.pos_algs          =  cfg.pos_algs;
-      %obj.vel_algs          =  cfg.vel_algs;
+      obj.vel_algs          =  cfg.vel_algs;
+      obj.del_T             = cfg.del_T;
       obj.benchmark         =  cfg.benchmark;          
       obj.surfThresh        =  cfg.surfThresh;       
       obj.init();
@@ -216,6 +218,7 @@ classdef quest_class < matlab.System
     
     function init(obj)
       obj.pos_numMethods      = length(obj.pos_algs);
+      obj.vel_numMethods      = length(obj.vel_algs);
       obj.TQVW_sols           = cell(5, obj.pos_numMethods); % alg,T,Q,V,W
       obj.res                 = cell(3, 0); % btype, res_tab, log_fig
     end 

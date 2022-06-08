@@ -15,6 +15,7 @@ classdef qekf_handler_class < matlab.System
     trackers
     st_sols
     res
+    del_T
     %% other private constants 
     metNames  = {'mean';
                  'std';
@@ -54,6 +55,7 @@ classdef qekf_handler_class < matlab.System
       obj.trackers          = cell(obj.pos_numMethods, 0);
       obj.st_sols           = cell(7,obj.pos_numMethods); % alg,Z,U,X,Y,P,K 
       obj.res               = cell(3,0); % benchmark, res_tab
+      obj.del_T             = cfg.del_T;
       for alg = 1:obj.pos_numMethods
         obj.trackers{alg} = qekf_class( alg_idx = alg );
         obj.trackers{alg}.load_cfg(cfg);
