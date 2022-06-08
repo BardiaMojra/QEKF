@@ -4,7 +4,7 @@
 close all; clear; clc; addpath(genpath('./'));
 addpath(genpath('/home/smerx/DATA'));
 
-cfg   = config_class(test_ID    = 'test_001', ... % --->> config on the fly
+cfg   = config_class(TID        = 't00001', ... % --->> config on the fly
                      benchmark  = 'KITTI');
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 
 quest = quest_class(); quest.load_cfg(cfg); 

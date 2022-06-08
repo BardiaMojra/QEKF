@@ -48,7 +48,9 @@ function [dataset, posp] = LoadDataset(srcDir, btype, bnum, st_frame, end_frame)
   if isnan(end_frame)
     end_frame = length(files);
   end 
-  
+  if isnan(st_frame)
+    st_frame = 1;
+  end 
   if strcmp(btype, 'KITTI')
     fnames = cell(1,end_frame);
     for i = st_frame:end_frame

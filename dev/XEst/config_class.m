@@ -3,12 +3,14 @@ classdef config_class < matlab.System %& dat_class
     %% features
     test_single_bench_en    = true
     %% configs --->> write to other modules
-    test_ID           = 'XEst_dev_test'
-    outDir            = [pwd '/out/']   
+    TID               = 'XEst_dev_test'
+    outDir            = [pwd '/out']   
     datDir            = ['/home/smerx/DATA']
     %datDir            = [pwd '/data']   
-    st_frame          = 650 % start frame index
-    end_frame         = 680 % end frame index
+    %st_frame          = 650 % start frame index
+    %end_frame         = 680 % end frame index
+    st_frame          = nan % default
+    end_frame         = 30 % default
     del_T             = 0.1 % time period 
     surfThresh        = 200 % SURF feature detection threshold
     benchnum          = 3 % benchmark subset
@@ -28,7 +30,8 @@ classdef config_class < matlab.System %& dat_class
     %% cfgs <<--- read from a submod and write to other submods 
     kframes % read from dat_class obj 
     %% private
-    test_outDir
+    toutDir
+    ttag % TID+benchmark
     %dats  % dataset handler array for multi-data mode 
     dat
     pos_numMethods  % num of algs used for comparison
@@ -46,12 +49,13 @@ classdef config_class < matlab.System %& dat_class
   methods (Access = private)
   
     function init(obj)
-      obj.test_outDir = [obj.outDir 'out_' obj.test_ID '_' obj.benchmark '/'];
-      if not(isfolder(obj.test_outDir))
+      obj.ttag    = strcat(obj.TID,'_',obj.benchmark);
+      obj.toutDir = strcat(obj.outDir,'/',obj.ttag,'/');
+      if not(isfolder(obj.toutDir))
         disp('test_outDir does NOT exist: ');
-        disp(obj.test_outDir);
+        disp(obj.toutDir);
         pause(5);
-        mkdir(obj.test_outDir);
+        mkdir(obj.toutDir);
       end 
       obj.dat = dat_class(benchtype = obj.benchmark);
       obj.dat.load_cfg(obj);

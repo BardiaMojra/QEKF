@@ -1,18 +1,18 @@
 classdef dlogger_class < matlab.System 
   properties
     %% features
-    res_prt_en  = true;
+    res_prt_en  = false;
     res_sav_en  = true;
     % config (argin)
-    test_ID
-    test_outDir
+    TID
+    ttag
+    toutDir
     benchmark
     pos_algs
     vel_algs
     pos_numMethods 
     vel_numMethods 
     log
-  
   end
   methods  % constructor
 
@@ -24,8 +24,9 @@ classdef dlogger_class < matlab.System
   methods (Access = public) 
 
     function load_cfg(obj, cfg)
-      obj.test_ID           = cfg.test_ID;
-      obj.test_outDir       = cfg.test_outDir;
+      obj.TID               = cfg.TID;
+      obj.ttag              = cfg.ttag;
+      obj.toutDir           = cfg.toutDir;
       obj.benchmark         = cfg.benchmark;  
       obj.pos_numMethods    = cfg.pos_numMethods;
       obj.pos_algs          = cfg.pos_algs;  

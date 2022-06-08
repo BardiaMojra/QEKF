@@ -1,5 +1,14 @@
-function matches = MatchFeaturePoints(Ip,ppoints,In,npoints,maxPts,dataset,kfi,...
-  mat_feat_disp_en, mat_feat_sav_en, outDir)
+function matches = MatchFeaturePoints(Ip, ...
+                                      ppoints, ...
+                                      In, ...
+                                      npoints, ...
+                                      maxPts, ...
+                                      dataset, ...
+                                      kfi,...
+                                      mat_feat_disp_fig_en, ...
+                                      mat_feat_sav_fig_en, ...
+                                      toutDir, ...
+                                      mat_feat_sav_pts_en)
 
 kf_tag = strcat("kf", num2str(kfi,"%05d"));
 
@@ -31,7 +40,7 @@ m1u = bsxfun(@rdivide, m1, sqrt(sum(m1.^2,1)));
 m2u = bsxfun(@rdivide, m2, sqrt(sum(m2.^2,1)));
 
  
-if mat_feat_disp_en
+if mat_feat_disp_fig_en
   %showMatchedFeatures(Ip,In,p1,p2);
   fig = figure();
   imshow(In);
@@ -47,17 +56,17 @@ if mat_feat_disp_en
   lg.Position(1:2) = [1 1];
   lg.FontSize = 12;  
   hold off;
-  if mat_feat_sav_en
-    fname = strcat(outDir,'fig_mat-feat_',kf_tag,'.png');
+  if mat_feat_sav_fig_en
+    fname = strcat(toutDir,'fig_mat-feat_',kf_tag,'.png');
     saveas(fig, fname);
   end
   waitforbuttonpress;
   close(fig);
 end
   
-if mat_feat_sav_en % save the matched data points in pixels (padded with row of 1s)
+if mat_feat_sav_pts_en % save the matched data points in pixels (padded with row of 1s)
   dat = cat(2,p11',p21');
-  fname = strcat(outDir, 'pts_mat-feat_',kf_tag,'.txt');
+  fname = strcat(toutDir, 'pts_mat-feat_',kf_tag,'.txt');
   writematrix(dat,fname,'Delimiter',' ') 
 end
 

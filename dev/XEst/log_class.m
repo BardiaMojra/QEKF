@@ -78,16 +78,16 @@ classdef log_class < matlab.System
       for a = 1:length(obj.pos_algs) % log pose algs
         assert(strcmp(obj.pos_algs{a}, TQVW_sols{1, a}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
-        obj.T_hist(cntr,((a-1)*obj.d_T)+1:((a-1)*obj.d_T)+obj.d_T)=TQVW_sols{2,a}; % quest
-        obj.Q_hist(cntr,((a-1)*obj.d_Q)+1:((a-1)*obj.d_Q)+obj.d_Q)=TQVW_sols{3,a};
-        obj.V_hist(cntr,1:obj.d_V)                                =TQVW_sols{4,end}; % vest
-        obj.W_hist(cntr,1:obj.d_W)                                =TQVW_sols{5,end};
-        obj.Z_hist(cntr,((a-1)*obj.d_Z)+1:((a-1)*obj.d_Z)+obj.d_Z)=st_sols{2,a}; % qekf
-        obj.U_hist(cntr,((a-1)*obj.d_U)+1:((a-1)*obj.d_U)+obj.d_U)=st_sols{3,a};
-        obj.X_hist(cntr,((a-1)*obj.d_X)+1:((a-1)*obj.d_X)+obj.d_X)=st_sols{4,a};
-        obj.Y_hist(cntr,((a-1)*obj.d_Y)+1:((a-1)*obj.d_Y)+obj.d_Y)=st_sols{5,a};
-        obj.P_hist{cntr, a}      = st_sols{6, a};
-        obj.K_hist{cntr, a}      = st_sols{7, a};
+        obj.T_hist(cntr,get_cols(a,obj.d_T))  = TQVW_sols{2,a}; % quest
+        obj.Q_hist(cntr,get_cols(a,obj.d_Q))  = TQVW_sols{3,a};
+        obj.V_hist(cntr,1:obj.d_V)            = TQVW_sols{4,end}; % vest
+        obj.W_hist(cntr,1:obj.d_W)            = TQVW_sols{5,end};
+        obj.Z_hist(cntr,get_cols(a,obj.d_Z))  = st_sols{2,a}; % qekf
+        obj.U_hist(cntr,get_cols(a,obj.d_U))  = st_sols{3,a};
+        obj.X_hist(cntr,get_cols(a,obj.d_X))  = st_sols{4,a};
+        obj.Y_hist(cntr,get_cols(a,obj.d_Y))  = st_sols{5,a};
+        obj.P_hist{cntr, a}                   = st_sols{6, a};
+        obj.K_hist{cntr, a}                   = st_sols{7, a};
       end
     end % function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
   

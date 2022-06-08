@@ -2,12 +2,13 @@ classdef quest_class < matlab.System
   properties % public vars
     % features (private constant flags)
     res_tab_sav_en        = true;
-    res_tab_prt_en        = true;
-    all_feat_sav_en       = true;
+    res_tab_prt_en        = false;
+    all_feat_sav_en       = false;
     all_feat_disp_en      = false;
-    mat_feat_sav_en       = true;
-    mat_feat_disp_en      = false; % disp matched features between two keyframes
-    masked_feat_sav_en    = true;
+    mat_feat_sav_fig_en   = false;
+    mat_feat_disp_fig_en  = true; % disp matched features between two keyframes
+    mat_feat_sav_pts_en   = false; 
+    masked_feat_sav_en    = false;
     masked_feat_disp_en   = false;
     sliding_ref_en        = false; % disable sliding_ref mode when running in real-time
     % configs (private constants)
@@ -16,8 +17,9 @@ classdef quest_class < matlab.System
     maxPts            = 30; % max num of features used in pose est (fewer points, faster compute)
     minPts            = 8; % max num of features required (6 to est a unique pose with RANSAC)
     %% overwritten by cfg
-    test_ID
-    test_outDir
+    TID
+    ttag
+    toutDir
     del_T
     res
     vel_algs
@@ -64,11 +66,12 @@ classdef quest_class < matlab.System
   methods (Access = public)  % public functions
     
     function load_cfg(obj, cfg) %,  extraprop)
-      obj.test_ID           =  cfg.test_ID;                   
-      obj.test_outDir       =  cfg.test_outDir;              
+      obj.TID               =  cfg.TID;
+      obj.ttag              =  cfg.ttag;
+      obj.toutDir           =  cfg.toutDir;              
       obj.pos_algs          =  cfg.pos_algs;
       obj.vel_algs          =  cfg.vel_algs;
-      obj.del_T             = cfg.del_T;
+      obj.del_T             =  cfg.del_T;
       obj.benchmark         =  cfg.benchmark;          
       obj.surfThresh        =  cfg.surfThresh;       
       obj.init();
@@ -86,8 +89,10 @@ classdef quest_class < matlab.System
                                          obj.maxPts, ...
                                          dat.dataset, ...
                                          kfi, ...
-                                         obj.mat_feat_disp_en, ... 
-                                         obj.mat_feat_sav_en, obj.test_outDir);
+                                         obj.mat_feat_disp_fig_en, ... 
+                                         obj.mat_feat_sav_fig_en, ...
+                                         obj.toutDir, ...
+                                         obj.mat_feat_sav_pts_en);
       [dat.relPose, dat.posp] = RelativeGroundTruth(kfi, dat.posp, dat.dataset);
       % skip frame if not enough matches found 
       if (dat.matches.numPts < obj.minPts) % || (obj.matches.status~=0)         
@@ -162,9 +167,9 @@ classdef quest_class < matlab.System
           drawnow;    
           hold off;
           if obj.masked_feat_sav_en
-            outpath = [obj.test_outDir obj.test_ID ...
-              '_mat-feat_mask_fig_' ...
-              num2str(kfi, '%02d') '.png' ];
+            outpath = strcat(obj.toutDir, ...
+                             "masked_mat-feat_", ...
+                             "_fig_", num2str(kfi, '%02d'), '.png');
             print(outpath, '-dpng');
           end
         end % if obj.masked_feat_disp_en  
@@ -188,9 +193,9 @@ classdef quest_class < matlab.System
         disp(obj.res{1}); disp(obj.res{2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' obj.res{1} '_' ];
-        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
-          obj.mod_name, '_table.csv');
+        fname = strcat(obj.toutDir,'res_', ...
+                       ...%obj.ttag,"_", ... 
+                       obj.mod_name,'_tab.csv');
         writetable(obj.res{2}, fname);
       end 
       res = obj.res;

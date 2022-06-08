@@ -2,11 +2,12 @@ classdef vest_class < matlab.System
   properties % public vars
     %% features 
     res_tab_sav_en        = true;
-    res_tab_prt_en        = true;
+    res_tab_prt_en        = false;
     prt_exp_map_w_Q_en   =  false;
     %% cfg argin
-    test_ID
-    test_outDir
+    TID
+    ttag
+    toutDir
     benchmark
     %benchmarks
     pos_algs
@@ -47,8 +48,9 @@ classdef vest_class < matlab.System
   methods (Access = public) 
   
     function load_cfg(obj, cfg)
-      obj.test_ID        = cfg.test_ID;                   
-      obj.test_outDir    = cfg.test_outDir;
+      obj.TID            = cfg.TID;                   
+      obj.ttag           = cfg.ttag;                   
+      obj.toutDir    = cfg.toutDir;
       obj.benchmark      = cfg.benchmark;
       %obj.benchmarks     = cfg.benchmarks;
       obj.pos_algs       = cfg.pos_algs;
@@ -79,9 +81,9 @@ classdef vest_class < matlab.System
         disp(obj.res{1}); disp(obj.res{2});
       end 
       if obj.res_tab_sav_en
-        btag = [ '_' obj.res{1} '_' ];
-        fname = strcat(obj.test_outDir, 'res_', obj.test_ID, btag, '_', ...
-          obj.mod_name, '_table.csv');
+        fname = strcat(obj.toutDir, 'res_', ...
+                       ...%obj.ttag, "_", ...
+                       obj.mod_name, '_tab.csv');
         writetable(obj.res{2}, fname);
       end 
       res = obj.res;

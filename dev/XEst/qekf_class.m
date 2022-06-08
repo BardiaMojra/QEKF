@@ -4,8 +4,9 @@ classdef qekf_class < matlab.System
   properties
     %% config (argin)
     alg_idx % unique QEKF filter per pose_alg
-    test_ID
-    test_outDir
+    TID
+    ttag
+    toutDir
     benchmark    
     benchnum
     pos_algs
@@ -53,8 +54,9 @@ classdef qekf_class < matlab.System
     end
 
     function load_cfg(obj, cfg) % load config from cfg
-      obj.test_ID           = cfg.test_ID;
-      obj.test_outDir       = cfg.test_outDir;
+      obj.TID               = cfg.TID;
+      obj.ttag              = cfg.ttag;
+      obj.toutDir           = cfg.toutDir;
       obj.benchmark         = cfg.benchmark;
       obj.pos_algs          = cfg.pos_algs;
       obj.pos_numMethods    = cfg.pos_numMethods;
