@@ -5,9 +5,10 @@ classdef config_class < matlab.System %& dat_class
     %% configs --->> write to other modules
     TID               = 'XEst_dev_test'
     outDir            = [pwd '/out']   
-    datDir            = ['/home/smerx/DATA'] % [pwd '/data']   
-    st_frame          = nan % start frame index
-    end_frame         = 30 % nan % end frame index
+    datDir            = ['/home/smerx/DATA']
+    %datDir            = [pwd '/data']   
+    %st_frame          = nan % start frame index
+    %end_frame         = 30 % nan % end frame index
     del_T             = 0.1 % time period 
     surfThresh        = 200 % SURF feature detection threshold
     benchnum          = 3 % benchmark subset
@@ -16,7 +17,7 @@ classdef config_class < matlab.System %& dat_class
     %benchmark         = 'ICL'
     %benchmark         = 'TUM' 
     pos_algs          = { ...
-                         'EightPt'; 
+                         %'EightPt'; 
                          'Nister'; 
                          %'Kneip';  % dep on opengv
                          'Kukelova'; 

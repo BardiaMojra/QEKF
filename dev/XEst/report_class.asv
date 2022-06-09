@@ -23,7 +23,7 @@ classdef report_class < matlab.System
     fig_pos           = [0 0 7 10]
     leg_units         = "inches"
     leg_pos           = [6 9 .8 .8]
-    plt_ylim          = "auto" %= [-2 2] 
+    plt_ylim          = [-2 2] 
     % cfg (argin)
     TID
     ttag
