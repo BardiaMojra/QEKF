@@ -11,14 +11,13 @@ classdef quest_class < matlab.System
     masked_feat_sav_en    = false;
     masked_feat_disp_en   = false;
     sliding_ref_en        = false; % disable sliding_ref mode when running in real-time
-    
     % configs (private constants)
     ranThresh         = 1e-6 % RANSAC Sampson dist threshold (for outliers)
     surfThresh        = 200 % SURF feature detection threshold
     maxPts            = 30 % max num of features used in pose est (fewer points, faster compute)
     minPts            = 8 % max num of features required (6 to est a unique pose with RANSAC)
     normThresh        = 1.5
-    %% overwritten by cfg
+    % overwritten by cfg
     TID
     ttag
     toutDir
@@ -37,13 +36,13 @@ classdef quest_class < matlab.System
     %                     'NAIST';
     %                     'ICL';
     %                     'TUM';  } % benchmarks ----> (disabled for now)
-    %% runtime vars (private)
+    % runtime vars (private)
     TQVW_sols  % buffer that holds all pose est from diff methods
     %numBenchmarks 
     benchmark
     pos_numMethods  % num of algs used for comparison 
     vel_numMethods
-    %% private constants 
+    % private constants 
     T_RowNames  = {'T err mean';
                    'T err std';
                    'T err med'; 
@@ -146,16 +145,15 @@ classdef quest_class < matlab.System
           end
           Q = check_quats(Q);
           tOut = normalize_tOuts(tOut);
-          %% find the closest transform to ground truth    
+          % find the closest transform to ground truth    
           [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
           T    = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   
           assert(sqrt(sum(T.*T))<obj.normThresh,"[quest.run]->> T not normalized!");
           assert(sqrt(sum(Q.*Q))<obj.normThresh,"[quest.run]->> Q not normalized!");
           obj.save_method_sols(a, T, Q);
         end
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         if obj.masked_feat_disp_en  
-          fig = imshow(dat.Ip);
+          imshow(dat.Ip);
           hold on;
           p1 = dat.matches.p1;
           p2 = dat.matches.p2;
@@ -172,10 +170,9 @@ classdef quest_class < matlab.System
           drawnow;    
           hold off;
           if obj.masked_feat_sav_en
-            outpath = strcat(obj.toutDir, ...
-                             "masked_mat-feat_", ...
-                             "_fig_", num2str(kfi, '%02d'), '.png');
-            print(outpath, '-dpng');
+            fname = strcat(obj.toutDir, "fig_mask-mat-feat_", ...
+                             num2str(kfi, '%04d'), '.png');
+            print(fname, '-dpng');
           end
         end % if obj.masked_feat_disp_en  
 
@@ -195,29 +192,20 @@ classdef quest_class < matlab.System
         disp(obj.res{1}); disp(obj.res{2});
       end 
       if obj.res_tab_sav_en
-        fname = strcat(obj.toutDir,'res_', ...
-                       ...%obj.ttag,"_", ... 
-                       obj.mod_name,'_tab.csv');
+        fname = strcat(obj.toutDir,'res_',obj.mod_name,'_tab.csv');
         writetable(obj.res{2}, fname);
       end 
       res = obj.res;
-    end % get_res()      
-
-    %% Backup/restore functions
-    function s = save(obj)
-      % Set properties in structure s to values in object obj
-      % Set public properties and states
+    end      
+    
+    function s = save(obj) % Backup/restore functions
       s = save@matlab.System(obj);
-      % Set private and protected properties
-      %s.myproperty = obj.myproperty;     
+      %s.myproperty = obj.myproperty; % Set private and protected properties
     end
+
     function load(obj,s,wasLocked)
-      % Set properties in object obj to values in structure s
-      % Set private and protected properties
       obj.myproperty = s.myproperty;    
-      
-      % Set public properties and states
-      load@matlab.System(obj,s,wasLocked);
+      load@matlab.System(obj,s,wasLocked); % Set public properties and states
     end
   
   end
@@ -268,8 +256,8 @@ classdef quest_class < matlab.System
                            'VariableNames', obj.pos_algs); 
       elseif obj.pos_numMethods == 3
         res_table  = table(data(:,1), ...
-                          data(:,2), ...
-                          data(:,3), ...
+                           data(:,2), ...
+                           data(:,3), ...
                           'RowNames', RowNames, ...
                           'VariableNames', obj.pos_algs); 
       elseif obj.pos_numMethods == 4
@@ -281,12 +269,12 @@ classdef quest_class < matlab.System
                            'VariableNames', obj.pos_algs); 
       elseif obj.pos_numMethods == 5
         res_table  = table(data(:,1), ...
-                          data(:,2), ...
-                          data(:,3), ...
-                          data(:,4), ...
-                          data(:,5), ...
-                          'RowNames', RowNames, ...
-                          'VariableNames', obj.pos_algs);    
+                           data(:,2), ...
+                           data(:,3), ...
+                           data(:,4), ...
+                           data(:,5), ...
+                           'RowNames', RowNames, ...
+                           'VariableNames', obj.pos_algs);    
       end
     end %  function res_table = get_res_table(obj, data)
 
@@ -304,20 +292,6 @@ classdef quest_class < matlab.System
       obj.TQVW_sols{2, alg}     =    T;
       obj.TQVW_sols{3, alg}     =    Q;
     end
-
-    %function normed = normalize(~, vector)
-    %  normed  = vector/ vecnorm(vector); % normalize v answer 
-    %  if normed(3) < 0 
-    %    normed = - normed; 
-    %  end 
-    %end
-
-    %function normedv = normalize_all(obj, vectors)
-    %  normedv  = zeros(size(vectors));
-    %  for v = 1: size(vectors, 2)
-    %    normedv(:, v) = obj.normalize(vectors(:, v));
-    %  end
-    %end
 
   end % methods (Access = private)
 end

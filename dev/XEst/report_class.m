@@ -23,6 +23,8 @@ classdef report_class < matlab.System
     fig_pos           = [0 0 7 10]
     leg_units         = "inches"
     leg_pos           = [6 9 .8 .8]
+    ylim_min          = [-1 1]
+    ylim_max
     % cfg (argin)
     TID
     ttag
@@ -121,10 +123,9 @@ classdef report_class < matlab.System
     function gen_plots(obj, dat, dlog, quest, vest, qekf)
       log               = dlog.log;
       [rgt_T, rgt_Q]    = dat.get_kframe_rgtruths();
-      quest.res{3}      = obj.plt_log_QuEstp(log, rgt_T, rgt_Q);
-      %vest_figname      = obj.plt_log_VEstp(log, rgt_T, rgt_Q);
+      quest.res{3}      = obj.plt_quest_logs(log, rgt_T, rgt_Q);
       vest.res{3}       = nan;
-      qekf.res{3}       = obj.plt_log_QEKF(log, rgt_T, rgt_Q);
+      qekf.res{3}       = obj.plt_qekf_logs(log, rgt_T, rgt_Q); % X-Z-GT w YL1, YL2 
       disp("plots generated!");
     end 
 
@@ -139,7 +140,6 @@ classdef report_class < matlab.System
     function chap = get_chap(obj, mod)
       import mlreportgen.report.* 
       import mlreportgen.dom.* 
-      
       chap = Chapter(Title = mod.mod_name);
       append(chap, Section("configs: ")); % --->> configs
       p             = Paragraph();
@@ -179,17 +179,17 @@ classdef report_class < matlab.System
       %end
     end 
 
-    function figname = plt_log_QuEstp(obj, log, rgt_T, rgt_Q)
+    function figname = plt_quest_logs(obj, log, rgt_T, rgt_Q)
       idx   = log.cntr_hist;
       T     = log.T_hist;
       Q     = log.Q_hist;
-      Tx    = nan(log.numKF, log.pos_numAlgs+1); % kfs vs ests+GT
-      Ty    = nan(log.numKF, log.pos_numAlgs+1);
-      Tz    = nan(log.numKF, log.pos_numAlgs+1);
-      Qw    = nan(log.numKF, log.pos_numAlgs+1);
-      Qx    = nan(log.numKF, log.pos_numAlgs+1);
-      Qy    = nan(log.numKF, log.pos_numAlgs+1);
-      Qz    = nan(log.numKF, log.pos_numAlgs+1);
+      Tx    = zeros(log.numKF, log.pos_numAlgs+1); % Xs+GT
+      Ty    = zeros(log.numKF, log.pos_numAlgs+1);
+      Tz    = zeros(log.numKF, log.pos_numAlgs+1);
+      Qw    = zeros(log.numKF, log.pos_numAlgs+1);
+      Qx    = zeros(log.numKF, log.pos_numAlgs+1);
+      Qy    = zeros(log.numKF, log.pos_numAlgs+1);
+      Qz    = zeros(log.numKF, log.pos_numAlgs+1);
       for a = 1:obj.pos_numAlgs
         Tcols   = get_cols(a, log.d_T); % --->> get var cols
         Qcols   = get_cols(a, log.d_Q);
@@ -249,37 +249,51 @@ classdef report_class < matlab.System
         waitforbuttonpress;
       end
       close(fig);
-    end % function figname = plt_log_QuEstp(obj, log, rgt_T, rgt_Q)
+    end % function figname = plt_quest_logs(obj, log, rgt_T, rgt_Q)
     
-    function fname = plt_log_QEKF(obj, log, rgt_T, rgt_Q)
-      idx   = log.cntr_hist;
-      Z     = log.Z_hist; 
-      X     = log.X_hist;
-      Y     = log.Y_hist; % separate fig
-      Tx    = nan(log.numKF, log.pos_numAlgs+1); % kfs vs ests+GT
-      Ty    = nan(log.numKF, log.pos_numAlgs+1);
-      Tz    = nan(log.numKF, log.pos_numAlgs+1);
-      Vx    = nan(log.numKF, log.pos_numAlgs+1);
-      Vy    = nan(log.numKF, log.pos_numAlgs+1);
-      Vz    = nan(log.numKF, log.pos_numAlgs+1);
-      Qx    = nan(log.numKF, log.pos_numAlgs+1);
-      Qy    = nan(log.numKF, log.pos_numAlgs+1);
-      Qz    = nan(log.numKF, log.pos_numAlgs+1);
-      %YL1   = zeros(log.numKF, log.pos_numAlgs+1);
-      %YL2   = zeros(log.numKF, log.pos_numAlgs+1);
+    function plts = plt_qekf_logs(obj, log, rgt_T, rgt_Q)
+      plts{1} = obj.get_qekf_XL1L2_hist_plt(log, rgt_T, rgt_Q);
+      %plts{2} = obj.get_qekf_Y_hist_plt(log);
+      %plts{3} = obj.get_qekf_GTX_errs_plt(log);
+      %plts{4} = obj.get_qekf_ZX_errs_plt(log);
+    end 
+    
+    %function fname = get_qekf_Y_hist_plt(obj, log)
+    %end 
+
+    function fname = get_qekf_XL1L2_hist_plt(obj, log, rgt_T, rgt_Q)
+      idx       = log.cntr_hist;
+      X         = log.X_hist;
+      Y         = log.Y_hist; 
+      numKF     = log.numKF;
+      numAlgs   = log.pos_numAlgs;
+      Tx    = zeros(numKF, numAlgs + 2); % Xs+GT
+      Ty    = zeros(numKF, numAlgs + 2);
+      Tz    = zeros(numKF, numAlgs + 2);
+      Vx    = zeros(numKF, numAlgs + 2);
+      Vy    = zeros(numKF, numAlgs + 2);
+      Vz    = zeros(numKF, numAlgs + 2);
+      Qx    = zeros(numKF, numAlgs + 2);
+      Qy    = zeros(numKF, numAlgs + 2);
+      Qz    = zeros(numKF, numAlgs + 2);
+      YL1   = zeros(numKF, numAlgs + 2);
+      YL2   = zeros(numKF, numAlgs + 2);
       for a = 1:obj.pos_numAlgs
-        Xcols = get_cols(a, log.d_X); % --->> get var cols
-        Tx(:,a) = X(:, Xcols(1)); % --->> load to plt cols
-        Ty(:,a) = X(:, Xcols(2));
-        Tz(:,a) = X(:, Xcols(3));  
-        Vx(:,a) = X(:, Xcols(4)); 
-        Vy(:,a) = X(:, Xcols(5));
-        Vz(:,a) = X(:, Xcols(6));  
-        Qx(:,a) = X(:, Xcols(7));
-        Qy(:,a) = X(:, Xcols(8));
-        Qz(:,a) = X(:, Xcols(9));
+        Xcols = get_cols(a, log.d_X); % get col indices
+        Ycols = get_cols(a, log.d_Y); 
+        Tx(: ,a)   = X(:, Xcols(1)); % --->> load to plt cols
+        Ty(: ,a)   = X(:, Xcols(2));
+        Tz(: ,a)   = X(:, Xcols(3));  
+        Vx(: ,a)   = X(:, Xcols(4)); 
+        Vy(: ,a)   = X(:, Xcols(5));
+        Vz(: ,a)   = X(:, Xcols(6));  
+        Qx(: ,a)   = X(:, Xcols(7));
+        Qy(: ,a)   = X(:, Xcols(8));
+        Qz(: ,a)   = X(:, Xcols(9));
+        YL1(:,a)   = Y(:, Ycols(1));
+        YL2(:,a)   = Y(:, Ycols(2));
       end
-      Tx(:, end) = rgt_T(:,1); % --->> load ground truth to last col
+      Tx(:, numAlgs+1) = rgt_T(:,1); % --->> load ground truth to last col
       Ty(:, end) = rgt_T(:,2);
       Tz(:, end) = rgt_T(:,3);  
       Vx(:, end) = rgt_T(:,1); % watch these
@@ -288,42 +302,48 @@ classdef report_class < matlab.System
       Qx(:, end) = rgt_Q(:,2);
       Qy(:, end) = rgt_Q(:,3);
       Qz(:, end) = rgt_Q(:,4);
-      fig = figure(); % 9 subplots Txyz Vxyz Qxyz
-      sgtitle("QEKF: State Estimates X vs. Measurement Z","Interpreter",'latex');
+      fig = figure(); % 11 subplots Txyz Vxyz Qxyz YL1 YL2 
+      sgtitle("QEKF: State Est X vs. Meas Z w L1 n L2 Norms","Interpreter",'latex');
       fig.Units    = obj.fig_units;
       fig.Position = obj.fig_pos;
       hold on
       for a = 1:obj.pos_numAlgs+1 % +gt
-        subplot(9,1, 1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
-          'fontsize',obj.fig_txt_size); grid on;
+        subplot(11,1, 1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
         plot(idx, Tx(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(9,1, 2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
-          'fontsize',obj.fig_txt_size); grid on;
+        subplot(11,1, 2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
         plot(idx, Ty(:,a), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
-        subplot(9,1, 3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
-          'fontsize',obj.fig_txt_size); grid on;
+        subplot(11,1, 3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
         plot(idx, Tz(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));        
-        subplot(9,1, 4); hold on; subtitle('$V_{x}$',"Interpreter",'latex', ... % Vx
-          'fontsize',obj.fig_txt_size); grid on;
+        subplot(11,1, 4); hold on; subtitle('$V_{x}$',"Interpreter",'latex', ... % Vx
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
         plot(idx, Vx(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(9,1, 5); hold on; subtitle('$V_{y}$',"Interpreter",'latex', ... % Vy
-          'fontsize',obj.fig_txt_size); grid on;
+        subplot(11,1, 5); hold on; subtitle('$V_{y}$',"Interpreter",'latex', ... % Vy
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
         plot(idx, Vy(:,a), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
-        subplot(9,1, 6); hold on; subtitle('$V_{z}$',"Interpreter",'latex', ... % Vz
-          'fontsize',obj.fig_txt_size); grid on;
+        subplot(11,1, 6); hold on; subtitle('$V_{z}$',"Interpreter",'latex', ... % Vz
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
         plot(idx, Vz(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));        
-        subplot(9,1, 7); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
+        subplot(11,1, 7); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Qx(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(9,1, 8); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
+        subplot(11,1, 8); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
           'fontsize',obj.fig_txt_size); grid on; 
         plot(idx, Qy(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));  
-        subplot(9,1, 9); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
+        subplot(11,1, 9); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Qz(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+        subplot(11,1,10); hold on; subtitle('$Y_{L1}$',"Interpreter",'latex', ... % YL1
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
+        plot(idx, YL1(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+        subplot(11,1,11); hold on; subtitle('$Y_{L2}$',"Interpreter",'latex', ... % YL2
+          'fontsize',obj.fig_txt_size); grid on; ylim([obj.ylim_min, obj.ylim_max]);
+        plot(idx, YL2(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       end
       hold off
-      lg  = legend([obj.pos_algs; "Groundtruth"]); 
+      lg          = legend([obj.pos_algs; "Groundtruth"]); 
       lg.Units    = obj.leg_units;
       lg.Position = obj.leg_pos;
       lg.FontSize = obj.fig_txt_size-4;
@@ -335,24 +355,16 @@ classdef report_class < matlab.System
         waitforbuttonpress;
       end
       close(fig);
-    end 
+    end % function fname = get_qekf_XL1L2_hist_plt(obj, log, rgt_T, rgt_Q)
 
-      
-    
-    %% Backup/restore functions
-    function s = save(obj)
-      % Set properties in structure s to values in object obj
-      % Set public properties and states
+    function s = save(obj) % Backup/restore functions
       s = save@matlab.System(obj);
-      % Set private and protected properties
-      %s.myproperty = obj.myproperty;     
     end
+
     function load(obj,s,wasLocked)
-      % Set properties in object obj to values in structure s
-      % Set private and protected properties
       obj.myproperty = s.myproperty;       
-      % Set public properties and states
       load@matlab.System(obj,s,wasLocked);
     end
+  
   end % methods (Access = private)
 end

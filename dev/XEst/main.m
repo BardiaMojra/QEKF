@@ -2,7 +2,7 @@
 
 %% init
 close all; clear; clc; addpath(genpath('./'));
-addpath(genpath('/home/smerx/DATA'));
+addpath(genpath('/home/smerx/DATA')); 
 cfg   = config_class(TID        = 'T00001', ... % --->> config on the fly
                      benchmark  = 'KITTI');
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 
