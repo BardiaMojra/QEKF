@@ -5,6 +5,9 @@ classdef quest_class < matlab.System
     res_tab_prt_en        = false;
     all_feat_sav_en       = false;
     all_feat_disp_en      = false;
+    mat_feat_sav_fig_en   = true;
+    mat_feat_disp_fig_en  = false; % disp matched features between two keyframes
+    mat_feat_sav_pts_en   = false; 
     masked_feat_sav_en    = false;
     masked_feat_disp_en   = false;
     sliding_ref_en        = false; % disable sliding_ref mode when running in real-time
