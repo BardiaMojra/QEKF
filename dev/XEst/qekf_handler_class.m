@@ -65,10 +65,10 @@ classdef qekf_handler_class < matlab.System
     end
 
     function st_sols = run_filter(obj, TQVW_sols)
-      for alg = 1:obj.pos_numMethods
-        st_sol = obj.trackers{alg}.run_qekf(TQVW_sols, alg);
+      for a = 1:obj.pos_numMethods
+        st_sol = obj.trackers{a}.run_qekf(TQVW_sols, a);
         for s = 1:length(st_sol)
-          obj.st_sols{s, alg} = st_sol{s};
+          obj.st_sols{s, a} = st_sol{s};
         end
       end 
       st_sols = obj.st_sols;

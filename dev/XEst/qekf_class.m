@@ -15,16 +15,17 @@ classdef qekf_class < matlab.System
     vel_numMethods
     st_sol
     %% QEKF config (argin)
-    dim_x = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
-    dim_z = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
-    dim_u = 3 % Axyz, Wrpy
-    T_    = 0.1 % time period 
+    dim_x   = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
+    dim_z   = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
+    dim_u   = 3 % Axyz, Wrpy
+    T_      = 0.1 % time period 
     Q_T_xyz     = 1.0e-5  % process noise covar
     Q_V_xyz     = 1.5e-2
     Q_quat_xyz  = 0.5e-3
     R_noise     = 1e-6 % measurement noise covar
     P_est_0     = 1e-4
     K_scale     = 1.0 % kalman gain factor   
+    x_T_lim     = 50.0
     %% local vars 
     T_i 
     Q_i 
@@ -45,7 +46,6 @@ classdef qekf_class < matlab.System
     H % observation jacobian matrix
     Q_c % process noise covar matrix
     R % measurement noise covar matrix
-
   end
   methods  % constructor
 
@@ -75,14 +75,14 @@ classdef qekf_class < matlab.System
   end % methods % constructor 
   methods (Access = public) 
 
-    function st_sol = run_qekf(obj, TQVW_sols, alg)
-      assert(strcmp(TQVW_sols{1,alg}{1},obj.pos_algs{obj.alg_idx}), ... 
+    function st_sol = run_qekf(obj, TQVW_sols, a)
+      assert(strcmp(TQVW_sols{1,a}{1},obj.pos_algs{obj.alg_idx}), ... 
         'alg mismatch!!');
-      mthd          = TQVW_sols{1, alg}{1}; % load 
-      T             = TQVW_sols{2, alg}; 
-      Q             = TQVW_sols{3, alg}; 
-      V             = TQVW_sols{4, alg}; 
-      W             = TQVW_sols{5, alg}; 
+      mthd          = TQVW_sols{1, a}{1}; % load 
+      T             = TQVW_sols{2, a}; 
+      Q             = TQVW_sols{3, a}; 
+      V             = TQVW_sols{4, a}; 
+      W             = TQVW_sols{5, a}; 
       obj.u_Wrpy    = W;
       obj.z_TVQw    = vertcat(T, V, Q(2:end), Q(1)); % copy all except w term 
       obj.x_TVQxyz  = obj.predict(obj.x_TVQxyz, obj.u_Wrpy); % run 
@@ -176,9 +176,14 @@ classdef qekf_class < matlab.System
     end
 
     function x_TVQxyz = predict_x(obj, x_TVQxyz, u_Wrpy)
-      % eq(16-22) discrete form: \hat{x}_{k|k-1} = f(\hat{x}_{k-1|k-1}, u_{k}) 
-      % est linPos
-      x_TVQxyz(1:3) = x_TVQxyz(1:3) + obj.T_ .* x_TVQxyz(4:6);
+      x_T = x_TVQxyz(1:3) + obj.T_ .* x_TVQxyz(4:6);
+      while sqrt(sum(x_T.^2))>obj.x_T_lim
+        x_T = x_T./2;
+        disp("[qekf_class.predict_x]->> x_T divided in half...");
+      end
+      assert(sqrt(sum(x_T.^2))<obj.x_T_lim, "[qekf_class.predict_x]->> x_T is too large!");
+      x_TVQxyz(1:3) = x_T;
+
       % est linVel
       x_TVQxyz(4:6) = x_TVQxyz(4:6);
       % eq(18) est incremental rotation (in quat) based on input angVel (Wrpy)
