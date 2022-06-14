@@ -1,4 +1,4 @@
-function Qs = check_quats(Qs)
+function Qs = check_quats(Qs) % --> in: 4xN
   %disp(Qs);
   %disp(size(Qs));
   Qs = normalize_all(Qs);

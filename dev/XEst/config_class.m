@@ -16,10 +16,10 @@ classdef config_class < matlab.System %& dat_class
     %benchmark         = 'ICL'
     %benchmark         = 'TUM' 
     pos_algs          = { ...
-                         'EightPt'; 
-                         'Nister'; 
+                         %'EightPt'; 
+                         %'Nister'; 
                          %'Kneip';  % dep on opengv
-                         'Kukelova'; 
+                         %'Kukelova'; 
                          %'Stewenius';  % dep on opengv
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars

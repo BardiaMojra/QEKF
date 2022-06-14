@@ -47,7 +47,6 @@ classdef dlogger_class < matlab.System
     function save_logs(obj)
       obj.log.save_pos_logs();
       obj.log.save_vel_logs();
-      obj.log.save_qekf_logs();
     end 
 
   end % methods (Access = public) 

@@ -21,14 +21,15 @@ classdef quest_class < matlab.System
     del_T
     res
     vel_algs
-    pos_algs      = {...
-                     'EightPt'; 
-                     'Nister'; 
+    pos_algs
+    %pos_algs      = {...
+                     %'EightPt'; 
+                     %'Nister'; 
                      %'Kneip';  % dep on opengv
-                     'Kukelova'; 
+                     %'Kukelova'; 
                      %'Stewenius';  % dep on opengv
-                     'QuEst'; 
-                     'VEst'}; % pos_algs to run ----> (disabled for now)
+                     %'QuEst'; 
+                     %'VEst'}; % pos_algs to run ----> (disabled for now)
     %benchmarks        = {'KITTI';
     %                     'NAIST';
     %                     'ICL';

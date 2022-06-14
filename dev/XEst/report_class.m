@@ -294,7 +294,7 @@ classdef report_class < matlab.System
         YL1(:,a)   = Y(:, Ycols(1));
         YL2(:,a)   = Y(:, Ycols(2));
       end
-      Tx(:, numAlgs+1) = rgt_T(:,1); % --->> load ground truth to last col
+      Tx(:, end) = rgt_T(:,1); % --->> load ground truth to last col
       Ty(:, end) = rgt_T(:,2);
       Tz(:, end) = rgt_T(:,3);  
       Vx(:, end) = rgt_T(:,1); % watch these
@@ -304,7 +304,7 @@ classdef report_class < matlab.System
       Qy(:, end) = rgt_Q(:,3);
       Qz(:, end) = rgt_Q(:,4);
       fig = figure(); % 11 subplots Txyz Vxyz Qxyz YL1 YL2 
-      sgtitle("QEKF: State Est X vs. Meas Z w L1 n L2 Norms","Interpreter",'latex');
+      sgtitle("QEKF: X vs. Z","Interpreter",'latex');
       fig.Units    = obj.fig_units;
       fig.Position = obj.fig_pos;
       hold on

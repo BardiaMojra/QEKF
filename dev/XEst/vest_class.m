@@ -50,7 +50,7 @@ classdef vest_class < matlab.System
     function load_cfg(obj, cfg)
       obj.TID            = cfg.TID;                   
       obj.ttag           = cfg.ttag;                   
-      obj.toutDir    = cfg.toutDir;
+      obj.toutDir        = cfg.toutDir;
       obj.benchmark      = cfg.benchmark;
       %obj.benchmarks     = cfg.benchmarks;
       obj.pos_algs       = cfg.pos_algs;
@@ -68,8 +68,8 @@ classdef vest_class < matlab.System
       for alg = 1:length(obj.pos_algs) % log VEst V W for all pose algs
         assert(strcmp(obj.pos_algs{alg}, TQVW_sols{1, alg}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
-        TQVW_sols{4, alg} = v; % VEst_V
-        TQVW_sols{5, alg} = w; % VEst_W
+        TQVW_sols{4, alg} = normalizeVec(v); % VEst_V
+        TQVW_sols{5, alg} = normalizeVec(w); % VEst_W
       end 
     end 
 
