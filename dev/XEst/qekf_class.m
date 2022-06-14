@@ -100,6 +100,7 @@ classdef qekf_class < matlab.System
       obj.st_sol{6} = obj.P;
       obj.st_sol{7} = obj.K;
       st_sol = obj.st_sol;
+      disp('obj.x_TVQw'); disp(obj.x_TVQw);
     end 
 
     function init(obj)
@@ -232,14 +233,15 @@ classdef qekf_class < matlab.System
 end
 
 %% local functions
-function [x,y,z] = Qxyz2Qxyzw(Qxyz)
+function qvec = Qxyz2Qxyzw(Qxyz)
   q = Qxyz2Q(Qxyz);
-  [~,x,y,z] = q.parts();
+  qvec = q.compact;
 end
 
-function [x,y,z] = Q2Qxyz(q)
+function qvec = Q2Qxyz(q)
   q = q.normalize();
-  [~,x,y,z] = q.parts();
+  qvec = q.compact;
+  qvec = qvec();
 end
 
 function q = Qxyz2Q(Qxyz)

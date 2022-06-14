@@ -101,10 +101,12 @@ classdef qekf_handler_class < matlab.System
         cntr = cntr + 1;
         [tr,qr,t2,q2] = get_relGT(f, btype, tTru, qTru, t1, q1);
         for a = 1:length(log.pos_algs) % calc and save errs per method 
+          Xcols   = get_cols(a, log.d_X); % --->> get var cols
+          Ycols   = get_cols(a, log.d_Y);
           %Z_hist % z_TVQw 
           %U_hist % u_Wrpy
-          X = log.X_hist(cntr,((a-1)*log.d_X)+1:((a-1)*log.d_X)+log.d_X)'; % x_TVQw
-          Y = log.Y_hist(cntr,((a-1)*log.d_Y)+1:((a-1)*log.d_Y)+log.d_Y)'; % y_TVQw
+          X = log.X_hist(cntr, Xcols)'; % x_TVQw
+          Y = log.Y_hist(cntr, Ycols)'; % y_TVQw
           % state pose and vel vs GT 
           x_t = X(1:3,1);
           x_q = X(7:10,1); % Qxyzw

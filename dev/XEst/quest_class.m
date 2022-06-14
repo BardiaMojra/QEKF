@@ -75,8 +75,8 @@ classdef quest_class < matlab.System
       obj.init();
     end
 
-    function TQVW_sols = get_pose(obj, kfi, dat, fmatches)
-      if (fmatches.numPts < obj.minPts) % || (obj.matches.status~=0)
+    function TQVW_sols = get_pose(obj, kfi, dat)
+      if (dat.matches.numPts < obj.minPts) % || (obj.matches.status~=0)
         dat.Ip      = dat.In; % use current frame as the next previous frame
         dat.ppoints = dat.npoints;         
         disp('Not enough matched feature points. Frame skipped!');

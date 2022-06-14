@@ -9,9 +9,11 @@ classdef fdetect_class < matlab.System
     ttag
     toutDir
     benchmark
+    maxPts  = 30
     %pos_algs
     %vel_algs  
     %% private vars
+
     mats  % current frame feature points 
     m_dot % m(i) - m(i-1) of matched feature points  
     % rpt constants 
@@ -35,7 +37,7 @@ classdef fdetect_class < matlab.System
       obj.init();
     end
 
-    function get_mats(obj, kfi, dat) 
+    function get_pmats(obj, kfi, dat) 
       % get current frame features and match w prev frame    
       [dat.npoints,dat.In] = GetFeaturePoints(kfi, dat.dataset, dat.surfThresh);            
       dat.matches   = MatchFeaturePoints(dat.Ip, ...
