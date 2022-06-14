@@ -3,8 +3,7 @@
 %% init
 close all; clear; clc; addpath(genpath('./'));
 %addpath(genpath('/home/smerx/DATA')); 
-cfg   = config_class(TID        = 'T00001', ... % --->> config on the fly
-                     benchmark  = 'KITTI');
+cfg   = config_class(TID  = 'T00001', benchmark  = 'KITTI');
 fdet  = fdetect_class(); fdet.load_cfg(cfg);
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 
 quest = quest_class(); quest.load_cfg(cfg); 
@@ -16,7 +15,7 @@ rpt   = report_class(); rpt.load_cfg(cfg);
 %% run 
 cntr  = 0;  
 for kf = cfg.kframes % --->> iter keyframes 
-  cntr      = cntr+1;
+  cntr = cntr+1;
   fdet.get_pmats(kf, cfg.dat);
   TQVW_sols = quest.get_pose(kf, cfg.dat); % get pose
   TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity
