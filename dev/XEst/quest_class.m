@@ -7,7 +7,7 @@ classdef quest_class < matlab.System
     all_feat_disp_en      = false;
     masked_feat_sav_en    = false;
     masked_feat_disp_en   = false;
-    sliding_ref_en        = false; % disable sliding_ref mode when running in real-time
+    sliding_ref_en        = true; % disable sliding_ref mode when running in real-time
     % configs (private constants)
     ranThresh         = 1e-6 % RANSAC Sampson dist threshold (for outliers)
     surfThresh        = 200 % SURF feature detection threshold
@@ -124,8 +124,8 @@ classdef quest_class < matlab.System
           else
             error('Undefined algorithm.')
           end
-          Q = check_quats(Q);
-          tOut = normalize_tOuts(tOut);
+          %Q = check_quats(Q);
+          %tOut = normalize_tOuts(tOut);
           % find the closest transform to ground truth    
           [Q, matchIdx]    = FindClosetQVer2_2(dat.relPose.qr, Q);
           T    = FindClosetTrans(dat.relPose.tr, [tOut(:,matchIdx), -tOut(:,matchIdx)]);   

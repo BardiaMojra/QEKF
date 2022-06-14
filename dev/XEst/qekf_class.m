@@ -75,7 +75,7 @@ classdef qekf_class < matlab.System
   end % methods % constructor 
   methods (Access = public) 
 
-    function st_sol = run_qekf(obj, TQVW_sols, a)
+    function state = run_qekf(obj, TQVW_sols, a)
       assert(strcmp(TQVW_sols{1,a}{1}, obj.pos_algs{obj.alg_idx}), ... 
         'alg mismatch!!');
       mthd          = TQVW_sols{1, a}{1}; % load 
@@ -87,7 +87,7 @@ classdef qekf_class < matlab.System
       obj.z_TVQw    = vertcat(T, V, Q(2:end), Q(1)); % copy all except w term 
       obj.x_TVQxyz  = obj.predict(obj.x_TVQxyz, obj.u_Wrpy); % run 
       obj.x_TVQxyz  = obj.update(obj.x_TVQxyz, obj.z_TVQw);
-      st_sol        = obj.get_st_sol(mthd); % save
+      state         = obj.get_st_sol(mthd); % save
     end 
 
     function st_sol = get_st_sol(obj, mthd)
@@ -100,7 +100,7 @@ classdef qekf_class < matlab.System
       obj.st_sol{6} = obj.P;
       obj.st_sol{7} = obj.K;
       st_sol = obj.st_sol;
-      %disp('obj.x_TVQw'); disp(obj.x_TVQw);
+      disp('[qekf.get_st_sol]--> obj.x_TVQw'); disp(obj.x_TVQw);
     end 
 
     function init(obj)

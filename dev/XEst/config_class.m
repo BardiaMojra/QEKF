@@ -7,8 +7,8 @@ classdef config_class < matlab.System %& dat_class
     outDir            = [pwd '/out']   
     datDir            = ['/home/smerx/DATA'] % [pwd '/data']   
     st_frame          = nan % start frame index
-    end_frame         = 22 % nan % end frame index
-    del_T             = 0.1 % time period 
+    end_frame         = 11 % nan % end frame index
+    del_T             = 0.01 % time period 
     surfThresh        = 200 % SURF feature detection threshold
     benchnum          = 3 % benchmark subset
     benchmark         = 'KITTI'
@@ -56,13 +56,6 @@ classdef config_class < matlab.System %& dat_class
       end 
       obj.dat = dat_class(benchtype = obj.benchmark);
       obj.dat.load_cfg(obj);
-      %obj.init(); % move all this there 
-      %obj.numBenchmarks = length(obj.benchmarks);
-      %obj.dats = cell(obj.numBenchmarks,1); % create corresponding dat_class objs
-      %for i = 1: obj.numBenchmarks
-      %  obj.dats{i} = dat_class(benchtype = obj.benchmarks(i));
-      %  obj.dats{i}.load_cfg(obj); 
-      %end
     end
   
   end % methods (Access = private)

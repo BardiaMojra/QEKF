@@ -86,25 +86,29 @@ classdef log_class < matlab.System
       for a = 1:length(obj.pos_algs) % log pose algs
         assert(strcmp(obj.pos_algs{a}, TQVW_sols{1, a}{1}), ... 
           "[log_class.log_state()]--> alg mismatch"); 
-        obj.T_hist(cntr,get_cols(a,obj.d_T))  = TQVW_sols{2,a}; % quest
-        obj.Q_hist(cntr,get_cols(a,obj.d_Q))  = TQVW_sols{3,a};
-        obj.V_hist(cntr,1:obj.d_V)            = TQVW_sols{4,end}; % vest
-        obj.W_hist(cntr,1:obj.d_W)            = TQVW_sols{5,end};
-        obj.Z_hist(cntr,get_cols(a,obj.d_Z))  = st_sols{2,a}; % qekf
-        obj.U_hist(cntr,get_cols(a,obj.d_U))  = st_sols{3,a};
-        obj.X_hist(cntr,get_cols(a,obj.d_X))  = st_sols{4,a};
-        obj.Y_hist(cntr,get_cols(a,obj.d_Y))  = st_sols{5,a};
-        obj.P_hist{cntr,a}                    = st_sols{6,a};
-        obj.K_hist{cntr,a}                    = st_sols{7,a};
+        obj.T_hist{cntr,a}  = TQVW_sols{2,a}; % quest
+        obj.Q_hist{cntr,a}  = TQVW_sols{3,a};
+        obj.V_hist{cntr,1}  = TQVW_sols{4,1}; % vest
+        obj.W_hist{cntr,1}  = TQVW_sols{5,1};
+        obj.Z_hist{cntr,a}  = st_sols{2,a}; % qekf
+        obj.U_hist{cntr,a}  = st_sols{3,a};
+        obj.X_hist{cntr,a}  = st_sols{4,a};
+        obj.Y_hist{cntr,a}  = st_sols{5,a};
+        obj.P_hist{cntr,a}  = st_sols{6,a};
+        obj.K_hist{cntr,a}  = st_sols{7,a};
       end
     end % function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
 
-    function save_pos_logs(obj)
-      TQ = nan(obj.numKF, obj.d_T+obj.d_Q); % Txyz Qwxyz
+    function TQ_logs = get_pos_logs(obj)
+      TQ_logs = cell(2, obj.pos_numAlgs); 
       for a = 1:obj.pos_numAlgs % create logs per pos alg
-        Tcols   = get_cols(a, obj.d_T); % --->> get var cols
-        Qcols   = get_cols(a, obj.d_Q);
-        TQ(:,1) = obj.T_hist(:, Tcols(1)); % Txyz
+        TQ_logs{1, a} = obj.pos_algs{a};
+        TQ = nan(obj.numKF, 2 + obj.d_T+obj.d_Q); % cntr, kfi, Txyz, Qwxyz
+        cntr = 0;
+        
+        for kfi = obj.kframes
+          cntr = cntr+1;
+          TQ(cntr,1) 
         TQ(:,2) = obj.T_hist(:, Tcols(2));
         TQ(:,3) = obj.T_hist(:, Tcols(3));
         TQ(:,4) = obj.Q_hist(:, Qcols(1)); % Qwxyz
@@ -165,14 +169,14 @@ classdef log_class < matlab.System
       obj.cntr_hist           = NaN(obj.numKF,1);
       obj.kf_hist             = NaN(obj.numKF,1);
       %% --->> logs
-      obj.T_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_T); % quest
-      obj.Q_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_Q); 
-      obj.V_hist              = NaN(obj.numKF,obj.vel_numAlgs * obj.d_V); % vest
-      obj.W_hist              = NaN(obj.numKF,obj.vel_numAlgs * obj.d_W);
-      obj.Z_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_Z); % qekf
-      obj.U_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_U); 
-      obj.X_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_X); 
-      obj.Y_hist              = NaN(obj.numKF,obj.pos_numAlgs * obj.d_Y); 
+      obj.T_hist              = cell(obj.numKF,obj.pos_numAlgs); % quest
+      obj.Q_hist              = cell(obj.numKF,obj.pos_numAlgs); 
+      obj.V_hist              = cell(obj.numKF,obj.vel_numAlgs); % vest
+      obj.W_hist              = cell(obj.numKF,obj.vel_numAlgs);
+      obj.Z_hist              = cell(obj.numKF,obj.pos_numAlgs); % qekf
+      obj.U_hist              = cell(obj.numKF,obj.pos_numAlgs); 
+      obj.X_hist              = cell(obj.numKF,obj.pos_numAlgs); 
+      obj.Y_hist              = cell(obj.numKF,obj.pos_numAlgs); 
       obj.P_hist              = cell(obj.numKF,obj.pos_numAlgs); 
       obj.K_hist              = cell(obj.numKF,obj.pos_numAlgs); 
       %% --->> errs    
@@ -180,8 +184,6 @@ classdef log_class < matlab.System
       obj.Q_errs              = NaN(obj.numKF,obj.pos_numAlgs); 
       obj.VEst_T_errs         = NaN(obj.numKF,obj.vel_numAlgs); % vest
       obj.VEst_Q_errs         = NaN(obj.numKF,obj.vel_numAlgs); 
-      % qekf
-      % not needed???
     end % function init(obj)
 
 
