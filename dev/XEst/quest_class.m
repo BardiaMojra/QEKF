@@ -14,30 +14,17 @@ classdef quest_class < matlab.System
     maxPts            = 30 % max num of features used in pose est (fewer points, faster compute)
     minPts            = 8 % max num of features required (6 to est a unique pose with RANSAC)
     normThresh        = 1.5
-    % overwritten by cfg
+    % argin from cfg
     TID
     ttag
     toutDir
-    del_T
-    res
+    benchmark
     vel_algs
     pos_algs
-    %pos_algs      = {...
-                     %'EightPt'; 
-                     %'Nister'; 
-                     %'Kneip';  % dep on opengv
-                     %'Kukelova'; 
-                     %'Stewenius';  % dep on opengv
-                     %'QuEst'; 
-                     %'VEst'}; % pos_algs to run ----> (disabled for now)
-    %benchmarks        = {'KITTI';
-    %                     'NAIST';
-    %                     'ICL';
-    %                     'TUM';  } % benchmarks ----> (disabled for now)
+    del_T
     % runtime vars (private)
     TQVW_sols  % buffer that holds all pose est from diff methods
-    %numBenchmarks 
-    benchmark
+    res
     pos_numMethods  % num of algs used for comparison 
     vel_numMethods
     % private constants 

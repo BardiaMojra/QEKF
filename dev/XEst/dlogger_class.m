@@ -1,9 +1,9 @@
 classdef dlogger_class < matlab.System 
   properties
     %% features
-    log_prt_en  = false;
-    log_sav_en  = true;
-    log_csv_sav_en        = true;
+    %log_prt_en        = false;
+    %log_sav_en        = true;
+    %log_csv_sav_en    = true;
     % config (argin)
     TID
     ttag
@@ -14,6 +14,10 @@ classdef dlogger_class < matlab.System
     pos_numMethods 
     vel_numMethods 
     log
+    pfeat_logs % pfeat mod
+    pos_logs
+    vel_logs
+    qekf_logs
   end
   methods  % constructor
 
@@ -44,10 +48,11 @@ classdef dlogger_class < matlab.System
       obj.log.log_state(cntr, frame_idx, TQVW_sols, state_sols);
     end
 
-    function save_logs(obj)
-      obj.log.save_pos_logs();
-      obj.log.save_vel_logs();
-      obj.log.save_qekf_logs();
+    function get_logs(obj)
+      %obj.pfeat_logs = obj.log.get_qekf_logs();
+      obj.pos_logs = obj.log.get_pos_logs();
+      obj.vel_logs = obj.log.get_vel_logs();
+      obj.qekf_logs = obj.log.get_qekf_logs();
     end 
 
   end % methods (Access = public) 

@@ -1,4 +1,5 @@
-classdef fdetect_class < matlab.System 
+classdef pfeature_class < matlab.System 
+  %% point feature class 
   properties % public vars
     %% features 
     mat_feat_sav_fig_en   = true;
@@ -22,7 +23,7 @@ classdef fdetect_class < matlab.System
   end
   methods % constructor
     
-    function obj = fdetect_class(varargin) 
+    function obj = pfeature_class(varargin) 
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
     end  
   

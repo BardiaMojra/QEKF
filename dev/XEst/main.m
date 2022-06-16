@@ -20,15 +20,17 @@ for kf = cfg.kframes % --->> iter keyframes
   TQVW_sols = quest.get_pose(kf, cfg.dat); % get pose
   TQVW_sols = vest.get_vel(cfg.dat.matches, TQVW_sols); % get velocity
   st_sols   = qekf.run_filter(TQVW_sols); % run filter
+
   dlog.log_state(cntr, kf, TQVW_sols, st_sols);
 end 
 
 %% results
-dlog.save_logs();
+dlog.get_logs();
+
 quest.get_res(cfg, dlog);
 vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);
-
+dlog.save_logs();
 %% report
 rpt.gen_plots(cfg.dat, dlog, quest, vest, qekf);
 rpt.gen_report(quest, vest, qekf);

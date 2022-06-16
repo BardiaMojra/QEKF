@@ -1,7 +1,7 @@
 classdef log_class < matlab.System
   properties
     % features 
-
+    logs_sav_en     = true;
     % config (argin)
     TID     
     ttag    
@@ -25,6 +25,11 @@ classdef log_class < matlab.System
     numKF
     pos_numAlgs
     vel_numAlgs
+    pfeat_logs % pfeat mod
+    pos_logs
+    vel_logs
+    qekf_logs
+    %% logs ------->> log objects 
     cntr_hist
     kf_hist 
     T_hist % quest
@@ -37,7 +42,7 @@ classdef log_class < matlab.System
     Y_hist
     P_hist
     K_hist
-    %% Log Errs
+    % Log Errs
     % init in init() but always compute and fill at post-processing 
     T_errs % trans err for each method
     Q_errs % rot err for each method
@@ -99,50 +104,38 @@ classdef log_class < matlab.System
       end
     end % function log_state(obj, cntr, frame_idx, TQVW_sols, st_sols)
 
-    function TQ_logs = get_pos_logs(obj)
-      TQ_logs = cell(2, obj.pos_numAlgs); 
-      for a = 1:obj.pos_numAlgs % create logs per pos alg
-        TQ_logs{1, a} = obj.pos_algs{a};
+    function pos_logs = get_pos_logs(obj)
+      pos_logs = cell(2, obj.pos_numAlgs); 
+      cnts = obj.cntr_hist;
+      kfs = obj.kf_hist;
+      assert(isequal(length(cnts),length(kfs)), ...
+        "[log.get_pos_logs]-->> cnts n kfs not equal in length!");
+      for a = 1:obj.pos_numAlgs % logs per pos alg
+        pos_logs{1, a} = obj.pos_algs{a};
+        T = obj.T_hist{cntr,a};
+        Q = obj.Q_hist{cntr,a};
         TQ = nan(obj.numKF, 2 + obj.d_T+obj.d_Q); % cntr, kfi, Txyz, Qwxyz
-        cntr = 0;
-        
-        for kfi = obj.kframes
-          cntr = cntr+1;
-          TQ(cntr,1) 
-        TQ(:,2) = obj.T_hist(:, Tcols(2));
-        TQ(:,3) = obj.T_hist(:, Tcols(3));
-        TQ(:,4) = obj.Q_hist(:, Qcols(1)); % Qwxyz
-        TQ(:,5) = obj.Q_hist(:, Qcols(2));
-        TQ(:,6) = obj.Q_hist(:, Qcols(3));
-        TQ(:,7) = obj.Q_hist(:, Qcols(4));
-        fname = strcat(obj.toutDir,"log_pos_",obj.pos_algs{a},".csv");
-        writematrix(TQ, fname); 
-      end % for
+        TQ(:,1) = cnts(:,1);
+        TQ(:,2) = kfs(:,1);
+        for i = 1:length(cnts)
+          TQ(i,3:5) = T(1:3,1)';
+          TQ(i,6:8) = Q(1:3,1)';
+        end
+        if obj.logs_sav_en
+          fname = strcat(obj.toutDir,"log_pos_",obj.pos_algs{a},".csv");
+          writematrix(TQ, fname); 
+        end
+      end % for pos_numAlgs
+      obj.pos_logs = pos_logs;
     end % 
 
-    function save_vel_logs(obj)
-      VW = nan(obj.numKF, obj.d_V+obj.d_W); % Vxyz Wrpy
-      for a = 1:obj.vel_numAlgs % create logs per vel alg
-        Vcols   = get_cols(a, obj.d_V); % --->> get var cols
-        Wcols   = get_cols(a, obj.d_W);
-        VW(:,1) = obj.V_hist(:, Vcols(1)); % Vxyz
-        VW(:,2) = obj.V_hist(:, Vcols(2));
-        VW(:,3) = obj.V_hist(:, Vcols(3));
-        VW(:,4) = obj.W_hist(:, Wcols(1)); % Wrpy
-        VW(:,5) = obj.W_hist(:, Wcols(2));
-        VW(:,6) = obj.W_hist(:, Wcols(3));
-        %disp(VW);
-        fname = strcat(obj.toutDir,"log_vel_",obj.vel_algs{a},".csv");
-        writematrix(VW, fname);  
-      end % for
-    end % 
-
-    function save_qekf_logs(obj)
-      %obj.save_qekf_X_logs();
-      %obj.save_qekf_Y_logs();
+    
+    function get_qekf_logs(obj)
+      %obj.get_qekf_X_logs();
+      %obj.get_qekf_Y_logs();
     end 
 
-    function save_qekf_X_logs(obj)
+    function get_qekf_X_logs(obj)
       X = nan(obj.numKF, obj.d_X); % Txyz Vxyz Qxyzw
       for a = 1:obj.pos_numAlgs % create logs per pos alg
         Vcols   = get_cols(a, obj.d_V); % --->> get var cols

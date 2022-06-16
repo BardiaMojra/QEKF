@@ -8,18 +8,18 @@ classdef config_class < matlab.System %& dat_class
     datDir            = ['/home/smerx/DATA'] % [pwd '/data']   
     st_frame          = nan % start frame index
     end_frame         = 11 % nan % end frame index
-    del_T             = 0.01 % time period 
+    del_T             = 0.1 % time period 
     surfThresh        = 200 % SURF feature detection threshold
     benchnum          = 3 % benchmark subset
-    benchmark         = 'KITTI'
+    benchmark         = 'KITTI' % 10 frames/sec 
     %benchmark         = 'NAIST'
     %benchmark         = 'ICL'
     %benchmark         = 'TUM' 
     pos_algs          = { ...
-                         %'EightPt'; 
-                         %'Nister'; 
+                         'EightPt'; 
+                         'Nister'; 
                          %'Kneip';  % dep on opengv
-                         %'Kukelova'; 
+                         'Kukelova'; 
                          %'Stewenius';  % dep on opengv
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars
