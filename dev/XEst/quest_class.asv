@@ -7,7 +7,7 @@ classdef quest_class < matlab.System
     all_feat_disp_en      = false;
     masked_feat_sav_en    = false;
     masked_feat_disp_en   = false;
-    sliding_ref_en        % disable sliding_ref mode when running in real-time
+    sliding_ref_en        = true; % disable sliding_ref mode when running in real-time
     % configs (private constants)
     ranThresh         = 1e-6 % RANSAC Sampson dist threshold (for outliers)
     surfThresh        = 200 % SURF feature detection threshold
@@ -59,8 +59,7 @@ classdef quest_class < matlab.System
       obj.vel_algs          =  cfg.vel_algs;
       obj.del_T             =  cfg.del_T;
       obj.benchmark         =  cfg.benchmark;          
-      obj.surfThresh        =  cfg.surfThresh;
-      obj.sliding_ref_en    =  cfg.sliding_ref_en;
+      obj.surfThresh        =  cfg.surfThresh;       
       obj.init();
     end
 

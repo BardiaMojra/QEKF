@@ -13,8 +13,6 @@ classdef dlogger_class < matlab.System
     vel_algs
     pos_numMethods 
     vel_numMethods 
-    %dat
-    %
     log
     pfeat_logs % pfeat mod
     pos_logs
@@ -43,15 +41,16 @@ classdef dlogger_class < matlab.System
                                         kframes   =  cfg.dat.kframes, ...
                                         pos_algs  =  cfg.pos_algs, ...
                                         vel_algs  =  cfg.vel_algs );
+
       obj.log.load_cfg(cfg); 
-      obj.log.dat               = cfg.dat;
+      obj.dat               = obj.log.dat;
     end
     
     function log_state(obj, cntr, frame_idx, TQVW_sols, state_sols)
       obj.log.log_state(cntr, frame_idx, TQVW_sols, state_sols);
     end
 
-    function get_logs(obj)
+    function get_logs(obj, dat)
       %obj.pfeat_logs = obj.log.get_qekf_logs();
       obj.pos_logs = obj.log.get_pos_logs();
       obj.vel_logs = obj.log.get_vel_logs();

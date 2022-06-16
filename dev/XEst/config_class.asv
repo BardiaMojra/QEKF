@@ -2,7 +2,8 @@ classdef config_class < matlab.System %& dat_class
   properties
     %% features
     test_single_bench_en    = true
-    sliding_ref_en          = true
+
+    sliding_ref_en  = true
     %% configs --->> write to other modules
     TID               = 'XEst_dev_test'
     outDir            = [pwd '/out']   

@@ -238,14 +238,14 @@ function qvec = Qxyz2Qxyzw(Qxyz)
   q = Qxyz2Q(Qxyz);
   qvec = q.compact';
   qvec = [qvec(2:end,1); qvec(1)]; % return a 4x1 vec --> Qxyzw
-  disp(qvec);
+  %disp(qvec);
 end
 
 function qvec = Q2Qxyz(q)
   q = q.normalize();
   qvec = q.compact;
   qvec = qvec(1,2:end)'; % return a 3x1 vector
-  disp(qvec);
+  %disp(qvec);
 end
 
 function q = Qxyz2Q(Qxyz)
