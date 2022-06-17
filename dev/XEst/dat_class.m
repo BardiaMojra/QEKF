@@ -59,7 +59,6 @@ classdef dat_class < matlab.System
       q1      = obj.posp_i.q1;
       rgt_T   = nan(length(obj.kframes), 3);  
       rgt_Q   = nan(length(obj.kframes), 4);      
-      
       for i = 1: length(obj.kframes)
         [tr,qr,t2,q2] = get_relGT(obj.kframes(i), obj.benchtype, obj.dataset.tTru, ...
           obj.dataset.qTru, t1, q1);

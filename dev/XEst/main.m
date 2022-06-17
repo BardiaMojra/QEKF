@@ -26,12 +26,12 @@ end
 
 %% results
 dlog.get_logs();
-
+dlog.plot_logs();
 quest.get_res(cfg, dlog);
 vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);
 dlog.save_logs();
 %% report
-rpt.gen_plots(cfg.dat, dlog, quest, vest, qekf);
+%rpt.gen_plots(cfg.dat, dlog, quest, vest, qekf);
 rpt.gen_report(quest, vest, qekf);
 disp("end of process...");

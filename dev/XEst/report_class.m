@@ -119,12 +119,11 @@ classdef report_class < matlab.System
       end
     end
 
-    function gen_plots(obj, dat, dlog, quest, vest, qekf)
-      log               = dlog.log;
+    function gen_plots(obj, dlog, quest, vest, qekf)
       [rgt_T, rgt_Q]    = dat.get_kframe_rgtruths();
       quest.res{3}      = obj.plt_quest_logs(log, rgt_T, rgt_Q);
       vest.res{3}       = nan;
-      qekf.res{3}       = obj.plt_qekf_logs(log, rgt_T, rgt_Q); % X-Z-GT w YL1, YL2 
+      qekf.res{3}       = obj.plt_qekf_logs(log); % X-Z-GT w YL1, YL2 
       disp("plots generated!");
     end 
 
