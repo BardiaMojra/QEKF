@@ -21,8 +21,8 @@ classdef report_class < matlab.System
     fig_txt_size      = 12;
     fig_units         = "inches"
     fig_pos           = [0 0 7 10]
-    leg_units         = "inches"
-    leg_pos           = [6 9 .8 .8]
+    fig_leg_units     = "inches"
+    fig_leg_pos       = [6 9 .8 .8]
     plt_ylim          = "auto" %= [-2 2] 
     % cfg (argin)
     TID
@@ -238,8 +238,8 @@ classdef report_class < matlab.System
       end
       hold off
       lg          = legend([obj.pos_algs; "Groundtruth"]); 
-      lg.Units    = obj.leg_units;
-      lg.Position = obj.leg_pos;
+      lg.Units    = obj.fig_leg_units;
+      lg.Position = obj.fig_leg_pos;
       lg.FontSize = obj.fig_txt_size-4;
       if obj.plt_questp_sav_en
         figname = strcat(obj.toutDir,"plt_QuEst+_logs.png");
@@ -344,8 +344,8 @@ classdef report_class < matlab.System
       end
       hold off
       lg          = legend([obj.pos_algs; "Groundtruth"]); 
-      lg.Units    = obj.leg_units;
-      lg.Position = obj.leg_pos;
+      lg.Units    = obj.fig_leg_units;
+      lg.Position = obj.fig_leg_pos;
       lg.FontSize = obj.fig_txt_size-4;
       if obj.plt_questp_sav_en
         fname = strcat(obj.toutDir,'plt_QEKF_logs.png');

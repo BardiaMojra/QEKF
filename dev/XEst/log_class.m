@@ -1,7 +1,9 @@
 classdef log_class < matlab.System
   properties
     % features 
-    logs_sav_en     = true;
+    logs_sav_en     = true
+    plts_sav_en     = true
+    plts_shw_en     = false
     sliding_ref_en  % cfg argin
     % config (argin)
     TID     
@@ -23,6 +25,14 @@ classdef log_class < matlab.System
     d_Y = 10
     %d_P 
     %d_K
+    %% plt cfg
+    fig_txt_size      = 12;
+    fig_units         = "inches"
+    fig_pos           = [0 0 7 10]
+    fig_leg_units     = "inches"
+    fig_leg_pos       = [6 9 .8 .8]
+    plt_ylim          = "auto" %= [-2 2] 
+
     %% private vars
     numKF
     pos_numAlgs
@@ -67,7 +77,12 @@ classdef log_class < matlab.System
     y_t_L2 % st trans L2 res
     y_q_L2 % st rot L2 res
     y_v_L2 % st vel L2 res
-  
+    % private constants 
+    plt_lclrs = ["#A2142F", "#77AC30", "#0072BD", "#7E2F8E", ...
+                 "#EDB120", "#4DBEEE", "#D95319", "#77AC30"] % unique per alg
+    plt_mrkrs = ["o", "+", "*", ".", ...
+                 "x", "s", "d", "^", ...
+                 "v", ">", "<", "h"]
   end
   methods  % constructor
     
@@ -230,6 +245,66 @@ classdef log_class < matlab.System
       writematrix(log, fname);  
     end % 
 
+     function plot_pos_logs(obj)
+      gtlog = obj.pos_logs{2,obj.pos_numAlgs+1};
+      for a = 1:obj.pos_numAlgs
+        assert(isequal(obj.pos_logs{1,a}, obj.pos_algs{a}), ...
+          "pos alg not matching pos log name!")
+        obj.plot_pos_log(obj.pos_logs{1,a}, obj.pos_logs{2,a}, a, gtlog, "Groundtruth");
+      end 
+    end 
+
+    function plot_pos_log(obj, logNameA, logA, a, logB, logNameB)
+      idx = logA(:,1);
+      fig = figure(); % 7 subplots Txyz Qwxyz
+      figtitle = strcat("Pose Est.: ",logNameA," vs. ",logNameB);
+      sgtitle(figtitle,"Interpreter",'latex');
+      fig.Units    = obj.fig_units;
+      fig.Position = obj.fig_pos;
+      hold on
+      subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,3), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,3), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,4), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
+      plot(idx, logB(:,4), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,5), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));   
+      plot(idx, logB(:,5), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,6), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,6), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,7), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,7), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
+        'fontsize',obj.fig_txt_size); grid on; 
+      plot(idx, logA(:,8), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,8), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,9), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,9), "Color",obj.plt_lclrs(a+1), "Marker",obj.plt_mrkrs(a+1));
+      hold off
+      lg          = legend([logNameA; logNameB]); 
+      lg.Units    = obj.fig_leg_units;
+      lg.Position = obj.fig_leg_pos;
+      lg.FontSize = obj.fig_txt_size-4;
+      if obj.plts_sav_en
+        figname = strcat(obj.toutDir,"plt_pos_log_"+logNameA+".png");
+        saveas(fig, figname);
+      end
+      if obj.plts_shw_en
+        waitforbuttonpress;
+      end
+      close(fig);
+    end % plot_pos_logs()
+
   end % methods (Access = public) % public functions
   methods (Access = private) % private functions
     
@@ -258,6 +333,79 @@ classdef log_class < matlab.System
       obj.VEst_Q_errs         = NaN(obj.numKF,obj.vel_numAlgs); 
     end % function init(obj)
 
+       function plot_something(obj)
+      idx       = log.cntr_hist;
+      T         = log.T_hist;
+      Q         = log.Q_hist;
+      numKF     = log.numKF;
+      numAlgs   = log.pos_numAlgs;
+      Tx    = zeros(numKF, numAlgs + 1); % Xs+GT
+      Ty    = zeros(numKF, numAlgs + 1);
+      Tz    = zeros(numKF, numAlgs + 1);
+      Qw    = zeros(numKF, numAlgs + 1);
+      Qx    = zeros(numKF, numAlgs + 1);
+      Qy    = zeros(numKF, numAlgs + 1);
+      Qz    = zeros(numKF, numAlgs + 1);
+      for a = 1:obj.pos_numAlgs
+        Tcols   = get_cols(a, log.d_T); % --->> get var cols
+        Qcols   = get_cols(a, log.d_Q);
+        Tx(:,a) = T(:, Tcols(1)); % --->> load to plt cols
+        Ty(:,a) = T(:, Tcols(2));
+        Tz(:,a) = T(:, Tcols(3));    
+        Qw(:,a) = Q(:, Qcols(1));
+        Qx(:,a) = Q(:, Qcols(2));
+        Qy(:,a) = Q(:, Qcols(3));
+        Qz(:,a) = Q(:, Qcols(4));
+      end
+      Tx(:, end) = rgt_T(:,1); % --->> load ground truth to last col
+      Ty(:, end) = rgt_T(:,2);
+      Tz(:, end) = rgt_T(:,3);    
+      Qw(:, end) = rgt_Q(:,1);
+      Qx(:, end) = rgt_Q(:,2);
+      Qy(:, end) = rgt_Q(:,3);
+      Qz(:, end) = rgt_Q(:,4);
+      fig = figure(); % 7 subplots Txyz Qwxyz
+      sgtitle("QuEst+ Pose Estimate Logs","Interpreter",'latex');
+      fig.Units    = obj.fig_units;
+      fig.Position = obj.fig_pos;
+      hold on
+      for a = 1:obj.pos_numAlgs+1 % +gt
 
+        subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
+          'fontsize',obj.fig_txt_size); grid on;
+        plot(idx, Tx(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+        subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
+          'fontsize',obj.fig_txt_size); grid on;
+        plot(idx, Ty(:,a), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
+        subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
+          'fontsize',obj.fig_txt_size); grid on;
+        plot(idx, Tz(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));        
+        subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
+          'fontsize',obj.fig_txt_size); grid on;
+        plot(idx, Qw(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+        subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
+          'fontsize',obj.fig_txt_size); grid on;
+        plot(idx, Qx(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+        subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
+          'fontsize',obj.fig_txt_size); grid on; 
+        plot(idx, Qy(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));  
+        subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
+          'fontsize',obj.fig_txt_size); grid on;
+        plot(idx, Qz(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      end
+      hold off
+      lg          = legend([obj.pos_algs; "Groundtruth"]); 
+      lg.Units    = obj.fig_leg_units;
+      lg.Position = obj.fig_leg_pos;
+      lg.FontSize = obj.fig_txt_size-4;
+      if obj.plt_questp_sav_en
+        figname = strcat(obj.toutDir,"plt_QuEst+_logs.png");
+        saveas(fig, figname);
+      end
+      if obj.plt_questp_shw_en
+        waitforbuttonpress;
+      end
+      close(fig);
+    end % function figname = plt_quest_logs(obj, log, rgt_T, rgt_Q)
   end % methods (Access = private) % private functions
 end

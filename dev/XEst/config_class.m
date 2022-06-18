@@ -33,8 +33,8 @@ classdef config_class < matlab.System %& dat_class
     ttag % TID+benchmark
     %dats  % dataset handler array for multi-data mode 
     dat
-    pos_numMethods  % num of algs used for comparison
-    vel_numMethods  
+    pos_numAlgs
+    vel_numAlgs
     %numBenchmarks    
   end
   methods  % constructor
@@ -48,9 +48,10 @@ classdef config_class < matlab.System %& dat_class
   methods (Access = private)
   
     function init(obj)
-      obj.ttag    = strcat(obj.TID,'_',obj.benchmark);
-      obj.toutDir = strcat(obj.outDir,'/',obj.ttag,'/');
-
+      obj.ttag            = strcat(obj.TID,'_',obj.benchmark);
+      obj.toutDir         = strcat(obj.outDir,'/',obj.ttag,'/');
+      obj.pos_numAlgs     = length(obj.pos_algs);
+      obj.vel_numAlgs     = length(obj.vel_algs);
       if not(isfolder(obj.toutDir))
         disp('test_outDir does NOT exist: ');
         disp(obj.toutDir);

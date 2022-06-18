@@ -11,8 +11,8 @@ classdef dlogger_class < matlab.System
     benchmark
     pos_algs
     vel_algs
-    pos_numMethods 
-    vel_numMethods 
+    pos_numAlgs 
+    vel_numAlgs 
     %dat
     %
     log
@@ -35,9 +35,9 @@ classdef dlogger_class < matlab.System
       obj.ttag              = cfg.ttag;
       obj.toutDir           = cfg.toutDir;
       obj.benchmark         = cfg.benchmark;  
-      obj.pos_numMethods    = cfg.pos_numMethods;
+      obj.pos_numAlgs       = length(cfg.pos_algs);
       obj.pos_algs          = cfg.pos_algs;  
-      obj.vel_numMethods    = cfg.vel_numMethods;
+      obj.vel_numAlgs       = length(cfg.vel_algs);
       obj.vel_algs          = cfg.vel_algs;
       obj.log               = log_class(btype     =  cfg.dat.benchtype, ... 
                                         kframes   =  cfg.dat.kframes, ...
@@ -58,141 +58,11 @@ classdef dlogger_class < matlab.System
       obj.qekf_logs = obj.log.get_qekf_logs();
     end 
     
-    function log_plts = get_log_plts(obj)
-      log_plts = cell(3,2);
-      log_plts{1,1} = "pos";
-      log_plts{1,2} = obj.get_pos_plts();
-      log_plts{2,1} = "vel";
-      log_plts{2,2} = obj.get_vel_plts();
-      log_plts{3,1} = "qekf";
-      log_plts{3,2} = obj.get_qekf_plts();
+    function plot_logs(obj)
+      obj.log.plot_pos_logs();
+      obj.log.plot_vel_logs();
+      obj.log.plot_qekf_logs();
     end 
 
   end % methods (Access = public) 
-  methods (Access = private) 
-
-
-    function get_pos_plts(obj)
-      
-      for a = 1:obj.pos_numAlgs
-        assert(isequal(obj.pos_logs{1,a}, obj.pos_algs{a}), ...
-          "pos alg not matching pos log name!")
-        obj.plot_pos_log(obj.pos_logs{2,a}, a);
-      end 
-    end 
-
-    function plot_pos_log(obj, log, a)
-            
-      subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
-        'fontsize',obj.fig_txt_size); grid on;
-      plot(idx, log(:,3), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-      subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
-        'fontsize',obj.fig_txt_size); grid on;
-      plot(idx, log(:,4), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
-      subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
-        'fontsize',obj.fig_txt_size); grid on;
-      plot(idx, log(:,5), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));        
-      subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
-        'fontsize',obj.fig_txt_size); grid on;
-      plot(idx, log(:,6), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-      subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
-        'fontsize',obj.fig_txt_size); grid on;
-      plot(idx, log(:,7), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-      subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
-        'fontsize',obj.fig_txt_size); grid on; 
-      plot(idx, log(:,8), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));  
-      subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
-        'fontsize',obj.fig_txt_size); grid on;
-      plot(idx, log(:,9), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-      hold off
-      lg          = legend([obj.pos_algs; "Groundtruth"]); 
-      lg.Units    = obj.leg_units;
-      lg.Position = obj.leg_pos;
-      lg.FontSize = obj.fig_txt_size-4;
-      if obj.plt_questp_sav_en
-        figname = strcat(obj.toutDir,"plt_QuEst+_logs.png");
-        saveas(fig, figname);
-      end
-      if obj.plt_questp_shw_en
-        waitforbuttonpress;
-      end
-      close(fig);
-    end % function figname = plt_quest_logs(obj, log, rgt_T, rgt_Q)
-    end 
-
-    function plot_something()
-      idx       = log.cntr_hist;
-      T         = log.T_hist;
-      Q         = log.Q_hist;
-      numKF     = log.numKF;
-      numAlgs   = log.pos_numAlgs;
-      Tx    = zeros(numKF, numAlgs + 1); % Xs+GT
-      Ty    = zeros(numKF, numAlgs + 1);
-      Tz    = zeros(numKF, numAlgs + 1);
-      Qw    = zeros(numKF, numAlgs + 1);
-      Qx    = zeros(numKF, numAlgs + 1);
-      Qy    = zeros(numKF, numAlgs + 1);
-      Qz    = zeros(numKF, numAlgs + 1);
-      for a = 1:obj.pos_numAlgs
-        Tcols   = get_cols(a, log.d_T); % --->> get var cols
-        Qcols   = get_cols(a, log.d_Q);
-        Tx(:,a) = T(:, Tcols(1)); % --->> load to plt cols
-        Ty(:,a) = T(:, Tcols(2));
-        Tz(:,a) = T(:, Tcols(3));    
-        Qw(:,a) = Q(:, Qcols(1));
-        Qx(:,a) = Q(:, Qcols(2));
-        Qy(:,a) = Q(:, Qcols(3));
-        Qz(:,a) = Q(:, Qcols(4));
-      end
-      Tx(:, end) = rgt_T(:,1); % --->> load ground truth to last col
-      Ty(:, end) = rgt_T(:,2);
-      Tz(:, end) = rgt_T(:,3);    
-      Qw(:, end) = rgt_Q(:,1);
-      Qx(:, end) = rgt_Q(:,2);
-      Qy(:, end) = rgt_Q(:,3);
-      Qz(:, end) = rgt_Q(:,4);
-      fig = figure(); % 7 subplots Txyz Qwxyz
-      sgtitle("QuEst+ Pose Estimate Logs","Interpreter",'latex');
-      fig.Units    = obj.fig_units;
-      fig.Position = obj.fig_pos;
-      hold on
-      for a = 1:obj.pos_numAlgs+1 % +gt
-
-        subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
-          'fontsize',obj.fig_txt_size); grid on;
-        plot(idx, Tx(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
-          'fontsize',obj.fig_txt_size); grid on;
-        plot(idx, Ty(:,a), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
-        subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
-          'fontsize',obj.fig_txt_size); grid on;
-        plot(idx, Tz(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));        
-        subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
-          'fontsize',obj.fig_txt_size); grid on;
-        plot(idx, Qw(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
-          'fontsize',obj.fig_txt_size); grid on;
-        plot(idx, Qx(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
-          'fontsize',obj.fig_txt_size); grid on; 
-        plot(idx, Qy(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));  
-        subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
-          'fontsize',obj.fig_txt_size); grid on;
-        plot(idx, Qz(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-      end
-      hold off
-      lg          = legend([obj.pos_algs; "Groundtruth"]); 
-      lg.Units    = obj.leg_units;
-      lg.Position = obj.leg_pos;
-      lg.FontSize = obj.fig_txt_size-4;
-      if obj.plt_questp_sav_en
-        figname = strcat(obj.toutDir,"plt_QuEst+_logs.png");
-        saveas(fig, figname);
-      end
-      if obj.plt_questp_shw_en
-        waitforbuttonpress;
-      end
-      close(fig);
-    end % function figname = plt_quest_logs(obj, log, rgt_T, rgt_Q)
-  end 
 end

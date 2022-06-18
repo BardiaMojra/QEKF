@@ -10,9 +10,9 @@ classdef qekf_class < matlab.System
     benchmark    
     benchnum
     pos_algs
-    pos_numMethods
+    pos_numAlgs
     vel_algs
-    vel_numMethods
+    vel_numAlgs
     st_sol
     %% QEKF config (argin)
     dim_x   = 9 % Txyz, Vxyz, Qxyz - linPos, linVel, rotVec (quat)
@@ -59,9 +59,9 @@ classdef qekf_class < matlab.System
       obj.toutDir           = cfg.toutDir;
       obj.benchmark         = cfg.benchmark;
       obj.pos_algs          = cfg.pos_algs;
-      obj.pos_numMethods    = cfg.pos_numMethods;
+      obj.pos_numAlgs       = cfg.pos_numAlgs;
       obj.vel_algs          = cfg.vel_algs;
-      obj.vel_numMethods    = cfg.vel_numMethods;
+      obj.vel_numAlgs       = cfg.vel_numAlgs;
       obj.T_                = cfg.del_T;
       obj.T_i               = cfg.dat.posp_i.t1; % init conditions 
       obj.Q_i(1:3,1)        = cfg.dat.posp_i.q1(2:end,1);      
