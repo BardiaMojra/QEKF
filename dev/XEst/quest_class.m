@@ -154,7 +154,7 @@ classdef quest_class < matlab.System
     end % function TQVW_sols = get_pose(obj, kframe_idx, dat)
 
     function res = get_res(obj, cfg, dlog)
-      obj.res{1}   = dlog.log.benchtype;
+      obj.res{1}   = dlog.log.btype;
       obj.res{2}   = obj.get_res_tab(dlog.log, cfg.dat); % returns a table object
       if obj.res_tab_prt_en
         disp(strcat(obj.mod_name, ' module:')); disp(obj.rpt_note);
