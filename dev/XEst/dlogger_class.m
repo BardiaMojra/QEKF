@@ -60,7 +60,7 @@ classdef dlogger_class < matlab.System
     
     function plot_logs(obj)
       obj.log.plot_pos_logs();
-      obj.log.plot_vel_logs();
+      %obj.log.plot_vel_logs();
       obj.log.plot_qekf_logs();
     end 
 

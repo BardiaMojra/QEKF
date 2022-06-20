@@ -12,10 +12,10 @@ function nven = normalizeVec(vec)
   
   if ~(sqrt(sum(nven.*nven))<normThresh)
     disp(nven);
-    disp(sqrt(sum(nven.*nven)));
+    disp(sqrt(sum(nven.*vec)));
   end
-  assert(sqrt(sum(nven.*nven))<normThresh,"[normalizeVec]->> nven not normalized properly!!"  );
-  %disp("nven");
-  %disp(nven);
+  assert(sqrt(sum(vec.*vec))<normThresh,"[normalizeVec]->> vec not normalized properly!!"  );
+  %disp("normed");
+  %disp(normed);
   %;
   

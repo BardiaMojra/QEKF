@@ -305,10 +305,8 @@ classdef log_class < matlab.System
       close(fig);
     end % plot_pos_logs()
 
-    function plot_qekf_logs(obj)
-
-    end 
-
+    function 
+      
 
   end % methods (Access = public) % public functions
   methods (Access = private) % private functions

@@ -8,7 +8,7 @@ classdef config_class < matlab.System %& dat_class
     outDir            = [pwd '/out']   
     datDir            = ['/home/smerx/DATA'] % [pwd '/data']   
     st_frame          = nan % start frame index
-    end_frame         = 11 % nan % end frame index
+    end_frame         = 30 % nan % end frame index
     del_T             = 0.1 % time period 
     surfThresh        = 200 % SURF feature detection threshold
     benchnum          = 3 % benchmark subset
