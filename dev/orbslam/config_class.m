@@ -20,9 +20,9 @@ classdef config_class < matlab.System
     pos_algs          = { ...
                          'EightPt'; 
                          'Nister'; 
-                         'Kneip';  
+                         %'Kneip';  
                          'Kukelova'; 
-                         'Stewenius';
+                         %'Stewenius';
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars
     vel_algs          = {'VEst'};
