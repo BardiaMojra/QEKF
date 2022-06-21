@@ -19,10 +19,10 @@ classdef config_class < matlab.System
     skipframe         = 1 %nan % default
     pos_algs          = { ...
                          'EightPt'; 
-                         %'Nister'; 
-                         'Kneip';  
+                         'Nister'; 
+                         %'Kneip';  
                          'Kukelova'; 
-                         'Stewenius';
+                         %'Stewenius';
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars
     vel_algs          = {'VEst'};

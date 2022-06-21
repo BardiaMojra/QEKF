@@ -21,7 +21,7 @@ classdef qekf_class < matlab.System
     T_      = 0.1 % time period 
     Q_T_xyz     = 1.0e-5  % process noise covar
     Q_V_xyz     = 1.5e-2
-    Q_quat_xyz  = 0.5e-5
+    Q_quat_xyz  = 0.5e-9
     R_noise     = 1e-6 % measurement noise covar
     P_est_0     = 1e-4
     K_scale     = 1.0 % kalman gain factor   
