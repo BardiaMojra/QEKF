@@ -11,7 +11,7 @@ classdef quest_class < matlab.System
     % configs (private constants)
     ranThresh         = 1e-6 % RANSAC Sampson dist threshold (for outliers)
     surfThresh        = 200 % SURF feature detection threshold
-    maxPts            = 30 % max num of features used in pose est (fewer points, faster compute)
+    maxPts            = 8 % max num of features used in pose est (fewer points, faster compute)
     minPts            = 8 % max num of features required (6 to est a unique pose with RANSAC)
     normThresh        = 1.5
     % argin from cfg
@@ -187,7 +187,7 @@ classdef quest_class < matlab.System
       obj.res                 = cell(3, 0); % btype, res_tab, log_fig
     end 
     
-    function res_table = get_res_tab(obj, pos_logs) % get per benchmark log errs 
+    function res_table = get_res_tab(obj, log, dat) % get per benchmark log errs 
       btype   = dat.dataset.benchtype;
       qTru    = dat.dataset.qTru;
       tTru    = dat.dataset.tTru;

@@ -3,7 +3,7 @@
 %% init
 close all; clear; clc; addpath(genpath('./'));
 addpath(genpath('/home/smerx/DATA')); 
-cfg   = config_class(TID  = 'T00001', benchmark  = 'KITTI');
+cfg   = config_class(TID  = 'T00006_0-40fr_150surf', benchmark  = 'KITTI');
 pfeat = pfeature_class(); pfeat.load_cfg(cfg);
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 
 quest = quest_class(); quest.load_cfg(cfg); 
@@ -27,6 +27,7 @@ end
 %% results
 dlog.get_logs();
 dlog.plot_logs();
+
 quest.get_res(cfg, dlog);
 vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);

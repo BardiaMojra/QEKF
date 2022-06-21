@@ -7,10 +7,10 @@ classdef config_class < matlab.System %& dat_class
     TID               = 'XEst_dev_test'
     outDir            = [pwd '/out']   
     datDir            = ['/home/smerx/DATA'] % [pwd '/data']   
-    st_frame          = nan % start frame index
-    end_frame         = 30 % nan % end frame index
+    st_frame          = 660 %nan % start frame index
+    end_frame         = 680 % nan % end frame index
     del_T             = 0.1 % time period 
-    surfThresh        = 200 % SURF feature detection threshold
+    surfThresh        = 150 % SURF feature detection threshold
     benchnum          = 3 % benchmark subset
     benchmark         = 'KITTI' % 10 frames/sec 
     %benchmark         = 'NAIST'

@@ -26,7 +26,7 @@ classdef log_class < matlab.System
     %d_P 
     %d_K
     %% plt cfg
-    fig_txt_size      = 12;
+    fig_txt_size      = 8
     fig_units         = "inches"
     fig_pos           = [0 0 7 10]
     fig_leg_units     = "inches"
@@ -259,43 +259,43 @@ classdef log_class < matlab.System
       idx = logA(:,1);
       fig = figure(); % 7 subplots Txyz Qwxyz
       figtitle = strcat("Pose Est.: ",logNameA," vs. ",logNameB);
-      sgtitle(figtitle,"Interpreter",'latex');
+      sgtitle(figtitle,"Interpreter","latex");
       fig.Units    = obj.fig_units;
       fig.Position = obj.fig_pos;
       hold on
-      subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
+      subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter","latex", ... % Tx
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,3), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,3), obj.plt_ref_lclr);
-      subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
+      subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter","latex", ... % Ty
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,4), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
       plot(idx, logB(:,4), obj.plt_ref_lclr);
-      subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
+      subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter","latex", ... % Tz
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,5), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));   
       plot(idx, logB(:,5), obj.plt_ref_lclr);
-      subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
+      subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter","latex", ... % Qw
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,6), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,6), obj.plt_ref_lclr);
-      subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
+      subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter","latex", ... % Qx
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,7), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,7), obj.plt_ref_lclr);
-      subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
+      subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter","latex", ... % Qy
         'fontsize',obj.fig_txt_size); grid on; 
       plot(idx, logA(:,8), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,8), obj.plt_ref_lclr);
-      subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
+      subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter","latex", ... % Qz
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,9), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,9), obj.plt_ref_lclr);
       hold off
-      lg          = legend([logNameA; logNameB]); 
+      lg          = legend([logNameA; logNameB],"Interpreter","latex"); 
       lg.Units    = obj.fig_leg_units;
       lg.Position = obj.fig_leg_pos;
-      lg.FontSize = obj.fig_txt_size-4;
+      lg.FontSize = obj.fig_txt_size;
       if obj.plts_sav_en
         figname = strcat(obj.toutDir,"plt_pos_log_"+logNameA+".png");
         saveas(fig, figname);
@@ -307,83 +307,157 @@ classdef log_class < matlab.System
     end % plot_pos_logs()
 
     function plot_qekf_logs(obj)
-      logs = obj.qekf_logs;
       for a = 1:obj.pos_numAlgs % alg,Z,U,X,Y,P,K
         assert(isequal(obj.pos_logs{1,a}, obj.pos_algs{a}), "[log.plot_qekf]--> pos alg not matching!");
-        obj.plot_qekf_log_ZvsX(logs{4,a+1},logs{4,1},a,logs{2,a+1}, logs{2,1});
+        logA = obj.qekf_logs{4,a+1}; % X
+        logB = obj.qekf_logs{2,a+1}; % Z
+        logNameA = "est";
+        logNameB = "meas";
+        obj.plot_qekf_log(a, "Z vs. X", logA, logNameA, logB, logNameB);
+        logA = obj.qekf_logs{4,a+1}; % Y
+        logB = zeros(obj.numKF,size(logA,2)); % zero
+        logNameA = "residual";
+        logNameB = "zero";
+        obj.plot_qekf_log(a, " residual", logA, logNameA, logB, logNameB);
+        
       end 
     end 
     
-    function plot_qekf_log_ZvsX(obj, logA, logNameA, a, logB, logNameB)
-      %logA = log{4,a}; % X
-      %logB = log{2,a}; % Z
-      %logNameA = obj.pos_algs{a};
-      %logNameB = "meas.";
+    function plot_qekf_log(obj, a, plt_tit, logA, logNameA, logB, logNameB)
+      %logA = log{4,a+1}; % X
+      %logB = log{2,a+1}; % Z
+      %logNameA = "est";
+      %logNameB = "meas";
+      title = strcat(obj.pos_algs{a},"-",plt_tit);
       %disp(zlog);
       %disp(xlog);
-
       idx = logA(:,1);
       fig = figure(); % 7 subplots Txyz Qwxyz
-      figtitle = strcat("QEKF: ", obj.pos_algs{a}," ", logNameA," vs. ", logNameB);
-      sgtitle(figtitle,"Interpreter",'latex');
+      figtitle = strcat("QEKF: ", title);
+      sgtitle(figtitle,"Interpreter", "latex");
       fig.Units    = obj.fig_units;
       fig.Position = obj.fig_pos;
       hold on
-      subplot(10,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
+      subplot(10,1,1); hold on; subtitle('$T_{x}$',"Interpreter","latex", ... % Tx
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,3), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,3), obj.plt_ref_lclr);
-      subplot(10,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
+      subplot(10,1,2); hold on; subtitle('$T_{y}$',"Interpreter","latex", ... % Ty
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,4), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
       plot(idx, logB(:,4), obj.plt_ref_lclr);
-      subplot(10,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
+      subplot(10,1,3); hold on; subtitle('$T_{z}$',"Interpreter","latex", ... % Tz
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,5), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));   
       plot(idx, logB(:,5), obj.plt_ref_lclr);
-
-      subplot(10,1,4); hold on; subtitle('$V_{x}$',"Interpreter",'latex', ... % Vx
+      subplot(10,1,4); hold on; subtitle('$V_{x}$',"Interpreter","latex", ... % Vx
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,6), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,6), obj.plt_ref_lclr);
-      subplot(10,1,5); hold on; subtitle('$V_{y}$',"Interpreter",'latex', ... % Vy
+      subplot(10,1,5); hold on; subtitle('$V_{y}$',"Interpreter","latex", ... % Vy
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,7), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
       plot(idx, logB(:,7), obj.plt_ref_lclr);
-      subplot(10,1,6); hold on; subtitle('$V_{z}$',"Interpreter",'latex', ... % Vz
+      subplot(10,1,6); hold on; subtitle('$V_{z}$',"Interpreter","latex", ... % Vz
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,8), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));   
       plot(idx, logB(:,8), obj.plt_ref_lclr);
-      subplot(10,1,7); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
+      subplot(10,1,7); hold on; subtitle('$Q_{x}$',"Interpreter","latex", ... % Qx
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,9), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,9),  obj.plt_ref_lclr);
-      subplot(10,1,8); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
+      subplot(10,1,8); hold on; subtitle('$Q_{y}$',"Interpreter","latex", ... % Qy
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,10), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,10), obj.plt_ref_lclr);
-      subplot(10,1,9); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
+      subplot(10,1,9); hold on; subtitle('$Q_{z}$',"Interpreter","latex", ... % Qz
         'fontsize',obj.fig_txt_size); grid on; 
       plot(idx, logA(:,11), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,11), obj.plt_ref_lclr);
-      subplot(10,1,10); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
+      subplot(10,1,10); hold on; subtitle('$Q_{w}$',"Interpreter","latex", ... % Qw
         'fontsize',obj.fig_txt_size); grid on;
       plot(idx, logA(:,12), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       plot(idx, logB(:,12), obj.plt_ref_lclr);
       hold off
-      lg          = legend([logNameA; logNameB]); 
+      lg          = legend([logNameA; logNameB],"Interpreter","latex"); 
       lg.Units    = obj.fig_leg_units;
       lg.Position = obj.fig_leg_pos;
-      lg.FontSize = obj.fig_txt_size-4;
+      lg.FontSize = obj.fig_txt_size;
       if obj.plts_sav_en
-        figname = strcat(obj.toutDir,"plt_qekf_log_"+logNameA+".png");
+        figname = strcat(obj.toutDir,"plt_qekf_log_"+title+".png");
         saveas(fig, figname);
       end
       if obj.plts_shw_en
         waitforbuttonpress;
       end
       close(fig);
-     end % plot_qekf_log()
+    end % plot_qekf_log()
+      
+    function plot_qekf_log_Y(obj, log, a, plt_tit)
+      title = strcat(obj.pos_algs{a},"-",plt_tit);
+      %disp(zlog);
+      %disp(xlog);
+      idx = logA(:,1);
+      fig = figure(); % 7 subplots Txyz Qwxyz
+      figtitle = strcat("QEKF: ", title);
+      sgtitle(figtitle,"Interpreter", "latex");
+      fig.Units    = obj.fig_units;
+      fig.Position = obj.fig_pos;
+      hold on
+      subplot(10,1,1); hold on; subtitle('$T_{x}$',"Interpreter","latex", ... % Tx
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,3), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,3), obj.plt_ref_lclr);
+      subplot(10,1,2); hold on; subtitle('$T_{y}$',"Interpreter","latex", ... % Ty
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,4), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
+      plot(idx, logB(:,4), obj.plt_ref_lclr);
+      subplot(10,1,3); hold on; subtitle('$T_{z}$',"Interpreter","latex", ... % Tz
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,5), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));   
+      plot(idx, logB(:,5), obj.plt_ref_lclr);
+      subplot(10,1,4); hold on; subtitle('$V_{x}$',"Interpreter","latex", ... % Vx
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,6), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,6), obj.plt_ref_lclr);
+      subplot(10,1,5); hold on; subtitle('$V_{y}$',"Interpreter","latex", ... % Vy
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,7), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
+      plot(idx, logB(:,7), obj.plt_ref_lclr);
+      subplot(10,1,6); hold on; subtitle('$V_{z}$',"Interpreter","latex", ... % Vz
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,8), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));   
+      plot(idx, logB(:,8), obj.plt_ref_lclr);
+      subplot(10,1,7); hold on; subtitle('$Q_{x}$',"Interpreter","latex", ... % Qx
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,9), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,9),  obj.plt_ref_lclr);
+      subplot(10,1,8); hold on; subtitle('$Q_{y}$',"Interpreter","latex", ... % Qy
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,10), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,10), obj.plt_ref_lclr);
+      subplot(10,1,9); hold on; subtitle('$Q_{z}$',"Interpreter","latex", ... % Qz
+        'fontsize',obj.fig_txt_size); grid on; 
+      plot(idx, logA(:,11), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,11), obj.plt_ref_lclr);
+      subplot(10,1,10); hold on; subtitle('$Q_{w}$',"Interpreter","latex", ... % Qw
+        'fontsize',obj.fig_txt_size); grid on;
+      plot(idx, logA(:,12), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
+      plot(idx, logB(:,12), obj.plt_ref_lclr);
+      hold off
+      lg          = legend([logNameA; logNameB],"Interpreter","latex"); 
+      lg.Units    = obj.fig_leg_units;
+      lg.Position = obj.fig_leg_pos;
+      lg.FontSize = obj.fig_txt_size;
+      if obj.plts_sav_en
+        figname = strcat(obj.toutDir,"plt_qekf_log_"+title+".png");
+        saveas(fig, figname);
+      end
+      if obj.plts_shw_en
+        waitforbuttonpress;
+      end
+      close(fig);
+     end 
 
 
   end % methods (Access = public) % public functions
@@ -414,19 +488,18 @@ classdef log_class < matlab.System
       obj.VEst_Q_errs         = NaN(obj.numKF,obj.vel_numAlgs); 
     end % function init(obj)
 
-       function plot_something(obj)
+    function plot_something(obj)
       idx       = log.cntr_hist;
       T         = log.T_hist;
       Q         = log.Q_hist;
-      numKF     = log.numKF;
       numAlgs   = log.pos_numAlgs;
-      Tx    = zeros(numKF, numAlgs + 1); % Xs+GT
-      Ty    = zeros(numKF, numAlgs + 1);
-      Tz    = zeros(numKF, numAlgs + 1);
-      Qw    = zeros(numKF, numAlgs + 1);
-      Qx    = zeros(numKF, numAlgs + 1);
-      Qy    = zeros(numKF, numAlgs + 1);
-      Qz    = zeros(numKF, numAlgs + 1);
+      Tx    = zeros(log.numKF, numAlgs + 1); % Xs+GT
+      Ty    = zeros(log.numKF, numAlgs + 1);
+      Tz    = zeros(log.numKF, numAlgs + 1);
+      Qw    = zeros(log.numKF, numAlgs + 1);
+      Qx    = zeros(log.numKF, numAlgs + 1);
+      Qy    = zeros(log.numKF, numAlgs + 1);
+      Qz    = zeros(log.numKF, numAlgs + 1);
       for a = 1:obj.pos_numAlgs
         Tcols   = get_cols(a, log.d_T); % --->> get var cols
         Qcols   = get_cols(a, log.d_Q);
@@ -446,31 +519,31 @@ classdef log_class < matlab.System
       Qy(:, end) = rgt_Q(:,3);
       Qz(:, end) = rgt_Q(:,4);
       fig = figure(); % 7 subplots Txyz Qwxyz
-      sgtitle("QuEst+ Pose Estimate Logs","Interpreter",'latex');
+      sgtitle("QuEst+ Pose Estimate Logs","Interpreter","latex");
       fig.Units    = obj.fig_units;
       fig.Position = obj.fig_pos;
       hold on
       for a = 1:obj.pos_numAlgs+1 % +gt
 
-        subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter",'latex', ... % Tx
+        subplot(7,1,1); hold on; subtitle('$T_{x}$',"Interpreter","latex", ... % Tx
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Tx(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter",'latex', ... % Ty
+        subplot(7,1,2); hold on; subtitle('$T_{y}$',"Interpreter","latex", ... % Ty
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Ty(:,a), "Color",obj.plt_lclrs(a), "Marker", obj.plt_mrkrs(a));
-        subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter",'latex', ... % Tz
+        subplot(7,1,3); hold on; subtitle('$T_{z}$',"Interpreter","latex", ... % Tz
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Tz(:,a), "Color",obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));        
-        subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter",'latex', ... % Qw
+        subplot(7,1,4); hold on; subtitle('$Q_{w}$',"Interpreter","latex", ... % Qw
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Qw(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter",'latex', ... % Qx
+        subplot(7,1,5); hold on; subtitle('$Q_{x}$',"Interpreter","latex", ... % Qx
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Qx(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
-        subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter",'latex', ... % Qy
+        subplot(7,1,6); hold on; subtitle('$Q_{y}$',"Interpreter","latex", ... % Qy
           'fontsize',obj.fig_txt_size); grid on; 
         plot(idx, Qy(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));  
-        subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter",'latex', ... % Qz
+        subplot(7,1,7); hold on; subtitle('$Q_{z}$',"Interpreter","latex", ... % Qz
           'fontsize',obj.fig_txt_size); grid on;
         plot(idx, Qz(:,a), "Color", obj.plt_lclrs(a), "Marker",obj.plt_mrkrs(a));
       end
