@@ -1,8 +1,7 @@
 %% XEst main 
 
 %% init
-close all; clear; clc; addpath(genpath('./'));
-addpath(genpath('/home/smerx/DATA')); 
+close all; clear; clc;  
 cfg   = config_class(TID  = 'T00001_0-40fr_150surf', benchmark  = 'KITTI');
 pfeat = pfeature_class(); pfeat.load_cfg(cfg);
 dlog  = dlogger_class(); dlog.load_cfg(cfg); 

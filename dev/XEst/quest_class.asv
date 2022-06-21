@@ -74,7 +74,7 @@ classdef quest_class < matlab.System
         for a = 1:length(obj.pos_algs)
           alg = obj.pos_algs{a};
           if strcmp(alg, 'EightPt') % Eight Point alg
-            EOut          = eightp_Ver2_0(dat.matches.m1(:,1:8),dat.matches.m2(:,1:8));
+            EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2(:,1:8));
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(alg, 'Nister') % Five Point alg (Nister)

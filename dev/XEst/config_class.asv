@@ -1,4 +1,4 @@
-classdef config_class < matlab.System %& dat_class
+classdef config_class < matlab.System 
   properties
     %% features
     test_single_bench_en    = true
@@ -20,9 +20,9 @@ classdef config_class < matlab.System %& dat_class
     pos_algs          = { ...
                          'EightPt'; 
                          'Nister'; 
-                         %'Kneip';  % dep on opengv
+                         'Kneip';  
                          'Kukelova'; 
-                         %'Stewenius';  % dep on opengv
+                         'Stewenius';
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars
     vel_algs          = {'VEst'};
@@ -41,6 +41,9 @@ classdef config_class < matlab.System %& dat_class
     
     function obj = config_class(varargin)
       setProperties(obj,nargin,varargin{:}) % init obj w name-value args
+      addpath(genpath('./'));
+      addpath(genpath('/home/smerx/DATA')); 
+      addpath(genpath('/home/smerx/git/opengv/matlab')); % add opengv
       init(obj);
     end
   
@@ -48,16 +51,17 @@ classdef config_class < matlab.System %& dat_class
   methods (Access = private)
   
     function init(obj)
+
       obj.ttag            = strcat(obj.TID,'_',obj.benchmark);
       obj.toutDir         = strcat(obj.outDir,'/',obj.ttag,'/');
       obj.pos_numAlgs     = length(obj.pos_algs);
       obj.vel_numAlgs     = length(obj.vel_algs);
       if not(isfolder(obj.toutDir))
-        disp('test_outDir does NOT exist: ');
+        disp("[config]->> test_outDir does NOT exist: ");
         disp(obj.toutDir);
         %pause(5);
         mkdir(obj.toutDir);
-        disp('test_outDir does NOT exist: ');
+        disp("[config]->> directory has been created!");
       end 
       obj.dat = dat_class(benchtype = obj.benchmark);
       obj.dat.load_cfg(obj);
