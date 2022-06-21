@@ -20,9 +20,9 @@ classdef config_class < matlab.System %& dat_class
     pos_algs          = { ...
                          'EightPt'; 
                          'Nister'; 
-                         %'Kneip';  % dep on opengv
+                         'Kneip';  
                          'Kukelova'; 
-                         %'Stewenius';  % dep on opengv
+                         'Stewenius';
                          'QuEst'; 
                          'VEst'}; % algorithms to run % state machine vars
     vel_algs          = {'VEst'};
