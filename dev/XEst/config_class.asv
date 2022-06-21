@@ -53,11 +53,11 @@ classdef config_class < matlab.System %& dat_class
       obj.pos_numAlgs     = length(obj.pos_algs);
       obj.vel_numAlgs     = length(obj.vel_algs);
       if not(isfolder(obj.toutDir))
-        disp('[config]->> test_outDir does NOT exist: ');
+        disp('test_outDir does NOT exist: ');
         disp(obj.toutDir);
         %pause(5);
         mkdir(obj.toutDir);
-        disp("[config]->> directory has been created!");
+        disp('test_outDir does NOT exist: ');
       end 
       obj.dat = dat_class(benchtype = obj.benchmark);
       obj.dat.load_cfg(obj);
