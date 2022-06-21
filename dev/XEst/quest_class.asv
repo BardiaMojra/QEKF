@@ -74,11 +74,11 @@ classdef quest_class < matlab.System
         for a = 1:length(obj.pos_algs)
           alg = obj.pos_algs{a};
           if strcmp(alg, 'EightPt') % Eight Point alg
-            EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2(:,1:8));
+            EOut          = eightp_Ver2_0(dat.matches.m1,dat.matches.m2);
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(alg, 'Nister') % Five Point alg (Nister)
-            EOut          = opengv('fivept_nister',dat.matches.m2u(:,1:5),dat.matches.m1u(:,1:5));
+            EOut          = opengv('fivept_nister',dat.matches.m2u,dat.matches.m1u);
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);          
             Q             = R2Q(ROut);
           elseif strcmp(alg, 'Li') % Five Point alg (Li + Hatley)
@@ -86,7 +86,7 @@ classdef quest_class < matlab.System
             [ROut, tOut]  = TransformEssentialsVer2_0(EOut);
             Q             = R2Q(ROut);
           elseif strcmp(alg,  'Kneip') % Five Point alg (Kneip)
-            ROut          = opengv('fivept_kneip',1:5,dat.matches.m2u(:,1:5),dat.matches.m1u(:,1:5));  
+            ROut          = opengv('fivept_kneip',1:5,dat.matches.m2u,dat.matches.m1u(:,1:5));  
             if ~isempty(ROut) % If a solution is returned
               Q             = R2Q(ROut);
               [Q, matchIdx] = FindClosetQVer2_2(dat.relPose.qr, Q); % ...to gtruth 

@@ -19,7 +19,7 @@ classdef config_class < matlab.System
     skipframe         = 1 %nan % default
     pos_algs          = { ...
                          'EightPt'; 
-                         'Nister'; 
+                         %'Nister'; 
                          'Kneip';  
                          'Kukelova'; 
                          'Stewenius';
