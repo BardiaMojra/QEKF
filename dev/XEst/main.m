@@ -27,7 +27,6 @@ end
 %% results
 dlog.get_logs();
 dlog.plot_logs();
-
 quest.get_res(cfg, dlog);
 vest.get_res(cfg, dlog);
 qekf.get_res(cfg, dlog);

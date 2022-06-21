@@ -328,7 +328,7 @@ classdef log_class < matlab.System
       %logB = log{2,a+1}; % Z
       %logNameA = "est";
       %logNameB = "meas";
-      title = strcat(plt_tit, " - ", obj.pos_algs{a});
+      title = strcat(plt_tit, "-",obj.pos_algs{a});
       %disp(zlog);
       %disp(xlog);
       idx = logA(:,1);
@@ -384,9 +384,6 @@ classdef log_class < matlab.System
       lg.Position = obj.fig_leg_pos;
       lg.FontSize = obj.fig_txt_size;
       if obj.plts_sav_en
-        title = strrep(title, ".", "");
-        title = strrep(title, " ", "");
-        title = strrep(title, "-", "_");
         figname = strcat(obj.toutDir,"plt_qekf_log_"+title+".png");
         saveas(fig, figname);
       end

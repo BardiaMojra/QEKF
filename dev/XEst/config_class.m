@@ -55,7 +55,7 @@ classdef config_class < matlab.System %& dat_class
       if not(isfolder(obj.toutDir))
         disp('test_outDir does NOT exist: ');
         disp(obj.toutDir);
-        pause(5);
+        %pause(5);
         mkdir(obj.toutDir);
       end 
       obj.dat = dat_class(benchtype = obj.benchmark);

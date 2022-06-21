@@ -2,7 +2,7 @@ function nven = normalizeVec(vec)
   normThresh  = 1.5;
   assert(isequal(size(vec),[3,1])||isequal(size(vec),[4,1]), ...
     "[normalizeVec]-->> not a col vec")
-  assert(isequal(class(vec), "double"), "[normalizeVec]->> vec is not a matrix!");
+  assert(isequal(class(vec, "")))
   nven  = vec ./ sqrt(sum(vec.*vec)); % normalize v answer 
   if all(nven < 0) 
       nven = - nven; 
