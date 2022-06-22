@@ -4,136 +4,51 @@
 close all; clear; clc;  
 cfg   = config_class(TID  = 'T00001', desc = "test description.");
 dat   = dat_class(); dat.load_cfg(cfg);
-%trkr  = tracker_class(); tracker.load_cfg(cfg);
-
-
-%% init
-currFrameIdx = 1;
-currI = readimage(dat.imds, currFrameIdx);
-himage = imshow(currI);
+cam   = camera_class(); cam.load_cfg(cfg);
+tkr   = tracker_class(); tkr.load_cfg(cfg);
+pft   = pfeature_class(); pft.load_cfg(cfg);
 rng(0); % Set random seed for reproducibility
 
-% Create a cameraIntrinsics object to store the camera intrinsic parameters.
-% The intrinsics for the dataset can be found at the following page:
-% https://vision.in.tum.de/data/datasets/rgbd-dataset/file_formats
-% Note that the images in the dataset are already undistorted, hence there
-% is no need to specify the distortion coefficients.
-focLen      = [535.4, 539.2];    % in units of pixels
-princPoint  = [320.1, 247.6];    % in units of pixels
-imgSize     = size(currI,[1 2]);  % in units of pixels
+% init
+pft.init_initFrame(tkr);
 
-intrinsics  = cameraIntrinsics(focLen, princPoint, imgSize);
-%cam = camera_class();
+initMap(tkr, dat, pft, cfg, cam);
+check_initMap(tkr);
 
 
-%% init pfeat mod and get init frame features  
-scaleFactor = 1.2;
-numLevels   = 8;
-numPoints   = 1000;
-[preFeatures, prePoints] = helperDetectAndExtractFeatures(currI, ...
-  scaleFactor, numLevels, numPoints); 
-currFrameIdx = currFrameIdx + 1;
-firstI       = currI; % Preserve the first frame 
-isMapInitialized  = false;
-
-% Map initialization loop
-while ~isMapInitialized && currFrameIdx < numel(dat.imds.Files)
-  currI = readimage(dat.imds, currFrameIdx);
-  [currFeatures, currPoints] = helperDetectAndExtractFeatures(currI, ...
-    scaleFactor, numLevels, numPoints);   
-  currFrameIdx = currFrameIdx + 1;
-  % Find putative feature matches
-  indexPairs = matchFeatures(preFeatures, currFeatures, 'Unique', true, ...
-    'MaxRatio', 0.9, 'MatchThreshold', 40);
-  preMatchedPoints  = prePoints(indexPairs(:,1),:);
-  currMatchedPoints = currPoints(indexPairs(:,2),:);
-  % If not enough matches are found, check the next frame
-  minMatches = 100;
-  if size(indexPairs, 1) < minMatches
-    continue
-  end
-  preMatchedPoints  = prePoints(indexPairs(:,1),:);
-  currMatchedPoints = currPoints(indexPairs(:,2),:);
-  % Compute homography and evaluate reconstruction
-  [tformH, scoreH, inliersIdxH] = helperComputeHomography(preMatchedPoints, currMatchedPoints);
-  % Compute fundamental matrix and evaluate reconstruction
-  [tformF, scoreF, inliersIdxF] = helperComputeFundamentalMatrix(preMatchedPoints, currMatchedPoints);
-  % Select the model based on a heuristic
-  ratio = scoreH/(scoreH + scoreF);
-  ratioThreshold = 0.45;
-  if ratio > ratioThreshold
-    inlierTformIdx = inliersIdxH;
-    tform          = tformH;
-  else
-    inlierTformIdx = inliersIdxF;
-    tform          = tformF;
-  end
-
-  % Computes the camera location up to scale. Use half of the 
-  % points to reduce computation
-  inlierPrePoints  = preMatchedPoints(inlierTformIdx);
-  inlierCurrPoints = currMatchedPoints(inlierTformIdx);
-  [relOrient, relLoc, validFraction] = relativeCameraPose(tform, intrinsics, ...
-    inlierPrePoints(1:2:end), inlierCurrPoints(1:2:end));
-  
-  % If not enough inliers are found, move to the next frame
-  if validFraction < 0.9 || numel(size(relOrient))==3
-    continue
-  end
-  
-  % Triangulate two views to obtain 3-D map points
-  relPose = rigid3d(relOrient, relLoc);
-  minParallax = 1; % In degrees
-  [isValid, xyzWorldPoints, inlierTriangulationIdx] = helperTriangulateTwoFrames(...
-    rigid3d, relPose, inlierPrePoints, inlierCurrPoints, intrinsics, minParallax);
-  if ~isValid
-    continue
-  end
-  % Get the original index of features in the two key frames
-  indexPairs = indexPairs(inlierTformIdx(inlierTriangulationIdx),:);
-  isMapInitialized = true;
-  disp(['Map initialized with frame 1 and frame ', num2str(currFrameIdx-1)])
-end % End of map initialization loop
-
-if isMapInitialized
-  close(himage.Parent.Parent); % Close the previous figure
-  % Show matched features
-  hfeature = showMatchedFeatures(firstI, currI, prePoints(indexPairs(:,1)), ...
-    currPoints(indexPairs(:, 2)), 'Montage');
-else
-  error('Unable to initialize map.')
-end
 % Create an empty imageviewset object to store key frames
 vSetKeyFrames = imageviewset;
 % Create an empty worldpointset object to store 3-D map points
 mapPointSet   = worldpointset;
 
 
+
+
 %% store initial key frames and map points
 % Create a helperViewDirectionAndDepth object to store view direction and depth 
-directionAndDepth = helperViewDirectionAndDepth(size(xyzWorldPoints, 1));
+directionAndDepth = helperViewDirectionAndDepth(size(tkr.xyzWorldPoints, 1));
 % Add the first key frame. Place the camera associated with the first 
 % key frame at the origin, oriented along the Z-axis
 preViewId     = 1;
-vSetKeyFrames = addView(vSetKeyFrames, preViewId, rigid3d, 'Points', prePoints,...
-    'Features', preFeatures.Features);
+vSetKeyFrames = addView(vSetKeyFrames, preViewId, rigid3d, 'Points', tkr.prevPts,...
+    'Features', tkr.prevFts.Features);
 % Add the second key frame
 currViewId    = 2;
-vSetKeyFrames = addView(vSetKeyFrames, currViewId, relPose, 'Points', currPoints,...
-    'Features', currFeatures.Features);
+vSetKeyFrames = addView(vSetKeyFrames, currViewId, tkr.relPose, 'Points', tkr.currPts,...
+    'Features', tkr.currFts.Features);
 % Add connection between the first and the second key frame
-vSetKeyFrames = addConnection(vSetKeyFrames, preViewId, currViewId, relPose, 'Matches', indexPairs);
+vSetKeyFrames = addConnection(vSetKeyFrames, preViewId, currViewId, tkr.relPose, 'Matches', tkr.idxPairs);
 % Add 3-D map points
-[mapPointSet, newPointIdx] = addWorldPoints(mapPointSet, xyzWorldPoints);
+[mapPointSet, newPointIdx] = addWorldPoints(mapPointSet, tkr.xyzWorldPoints);
 % Add observations of the map points
-preLocations  = prePoints.Location;
-currLocations = currPoints.Location;
-preScales     = prePoints.Scale;
-currScales    = currPoints.Scale;
+preLocations  = tkr.prevPts.Location;
+currLocations = tkr.currPts.Location;
+preScales     = tkr.prevPts.Scale;
+currScales    = tkr.currPts.Scale;
 % Add image points corresponding to the map points in the first key frame
-mapPointSet   = addCorrespondences(mapPointSet, preViewId, newPointIdx, indexPairs(:,1));
+mapPointSet   = addCorrespondences(mapPointSet, preViewId, newPointIdx, tkr.idxPairs(:,1));
 % Add image points corresponding to the map points in the second key frame
-mapPointSet   = addCorrespondences(mapPointSet, currViewId, newPointIdx, indexPairs(:,2));
+mapPointSet   = addCorrespondences(mapPointSet, currViewId, newPointIdx, tkr.idxPairs(:,2));
 
 
 %% initialize place recognition database 
@@ -142,16 +57,21 @@ bofData         = load('bagOfFeaturesDataSLAM.mat');
 % Initialize the place recognition database
 loopDatabase    = invertedImageIndex(bofData.bof,"SaveFeatureLocations", false);
 % Add features of the first two key frames to the database
-addImageFeatures(loopDatabase, preFeatures, preViewId);
-addImageFeatures(loopDatabase, currFeatures, currViewId);
+addImageFeatures(loopDatabase, tkr.prevFts, preViewId);
+addImageFeatures(loopDatabase, tkr.currFts, currViewId);
+
+
+
+
+
 
 
 %% refine and visualize the initial reconstruction 
 % Run full bundle adjustment on the first two key frames
-tracks       = findTracks(vSetKeyFrames);
+tkr.tracks       = findTracks(vSetKeyFrames);
 cameraPoses  = poses(vSetKeyFrames);
-[refinedPoints, refinedAbsPoses] = bundleAdjustment(xyzWorldPoints, tracks, ...
-    cameraPoses, intrinsics, 'FixedViewIDs', 1, ...
+[refinedPoints, refinedAbsPoses] = bundleAdjustment(tkr.xyzWorldPoints, tkr.tracks, ...
+    cameraPoses, cam.ins, 'FixedViewIDs', 1, ...
     'PointsUndistorted', true, 'AbsoluteTolerance', 1e-7,...
     'RelativeTolerance', 1e-15, 'MaxIteration', 20, ...
     'Solver', 'preconditioned-conjugate-gradient');
@@ -160,16 +80,16 @@ medianDepth   = median(vecnorm(refinedPoints.'));
 refinedPoints = refinedPoints / medianDepth;
 refinedAbsPoses.AbsolutePose(currViewId).Translation = ...
     refinedAbsPoses.AbsolutePose(currViewId).Translation / medianDepth;
-relPose.Translation = relPose.Translation/medianDepth;
+tkr.relPose.Translation = tkr.relPose.Translation/medianDepth;
 % Update key frames with the refined poses
 vSetKeyFrames = updateView(vSetKeyFrames, refinedAbsPoses);
-vSetKeyFrames = updateConnection(vSetKeyFrames, preViewId, currViewId, relPose);
+vSetKeyFrames = updateConnection(vSetKeyFrames, preViewId, currViewId, tkr.relPose);
 % Update map points with the refined positions
 mapPointSet   = updateWorldPoints(mapPointSet, newPointIdx, refinedPoints);
 directionAndDepth = update(directionAndDepth, mapPointSet, ...
   vSetKeyFrames.Views, newPointIdx, true); % Update view direction and depth 
-close(hfeature.Parent.Parent); % close prev fig
-featurePlot   = helperVisualizeMatchedFeatures(currI, currPoints(indexPairs(:,2)));
+close(tkr.hfeature.Parent.Parent); % close prev fig
+featurePlot   = helperVisualizeMatchedFeatures(tkr.currI, tkr.currPts(tkr.idxPairs(:,2)));
 
 
 %% reconstruction of init map 
@@ -180,7 +100,7 @@ showLegend(mapPlot);
 %% init tracking 
 currKeyFrameId   = currViewId; % viewID of currKF
 lastKeyFrameId   = currViewId; % viewID of prevKF
-lastKeyFrameIdx  = currFrameIdx - 1; % idx of prevKF
+lastKeyFrameIdx  = tkr.idx_currFr - 1; % idx of prevKF
 addedFramesIdx   = [1; lastKeyFrameIdx]; % idxs of all KFs so far
 isLoopClosed     = false;
 
@@ -196,22 +116,22 @@ isLoopClosed     = false;
 % - Decide if currFrame should be marked as KF, if yes, then continue to local
 % mapping step, if not KF then start tracking next frame. 
 isLastFrameKeyFrame = true;
-while ~isLoopClosed && currFrameIdx < numel(dat.imds.Files)  
-  currI = readimage(dat.imds, currFrameIdx);
-  [currFeatures, currPoints] = helperDetectAndExtractFeatures(currI, ...
-    scaleFactor, numLevels, numPoints);
+while ~isLoopClosed && tkr.idx_currFr < numel(dat.imds.Files)  
+  tkr.currI = readimage(dat.imds, tkr.idx_currFr);
+  [tkr.currFts, tkr.currPts] = helperDetectAndExtractFeatures(tkr.currI, ...
+    pft.scaleFactor, pft.numLevels, pft.numPoints);
   % Track the last key frame
   % mapPointsIdx:   Indices of the map points observed in the current frame
   % featureIdx:     Indices of the corresponding feature points in the 
   %                 current frame
   [currPose, mapPointsIdx, featureIdx] = helperTrackLastKeyFrame(mapPointSet, ...
-    vSetKeyFrames.Views, currFeatures, currPoints, lastKeyFrameId, ...
-    intrinsics, scaleFactor);
+    vSetKeyFrames.Views, tkr.currFts, tkr.currPts, lastKeyFrameId, ...
+    cam.ins, pft.scaleFactor);
   
   % Track the local map and check if the current frame is a key frame.
   % A frame is a key frame if both of the following conditions are satisfied:
   % 1. At least 20 frames have passed since the last key frame or the
-  %    current frame tracks fewer than 100 map points.
+  %    current frame tkr.tracks fewer than 100 map points.
   % 2. The map points tracked by the current frame are fewer than 90% of
   %    points tracked by the reference key frame.
   % Tracking performance is sensitive to the value of numPointsKeyFrame.  
@@ -221,12 +141,12 @@ while ~isLoopClosed && currFrameIdx < numel(dat.imds.Files)
   numPointsKeyFrame = 100;
   [localKeyFrameIds, currPose, mapPointsIdx, featureIdx, isKeyFrame] = ...
       helperTrackLocalMap(mapPointSet, directionAndDepth, vSetKeyFrames, ...
-      mapPointsIdx, featureIdx, currPose, currFeatures, currPoints, ...
-      intrinsics, scaleFactor, numLevels, isLastFrameKeyFrame, ...
-      lastKeyFrameIdx, currFrameIdx, numSkipFrames, numPointsKeyFrame);
-  updatePlot(featurePlot, currI, currPoints(featureIdx)); % shw mat-feat
+      mapPointsIdx, featureIdx, currPose, tkr.currFts, tkr.currPts, ...
+      cam.ins, pft.scaleFactor, pft.numLevels, isLastFrameKeyFrame, ...
+      lastKeyFrameIdx, tkr.idx_currFr, numSkipFrames, numPointsKeyFrame);
+  updatePlot(featurePlot, tkr.currI, tkr.currPts(featureIdx)); % shw mat-feat
   if ~isKeyFrame
-    currFrameIdx        = currFrameIdx + 1;
+    tkr.idx_currFr       = tkr.idx_currFr+ 1;
     isLastFrameKeyFrame = false;
     continue
   else
@@ -238,7 +158,7 @@ while ~isLoopClosed && currFrameIdx < numel(dat.imds.Files)
   %% local mapping 
   % Add the new key frame 
   [mapPointSet, vSetKeyFrames] = helperAddNewKeyFrame(mapPointSet, vSetKeyFrames, ...
-      currPose, currFeatures, currPoints, mapPointsIdx, featureIdx, localKeyFrameIds);
+      currPose, tkr.currFts, tkr.currPts, mapPointsIdx, featureIdx, localKeyFrameIds);
   % Remove outlier map points that are observed in fewer than 3 key frames
   [mapPointSet, directionAndDepth, mapPointsIdx] = helperCullRecentMapPoints(mapPointSet, ...
       directionAndDepth, mapPointsIdx, newPointIdx);
@@ -246,14 +166,14 @@ while ~isLoopClosed && currFrameIdx < numel(dat.imds.Files)
   minNumMatches = 20;
   minParallax   = 3;
   [mapPointSet, vSetKeyFrames, newPointIdx] = helperCreateNewMapPoints(mapPointSet, vSetKeyFrames, ...
-      currKeyFrameId, intrinsics, scaleFactor, minNumMatches, minParallax);
+      currKeyFrameId, cam.ins, pft.scaleFactor, minNumMatches, minParallax);
   % Update view direction and depth
   directionAndDepth = update(directionAndDepth, mapPointSet, vSetKeyFrames.Views, ...
     [mapPointsIdx; newPointIdx], true);
   % Local bundle adjustment
   [mapPointSet, directionAndDepth, vSetKeyFrames, newPointIdx] = helperLocalBundleAdjustment( ...
     mapPointSet, directionAndDepth, vSetKeyFrames, ...
-    currKeyFrameId, intrinsics, newPointIdx); 
+    currKeyFrameId, cam.ins, newPointIdx); 
   % Visualize 3D world points and camera trajectory
   updatePlot(mapPlot, vSetKeyFrames, mapPointSet); 
 
@@ -265,25 +185,25 @@ while ~isLoopClosed && currFrameIdx < numel(dat.imds.Files)
     loopEdgeNumMatches = 50;
     % Detect possible loop closure key frame candidates
     [isDetected, validLoopCandidates] = helperCheckLoopClosure(vSetKeyFrames, currKeyFrameId, ...
-      loopDatabase, currI, loopEdgeNumMatches);
+      loopDatabase, tkr.currI, loopEdgeNumMatches);
     if isDetected 
       % Add loop closure connections
       [isLoopClosed, mapPointSet, vSetKeyFrames] = helperAddLoopConnections(...
         mapPointSet, vSetKeyFrames, validLoopCandidates, currKeyFrameId, ...
-        currFeatures, loopEdgeNumMatches);
+        tkr.currFts, loopEdgeNumMatches);
     end
   end
     
   % If no loop closure is detected, add current features into the database
   if ~isLoopClosed
-    addImageFeatures(loopDatabase,  currFeatures, currKeyFrameId);
+    addImageFeatures(loopDatabase,  tkr.currFts, currKeyFrameId);
   end
     
   % Update IDs and indices
   lastKeyFrameId  = currKeyFrameId;
-  lastKeyFrameIdx = currFrameIdx;
-  addedFramesIdx  = [addedFramesIdx; currFrameIdx]; %#ok<AGROW>
-  currFrameIdx    = currFrameIdx + 1;
+  lastKeyFrameIdx = tkr.idx_currFr;
+  addedFramesIdx  = [addedFramesIdx; tkr.idx_currFr,]; %#ok<AGROW>
+  tkr.idx_currFr   = tkr.idx_currFr+ 1;
 end % End of main loop
 
 %% post processing 

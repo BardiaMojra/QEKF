@@ -1,79 +1,76 @@
 classdef pfeature_class < matlab.System 
-  %% point feature class 
-  properties % public vars
+  properties
     %% features 
-    mat_feat_sav_fig_en   = true;
-    mat_feat_disp_fig_en  = false; % disp matched features between two keyframes
-    mat_feat_sav_pts_en   = false; 
-    %% cfg argin
+    frm_feat_sav_fig_en   = true
+    frm_feat_disp_fig_en  = false
+    frm_feat_sav_pts_en   = false 
+    mat_feat_sav_fig_en   = true
+    mat_feat_disp_fig_en  = false
+    mat_feat_sav_pts_en   = false 
+    %% cfg (argin)
+    cfg
     TID
-    ttag
+    outDir
+    datDir
+    btype
     toutDir
-    benchmark
-    maxPts  = 30
-    %pos_algs
-    %vel_algs  
-    %% private vars
-
-    mats  % current frame feature points 
-    m_dot % m(i) - m(i-1) of matched feature points  
-    % rpt constants 
-    mod_name    = 'fdetect'
+    ttag % TID+benchmark
+    %% parameters
+    % descriptor config
+    %desc_type       = 'orb'
+    scaleFactor = 1.2
+    numLevels   = 8
+    numPoints   = 1000
+    % matching config
+    minMatches = 100
+    
+    firstI
+    idx_firstFr
+    %% rpt cfg (argout)
+    mod_name    = 'pfeature'
     rpt_note    = " "
   end
   methods % constructor
     
     function obj = pfeature_class(varargin) 
-      setProperties(obj,nargin,varargin{:}) % init obj w name-value args
+      setProperties(obj,nargin,varargin{:});
     end  
   
   end 
   methods (Access = public) 
   
+
     function load_cfg(obj, cfg)
-      obj.TID            = cfg.TID;                   
-      obj.ttag           = cfg.ttag;                   
-      obj.toutDir        = cfg.toutDir;
-      obj.benchmark      = cfg.benchmark;
+      cfg.pft           = obj;
+      obj.cfg           = cfg;
+      obj.TID           = cfg.TID;
+      obj.outDir        = cfg.outDir;
+      obj.datDir        = cfg.datDir;
+      obj.btype         = cfg.btype;
+      obj.toutDir       = cfg.toutDir;
+      obj.ttag          = cfg.ttag;
+     
       obj.init();
     end
 
-    function get_pmats(obj, kfi, dat) 
-      % get current frame features and match w prev frame    
-      [dat.npoints,dat.In] = GetFeaturePoints(kfi, dat.dataset, dat.surfThresh);            
-      dat.matches   = MatchFeaturePoints(dat.Ip, ...
-                                         dat.ppoints, ...
-                                         dat.In, ...
-                                         dat.npoints, ...
-                                         obj.maxPts, ...
-                                         dat.dataset, ...
-                                         kfi, ...
-                                         obj.mat_feat_disp_fig_en, ... 
-                                         obj.mat_feat_sav_fig_en, ...
-                                         obj.toutDir, ...
-                                         obj.mat_feat_sav_pts_en);
-      [dat.relPose, dat.posp] = RelativeGroundTruth(kfi, dat.posp, dat.dataset);
-    end 
-
+    function init_initFrame(obj, tkr)
+      [tkr.prevFts, tkr.prevPts] = helperDetectAndExtractFeatures( ...
+        tkr.currI, obj.scaleFactor, obj.numLevels, obj.numPoints);
+      
+      tkr.idx_currFr  = tkr.idx_currFr + 1;
+      tkr.firstI      = obj.cfg.dat.firstI; 
+      tkr.isMapInitd  = false;
+    end
    
 
-  end % end of public access 
+  end % (Access = public) 
   methods (Access = private)
     
     function init(obj)
-      
+      obj.idx_firstFr = 1;
+      obj.firstI = readimage(obj.cfg.dat.imds, obj.idx_firstFr);  
+      %imshow(obj.firstI); % save init frame?
     end 
-    
- 
-    function s = save(obj) %% Backup/restore functions
-      s = save@matlab.System(obj);
-      %s.myproperty = obj.myproperty;     
-    end
 
-    function load(obj,s,wasLocked)
-      obj.myproperty = s.myproperty;       
-      load@matlab.System(obj,s,wasLocked);
-    end
-    
   end % methods (Access = private)
 end

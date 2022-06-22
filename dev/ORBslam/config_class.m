@@ -11,11 +11,20 @@ classdef config_class < matlab.System
     end_frame         = nan % end frame index
     btype             = "TUM_RGBD"
     desc              = "test description."
-    %% private
     toutDir
     ttag % TID+benchmark
-    
-    %% 
+    %% config
+    ratioThreshold    = 0.45 % homomodel huerestic ratio 
+    minParallax       = 1 % In degrees
+    %% modules 
+    dat
+    cam
+    tkr
+    pft
+
+    %% rpt cfg (argout)
+    mod_name    = 'config'
+    rpt_note    = ' '
 
   end
   methods  

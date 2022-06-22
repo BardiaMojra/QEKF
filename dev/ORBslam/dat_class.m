@@ -2,6 +2,7 @@ classdef dat_class < matlab.System
   properties
     %% features
     %% cfg (argin)
+    cfg
     TID
     outDir
     datDir
@@ -10,19 +11,26 @@ classdef dat_class < matlab.System
     btype
     toutDir
     ttag % TID+benchmark
-    %% private
-    dsetPath
-    imds
+    %% parameters
+    dsetPath 
+    imds % img dset dir obj
+    firstI
+    idx_firstFr
+    %% rpt cfg (argout)
+    mod_name    = 'data'
+    rpt_note    = ' '
   end
-
   methods % constructor
     function obj = dat_class(varargin) 
       setProperties(obj,nargin,varargin{:});
     end 
-  end % methods % constructor
+
+  end 
   methods (Access = public) 
     
     function load_cfg(obj, cfg) 
+      cfg.dat           = obj;
+      obj.cfg           = cfg;
       obj.TID           = cfg.TID;
       obj.outDir        = cfg.outDir;
       obj.datDir        = cfg.datDir;
@@ -30,13 +38,11 @@ classdef dat_class < matlab.System
       obj.end_frame     = cfg.end_frame;
       obj.btype         = cfg.btype;
       obj.toutDir       = cfg.toutDir;
-      obj.ttag          = cfg.ttag ;
+      obj.ttag          = cfg.ttag;
      
       obj.load_benchmark();
       obj.init();
-      
     end
-
 
   end 
   methods  (Access = private)
@@ -69,12 +75,13 @@ classdef dat_class < matlab.System
     end
 
     function init(obj)
-      %init 
-      fname     = strcat(obj.dsetPath,'rgbd_dataset_freiburg3_long_office_household/rgb/');
+      fname     = strcat(obj.dsetPath, ...
+        'rgbd_dataset_freiburg3_long_office_household/rgb/');
       obj.imds  = imageDatastore(fname);
-      
-      %% Inspect the first image
-
+      obj.idx_firstFr   = 1;
+      obj.firstI = readimage(obj.imds, obj.idx_firstFr);
+    
     end
-  end
+
+  end % methods
 end
