@@ -131,6 +131,7 @@ dmypy.json
 opencv-3.4.9/
 build/
 out/
+*.asv
 */devel/*
 */build_isolated/*
 */devel_isolated/*
