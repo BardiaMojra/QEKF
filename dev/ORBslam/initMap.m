@@ -38,6 +38,8 @@ function initMap(tkr, dat, pft, cfg, cam)
     % points to reduce computation
     inlierPrePoints  = preMatchedPoints(inlierTformIdx);
     inliertkr.currPts = currMatchedPoints(inlierTformIdx);
+
+    % replace with pose estimation methods 
     [relOrient, relLoc, validFraction] = relativeCameraPose(tform, cam.ins, ...
       inlierPrePoints(1:2:end), inliertkr.currPts(1:2:end));
     
