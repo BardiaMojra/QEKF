@@ -66,7 +66,7 @@ s = 6;  % Number of points needed to uniquely fit a fundamental matrix.
         % with 5 points the solution is not unique.
 
 fittingfn = @PoseEstimator;
-distfn    = @FundDist;
+distfn    = @get_SampsonDist;
 degenfn   = @IsDegenerate;
 % x1 and x2 are 'stacked' to create a 6xN array for ransac
 [M, inliers] = ransac([x1; x2], fittingfn, distfn, degenfn, s, t, feedback);
@@ -88,55 +88,53 @@ end
 % which we have to pick the best one. (A 7 point solution can return up to 3
 % solutions)
 %
-function [bestInliers, bestM] = FundDist(M, x, t)
+function [bestInliers, bestM] = get_SampsonDist(M, x, t)
     
-x1 = x(1:3,:);    % Extract x1 and x2 from x
-x2 = x(4:6,:);
-
-F = M.F;
-
-if iscell(F)        % We have several solutions each of which must be tested
+  x1 = x(1:3,:);    % Extract x1 and x2 from x
+  x2 = x(4:6,:);
+  F = M.F;
+  if iscell(F)        % We have several solutions each of which must be tested
     nF = length(F); % Number of solutions to test
     bestM = M;
     bestM.F = F{1}; % Initial allocation of best solution
     ninliers = 0;   % Number of inliers
     length(x1)
-    for k = 1 : nF
-        x2tFx1 = zeros(1,length(x1));
-        for n = 1:length(x1)
-            x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
-        end
+    for k = 1:nF
+      x2tFx1 = zeros(1,length(x1));
+      for n = 1:length(x1)
+          x2tFx1(n) = x2(:,n)'*F{k}*x1(:,n);
+      end
 
-        Fx1  = F{k}*x1;
-        Ftx2 = F{k}'*x2;     
+      Fx1  = F{k}*x1;
+      Ftx2 = F{k}'*x2;     
 
-        % Evaluate distances
-        d =  x2tFx1.^2 ./ ...
-         (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-        inliers = find(abs(d) < t);     % Indices of inlying points
-        if length(inliers) > ninliers   % Record best solution
-          ninliers = length(inliers);
-          bestM.F = F{k};
-          bestInliers = inliers;
-        end
+      % Evaluate distances
+      d =  x2tFx1.^2 ./ ...
+       (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
+      inliers = find(abs(d) < t);     % Indices of inlying points
+      if length(inliers) > ninliers   % Record best solution
+        ninliers = length(inliers);
+        bestM.F = F{k};
+        bestInliers = inliers;
+      end
     end
-else     % We just have one solution
+  else     % We just have one solution
     x2tFx1 = zeros(1,length(x1));
     for n = 1:length(x1)
-        x2tFx1(n) = x2(:,n)'*F*x1(:,n);
+      x2tFx1(n) = x2(:,n)'*F*x1(:,n);
     end
-
+  
     Fx1  = F*x1;
     Ftx2 = F'*x2;     
-
+  
     % Evaluate distances
     d =  x2tFx1.^2 ./ ...
          (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-
+  
     bestInliers = find(abs(d) < t);     % Indices of inlying points
     bestM = M;                          % Copy M directly to bestM
 
-end
+  end
 	
 end
 
@@ -147,7 +145,7 @@ end
 % RANSAC.  This function assumes this cannot happen.
      
 function r = IsDegenerate(x)
-r = 0;    
+  r = 0;    
 end    
 
 
@@ -171,42 +169,32 @@ end
 % 
 %
 function M = PoseEstimator(varargin)
-    
-[x1, x2, npts] = checkargs(varargin(:));
-
-% Recover the pose
-pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5));  % QuEst algorithm
-
-% Pick the best pose solution
-res = QuatResidueVer3_1(x1, x2, pose.Q); % Scoring function
-
-
-[resMin,mIdx] = min(abs(res)); 
-q = pose.Q(:,mIdx); 
-t = pose.T(:,mIdx);
-
-% Make a fundamental matrix from the recovered rotation and translation
-R = Q2R(q);
-Tx = Skew(t/norm(t));    
-F = Tx * R; 
-
-path = '../../mout/nbug_PoseEst_F_matlab.txt';
-writematrix(F,path,'Delimiter',' ');
-
-M.Q  = q;
-M.t  = t;
-M.m1 = x1;
-M.m2 = x2;
-M.F  = F;
-
+  [x1, x2, npts] = checkargs(varargin(:));
+  % Recover the pose
+  pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5));  % QuEst algorithm
+  % Pick the best pose solution
+  res = QuatResidueVer3_1(x1, x2, pose.Q); % Scoring function
+  [resMin,mIdx] = min(abs(res)); 
+  q = pose.Q(:,mIdx); 
+  t = pose.T(:,mIdx);
+  % Make a fundamental matrix from the recovered rotation and translation
+  R = Q2R(q);
+  Tx = Skew(t/norm(t));    
+  F = Tx * R; 
+  %path = '../../mout/nbug_PoseEst_F_matlab.txt';
+  %writematrix(F,path,'Delimiter',' ');
+  M.Q  = q;
+  M.t  = t;
+  M.m1 = x1;
+  M.m2 = x2;
+  M.F  = F;
 end
- 
-
+   
+  
 %% Function to check argument values and set defaults
 %
 function [x1, x2, npts] = checkargs(arg)
-    
-if length(arg) == 2
+  if length(arg) == 2
     x1 = arg{1};
     x2 = arg{2};
     if ~all(size(x1)==size(x2))
@@ -214,23 +202,20 @@ if length(arg) == 2
     elseif size(x1,1) ~= 3
         error('Image cordinates must come in a 3xN matrix.');
     end
-
-elseif length(arg) == 1
+  elseif length(arg) == 1
     if size(arg{1},1) ~= 6
-        error('Single input argument must be 6xN');
+      error('Single input argument must be 6xN');
     else
-        x1 = arg{1}(1:3,:);
-        x2 = arg{1}(4:6,:);
+      x1 = arg{1}(1:3,:);
+      x2 = arg{1}(4:6,:);
     end
-else
+  else
     error('Wrong number of arguments supplied');
-end
-
-npts = size(x1,2);
-if npts < 6
+  end
+  npts = size(x1,2);
+  if npts < 6
     error('At least 6 points are needed to compute the fundamental matrix');
-end
-
+  end
 end
 
 
@@ -355,122 +340,109 @@ end
 
 function [M, inliers] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback, ...
                                maxDataTrials, maxTrials)
-
-% Test number of parameters
-narginchk(6, 9) ;
-
-if nargin < 9; maxTrials = 1000;    end;
-if nargin < 8; maxDataTrials = 100; end;
-if nargin < 7; feedback = 0;        end;
-
-[rows, npts] = size(x);
-
-p = 0.99;         % Desired probability of choosing at least one sample
-                  % free from outliers (probably should be a parameter)
-
-bestM = NaN;      % Sentinel value allowing detection of solution failure.
-trialcount = 0;
-bestscore =  0;
-N = 1;            % Dummy initialisation for number of trials.
-
-while N > trialcount
-
-    % Select at random s datapoints to form a trial model, M.
-    % In selecting these points we have to check that they are not in
-    % a degenerate configuration.
-    degenerate = 1;
-    count = 1;
-    while degenerate
-        % Generate s random indicies in the range 1..npts
-        % (If you do not have the statistics toolbox with randsample(),
-        % use the function RANDOMSAMPLE from my webpage)
-        if ~exist('randsample', 'file')
-            ind = randomsample(npts, s);
-        else
-            ind = randsample(npts, s);
-        end
-        
-        ind = [1,2,3,4,5,6]; % nbug 
-
-        % Test that these points are not a degenerate configuration.
-        degenerate = feval(degenfn, x(:,ind));
-
-        if ~degenerate
-            % Fit model to this random selection of data points.
-            % Note that M may represent a set of models that fit the data in
-            % this case M will be a cell array of models
-            M = feval(fittingfn, x(:,ind));
-
-            % Depending on your problem it might be that the only way you
-            % can determine whether a data set is degenerate or not is to
-            % try to fit a model and see if it succeeds.  If it fails we
-            % reset degenerate to true.
-            if isempty(M.F)
-                degenerate = 1;
-            end
-        end
-
-        % Safeguard against being stuck in this loop forever
-        count = count + 1;
-        if count > maxDataTrials
-            warning('Unable to select a nondegenerate data set');
-            break
-        end
-    end
-
-    % Once we are out here we should have some kind of model...
-    % Evaluate distances between points and model returning the indices
-    % of elements in x that are inliers.  Additionally, if M is a cell
-    % array of possible models 'distfn' will return the model that has
-    % the most inliers.  After this call M will be a non-cell object
-    % representing only one model.
-    [inliers, M] = feval(distfn, M, x, t);
-    dispn(inliers, 6)
-    % Find the number of inliers to this model.
-    ninliers = length(inliers);
-
-    if ninliers > bestscore    % Largest set of inliers so far...
-        bestscore = ninliers;  % Record data for this model
-        bestinliers = inliers;
-        bestM = M;
-
-        % Update estimate of N, the number of trials to ensure we pick,
-        % with probability p, a data set with no outliers.
-        fracinliers =  ninliers/npts;
-        pNoOutliers = 1 -  fracinliers^s;
-        pNoOutliers = max(eps, pNoOutliers);  % Avoid division by -Inf
-        pNoOutliers = min(1-eps, pNoOutliers);% Avoid division by 0.
-        N = log(1-p)/log(pNoOutliers);
-    end
-
-    trialcount = trialcount+1;
-    if feedback
-        fprintf('trial %d out of %d         \r',trialcount, ceil(N));
-    end
-
-    % Safeguard against being stuck in this loop forever
-    if trialcount > maxTrials
-        warning( ...
-        sprintf('ransac reached the maximum number of %d trials',...
-                maxTrials));
-        break
-    end
-end
-
-if feedback, fprintf('\n'); end
-
-if isstruct(bestM)   % We got a solution
+  % Test number of parameters
+  narginchk(6, 9) ;
+  if nargin < 9; maxTrials = 1000;    end;
+  if nargin < 8; maxDataTrials = 100; end;
+  if nargin < 7; feedback = 0;        end;
+  [rows, npts] = size(x);
+  p = 0.99;         % Desired probability of choosing at least one sample
+                    % free from outliers (probably should be a parameter)
+  bestM = NaN;      % Sentinel value allowing detection of solution failure.
+  trialcount = 0;
+  bestscore =  0;
+  N = 1;            % Dummy initialisation for number of trials.
+  while N > trialcount
+      % Select at random s datapoints to form a trial model, M.
+      % In selecting these points we have to check that they are not in
+      % a degenerate configuration.
+      degenerate = 1;
+      count = 1;
+      while degenerate
+          % Generate s random indicies in the range 1..npts
+          % (If you do not have the statistics toolbox with randsample(),
+          % use the function RANDOMSAMPLE from my webpage)
+          if ~exist('randsample', 'file')
+              ind = randomsample(npts, s);
+          else
+              ind = randsample(npts, s);
+          end
+          
+          ind = [1,2,3,4,5,6]; % nbug 
+  
+          % Test that these points are not a degenerate configuration.
+          degenerate = feval(degenfn, x(:,ind));
+  
+          if ~degenerate
+              % Fit model to this random selection of data points.
+              % Note that M may represent a set of models that fit the data in
+              % this case M will be a cell array of models
+              M = feval(fittingfn, x(:,ind));
+  
+              % Depending on your problem it might be that the only way you
+              % can determine whether a data set is degenerate or not is to
+              % try to fit a model and see if it succeeds.  If it fails we
+              % reset degenerate to true.
+              if isempty(M.F)
+                  degenerate = 1;
+              end
+          end
+  
+          % Safeguard against being stuck in this loop forever
+          count = count + 1;
+          if count > maxDataTrials
+              warning('Unable to select a nondegenerate data set');
+              break
+          end
+      end
+  
+      % Once we are out here we should have some kind of model...
+      % Evaluate distances between points and model returning the indices
+      % of elements in x that are inliers.  Additionally, if M is a cell
+      % array of possible models 'distfn' will return the model that has
+      % the most inliers.  After this call M will be a non-cell object
+      % representing only one model.
+      [inliers, M] = feval(distfn, M, x, t);
+      dispn(inliers, 6)
+      % Find the number of inliers to this model.
+      ninliers = length(inliers);
+  
+      if ninliers > bestscore    % Largest set of inliers so far...
+          bestscore = ninliers;  % Record data for this model
+          bestinliers = inliers;
+          bestM = M;
+  
+          % Update estimate of N, the number of trials to ensure we pick,
+          % with probability p, a data set with no outliers.
+          fracinliers =  ninliers/npts;
+          pNoOutliers = 1 -  fracinliers^s;
+          pNoOutliers = max(eps, pNoOutliers);  % Avoid division by -Inf
+          pNoOutliers = min(1-eps, pNoOutliers);% Avoid division by 0.
+          N = log(1-p)/log(pNoOutliers);
+      end
+  
+      trialcount = trialcount+1;
+      if feedback
+          fprintf('trial %d out of %d         \r',trialcount, ceil(N));
+      end
+  
+      % Safeguard against being stuck in this loop forever
+      if trialcount > maxTrials
+          warning( ...
+          sprintf('ransac reached the maximum number of %d trials',...
+                  maxTrials));
+          break
+      end
+  end  
+  if feedback, fprintf('\n'); end
+  if isstruct(bestM)   % We got a solution
     M = bestM;
     inliers = bestinliers;
-else
+  else
     M = [];
     inliers = [];
     error('ransac was unable to find a useful solution');
-end
-
-
-
-
+  end
 end
 
 
