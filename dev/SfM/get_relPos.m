@@ -1,5 +1,5 @@
 % get_relPos Robustly estimate relative camera pose
-%  [orientation, location, inlierIdx] = get_relPos(
+%  [orien, loc, inlierIdx] = get_relPos(
 %    matchedPoints1, matchedPoints2, cameraParams) returns the pose of
 %  camera 2 in camera 1's coordinate system. The function calls
 %  estimateEssentialMatrix and cameraPose functions in a loop, until
@@ -15,9 +15,9 @@
 %
 %  Outputs:
 %  --------
-%  orientation - the orientation of camera 2 relative to camera 1
+%  orien - the orien of camera 2 relative to camera 1
 %                specified as a 3-by-3 rotation matrix
-%  location    - the location of camera 2 in camera 1's coordinate system
+%  loc    - the loc of camera 2 in camera 1's coordinate system
 %                specified as a 3-element vector
 %  inlierIdx   - the indices of the inlier points from estimating the
 %                fundamental matrix
@@ -27,44 +27,24 @@
 
 % Copyright 2016 The MathWorks, Inc. 
 
-function [orientation, location, inlierIdx] = ...
-    get_relPos(matchedPoints1, matchedPoints2, cameraParams)
+function [Q, T, inlierIdx] = get_relPos(m1, m2, cam, pos_alg)
+  if ~isnumeric(m1)
+    m1 = m1.Location;
+  end
+  if ~isnumeric(m2)
+    m2 = m2.Location;
+  end
+ 
+  if strcmp(pos_alg, "default")
+    [Q, T, inlierIdx] = relPos_SfM_default(m1, m2, cam);
+  elseif strcmp(pos_alg, "QuEst")
+    [M, inliers] = relPos_QuEst_RANSAC(m1, m2, 200);   
+    Q = M.Q;
+    T = M.t;  
+  else 
+    assert(false, "[get_relPos]--> unknown pos est alg!");
+  end
+  disp("Q"); disp(Q);
+  disp("T"); disp(T);
 
-if ~isnumeric(matchedPoints1)
-    matchedPoints1 = matchedPoints1.Location;
 end
-
-if ~isnumeric(matchedPoints2)
-    matchedPoints2 = matchedPoints2.Location;
-end
-
-for i = 1:100
-    % Estimate the essential matrix.    
-    [E, inlierIdx] = estimateEssentialMatrix(matchedPoints1, matchedPoints2,...
-        cameraParams);
-
-    % Make sure we get enough inliers
-    if sum(inlierIdx) / numel(inlierIdx) < .3
-        continue;
-    end
-    
-    % Get the epipolar inliers.
-    inlierPoints1 = matchedPoints1(inlierIdx, :);
-    inlierPoints2 = matchedPoints2(inlierIdx, :);    
-    
-    % Compute the camera pose from the fundamental matrix. Use half of the
-    % points to reduce computation.
-    [orientation, location, validPointFraction] = ...
-        relativeCameraPose(E, cameraParams, inlierPoints1(1:2:end, :),...
-        inlierPoints2(1:2:end, :));
-
-    % validPointFraction is the fraction of inlier points that project in
-    % front of both cameras. If the this fraction is too small, then the
-    % fundamental matrix is likely to be incorrect.
-    if validPointFraction > .8
-       return;
-    end
-end
-
-% After 100 attempts validPointFraction is still too low.
-error('Unable to compute the Essential matrix');

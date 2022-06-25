@@ -10,7 +10,7 @@ classdef config_class < matlab.System
     datDir            %= ['/home/smerx/DATA'] % [pwd '/data']   
     st_frame          = nan % start frame index
     end_frame         = nan % end frame index
-    btype             = "TUM_RGBD"
+    btype             = 'default'
     desc              = "test description."
     %% private
     toutDir
@@ -34,7 +34,7 @@ classdef config_class < matlab.System
 
       
     function init(obj)
-      obj.ttag            = strcat(obj.TID,'_',obj.btype);
+      obj.ttag            = strcat(obj.TID,'_',obj.btype,'_',obj.pos_alg);
       
       %% setup outDir
       obj.toutDir         = strcat(obj.outDir,'/',obj.ttag,'/');
@@ -58,7 +58,7 @@ classdef config_class < matlab.System
       elseif strcmp(obj.btype, "TUM_RGBD")
         obj.datDir = '/home/smerx/DATA/TUM_RGBD/rgbd_dataset_freiburg3_long_office_household/rgb';
       else 
-        assert(false, "[cfg.init]--> unknown dataset selection!");
+        assert(false, "[cfg.init]->> unknown dataset selection!");
       end
      
 

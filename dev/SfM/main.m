@@ -22,6 +22,7 @@
 
 %% init
 close all; clear; clc;  
+cfg   = config_class(TID  = 'T00001', pos_alg = 'QuEst');
 
 
 %% init dataset
@@ -54,17 +55,17 @@ I = undistortImage(images{1}, intrinsics);
 % features around the edges of the image.
 border = 50;
 roi = [border, border, size(I, 2)- 2*border, size(I, 1)- 2*border];
-prevPoints   = detectSURFFeatures(I, 'NumOctaves', 8, 'ROI', roi);
+prevPts   = detectSURFFeatures(I, 'NumOctaves', 8, 'ROI', roi);
 % Extract features. Using 'Upright' features improves matching, as long as
 % the camera motion involves little or no in-plane rotation.
-prevFeatures = extractFeatures(I, prevPoints, 'Upright', true);
+prevFeats = extractFeatures(I, prevPts, 'Upright', true);
 % Create an empty imageviewset object to manage the data associated with each
 % view.
 vSet = imageviewset;
 % Add the first view. Place the camera associated with the first view
 % and the origin, oriented along the Z-axis.
 viewId = 1;
-vSet = addView(vSet, viewId, rigid3d, 'Points', prevPoints);
+vSet = addView(vSet, viewId, rigid3d, 'Points', prevPts);
 
 
 %% add rest of the views
@@ -78,29 +79,28 @@ for i = 2:numel(images)
   % Undistort the current image.
   I = undistortImage(images{i}, intrinsics);
   % Detect, extract and match features.
-  currPoints   = detectSURFFeatures(I, 'NumOctaves', 8, 'ROI', roi);
-  currFeatures = extractFeatures(I, currPoints, 'Upright', true);    
-  indexPairs   = matchFeatures(prevFeatures, currFeatures, ...
-      'MaxRatio', .7, 'Unique',  true);
+  currPts   = detectSURFFeatures(I, 'NumOctaves', 8, 'ROI', roi);
+  currFeats = extractFeatures(I, currPts, 'Upright', true);    
+  idxPairs   = matchFeatures(prevFeats, currFeats, 'MaxRatio', .7, 'Unique',  true);
   % Select matched points.
-  matchedPoints1 = prevPoints(indexPairs(:, 1));
-  matchedPoints2 = currPoints(indexPairs(:, 2));
+  mPts1 = prevPts(idxPairs(:, 1));
+  mPts2 = currPts(idxPairs(:, 2));
   % Estimate the camera pose of current view relative to the previous view.
   % The pose is computed up to scale, meaning that the distance between
   % the cameras in the previous view and the current view is set to 1.
   % This will be corrected by the bundle adjustment.
-  [relativeOrient, relativeLoc, inlierIdx] = get_relPos(...
-      matchedPoints1, matchedPoints2, intrinsics);
+  %% rel pose <<---
+  [relOrient, relLoc, inlierIdx] = get_relPos(mPts1, mPts2, intrinsics, cfg.pos_alg);
   % Get the table containing the previous camera pose.
   prevPose = poses(vSet, i-1).AbsolutePose;
-  relPose  = rigid3d(relativeOrient, relativeLoc);
+  relPose  = rigid3d(relOrient, relLoc);
   % Compute the current camera pose in the global coordinate system 
   % relative to the first view.
   currPose = rigid3d(relPose.T * prevPose.T);
   % Add the current view to the view set.
-  vSet = addView(vSet, i, currPose, 'Points', currPoints);
+  vSet = addView(vSet, i, currPose, 'Points', currPts);
   % Store the point matches between the previous and the current views.
-  vSet = addConnection(vSet, i-1, i, relPose, 'Matches', indexPairs(inlierIdx,:));
+  vSet = addConnection(vSet, i-1, i, relPose, 'Matches', idxPairs(inlierIdx,:));
   % Find point tracks across all views.
   tracks = findTracks(vSet);
   % Get the table containing camera poses for all views.
@@ -113,14 +113,14 @@ for i = 2:numel(images)
       'PointsUndistorted', true);
   % Store the refined camera poses.
   vSet = updateView(vSet, camPoses);
-  prevFeatures = currFeatures;
-  prevPoints   = currPoints;  
+  prevFeats = currFeats;
+  prevPts   = currPts;  
 end
 
 
 %% dips cam poses 3D
 camPoses = poses(vSet);
-figure;
+refPoses_fig = figure();
 plotCamera(camPoses, 'Size', 0.2);
 hold on
 goodIdx = (reprojectionErrors < 5); % Exclude noisy 3-D points.
@@ -143,28 +143,28 @@ title('Refined Camera Poses');
 % Read and undistort the first image
 I = undistortImage(images{1}, intrinsics); 
 % Detect corners in the first image.
-prevPoints = detectMinEigenFeatures(I, 'MinQuality', 0.001);
+prevPts = detectMinEigenFeatures(I, 'MinQuality', 0.001);
 % Create the point tracker object to track the points across views.
 tracker = vision.PointTracker('MaxBidirectionalError', 1, 'NumPyramidLevels', 6);
 % Initialize the point tracker.
-prevPoints = prevPoints.Location;
-initialize(tracker, prevPoints, I);
+prevPts = prevPts.Location;
+initialize(tracker, prevPts, I);
 % Store the dense points in the view set.
 vSet = updateConnection(vSet, 1, 2, 'Matches', zeros(0, 2));
-vSet = updateView(vSet, 1, 'Points', prevPoints);
+vSet = updateView(vSet, 1, 'Points', prevPts);
 % Track the points across all views.
 for i = 2:numel(images)
   % Read and undistort the current image.
   I = undistortImage(images{i}, intrinsics); 
   % Track the points.
-  [currPoints, validIdx] = step(tracker, I);
+  [currPts, validIdx] = step(tracker, I);
   % Clear the old matches between the points.
   if i < numel(images)
     vSet = updateConnection(vSet, i, i+1, 'Matches', zeros(0, 2));
   end
-  vSet = updateView(vSet, i, 'Points', currPoints); 
+  vSet = updateView(vSet, i, 'Points', currPts); 
   % Store the point matches in the view set.
-  matches = repmat((1:size(prevPoints, 1))', [1, 2]);
+  matches = repmat((1:size(prevPts, 1))', [1, 2]);
   matches = matches(validIdx, :);        
   vSet = updateConnection(vSet, i-1, i, 'Matches', matches);
 end
