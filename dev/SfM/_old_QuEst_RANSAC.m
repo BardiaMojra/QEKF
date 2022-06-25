@@ -29,7 +29,7 @@
 % Ver 1_1: RANSAC based on Fundamental matrix 
 % Ver 1_2: x1, x2 are Euclidean coordinates
 %
-function [M, inliers] = relPos_QuEst_RANSAC(x1, x2, t, feedback)
+function [M, inliers] = relPos_QuEst_RANSAC_old(x1, x2, t, feedback)
   if ~all(size(x1)==size(x2))  % Check input
     error('Image dataset must have the same dimension.');
   end

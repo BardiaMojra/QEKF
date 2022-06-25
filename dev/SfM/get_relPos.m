@@ -27,7 +27,11 @@
 
 % Copyright 2016 The MathWorks, Inc. 
 
-function [Q, T, inlierIdx] = get_relPos(m1, m2, cam, pos_alg)
+function [Q, T, inLIdx] = get_relPos(m1, m2, camIntrs, pos_alg)
+  inLThresh = .8; % ideally as close as possible to 1.0
+  num_ransacTrials = 100;
+  %pos_alg = "default";
+  %pos_alg = "RQuEst";
   if ~isnumeric(m1)
     m1 = m1.Location;
   end
@@ -35,16 +39,24 @@ function [Q, T, inlierIdx] = get_relPos(m1, m2, cam, pos_alg)
     m2 = m2.Location;
   end
  
-  if strcmp(pos_alg, "default")
-    [Q, T, inlierIdx] = relPos_SfM_default(m1, m2, cam);
-  elseif strcmp(pos_alg, "QuEst")
-    [M, inliers] = relPos_QuEst_RANSAC(m1, m2, 200);   
-    Q = M.Q;
-    T = M.t;  
-  else 
-    assert(false, "[get_relPos]--> unknown pos est alg!");
-  end
-  disp("Q"); disp(Q);
-  disp("T"); disp(T);
+  for i = 1:num_ransacTrials   
+    if strcmp(pos_alg, "default")
+      [R, T, inLIdx, inLFract] = get_rPos_SfM_def(m1, m2, camIntrs);
+      Q = R; %for now
+    elseif strcmp(pos_alg, "RQuEst")
+      [Q, T, inLIdx, inLFract] = relPos_RQuEst(m1, m2, camIntrs);
+    else 
+      assert(false, "[get_relPos]--> unknown pos est alg!");
+    end
+    
+    disp("Q"); disp(Q);
+    disp("T"); disp(T);
+    disp("inLFract"); disp(inLFract);
+    
+    if inLFract > inLThresh % -->> must have hi frac of inliers or F-mat would be wrong
+      return;
+    end
 
+  end % for
+  error('[relPos_SfM_def]->> after 100 iters, unable to compute the Essential matrix!');
 end

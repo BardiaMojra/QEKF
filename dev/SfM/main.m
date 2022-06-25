@@ -13,16 +13,13 @@
 %     1.6. find pt tracks across all frames so far
 %     1.7. use triang-multiview funct to compute init 3D pt correspondances
 %     1.8. use bundle adjustment to refine camera poses and 3D pts
-%
-%
 %   2. refine reconst by iterating over the sequence of views again and
 %   apply bundle adjustment 
 %
 %
-
 %% init
 close all; clear; clc;  
-cfg   = config_class(TID  = 'T00001', pos_alg = 'QuEst');
+cfg   = config_class(TID  = 'T00001'); %, pos_alg = 'RQuEst');
 
 
 %% init dataset
@@ -44,12 +41,12 @@ end
 
 %% init cam 
 data = load(fullfile(imageDir, 'cameraParams.mat'));
-cameraParams = data.cameraParams;
+cam = data.cameraParams;
 
 
 %% init firstView
-intrinsics = cameraParams.Intrinsics;
-I = undistortImage(images{1}, intrinsics); 
+%intrinsics = cam.Intrinsics;
+I = undistortImage(images{1}, cam.Intrinsics); 
 % Detect features. Increasing 'NumOctaves' helps detect large-scale
 % features in high-resolution images. Use an ROI to eliminate spurious
 % features around the edges of the image.
@@ -76,40 +73,47 @@ vSet = addView(vSet, viewId, rigid3d, 'Points', prevPts);
 % 4. Triangulate the initial 3-D world points.
 % 5. Use bundle adjustment to refine all camera poses and the 3-D world points.
 for i = 2:numel(images)
-  % Undistort the current image.
-  I = undistortImage(images{i}, intrinsics);
-  % Detect, extract and match features.
+
+
+  % undistort
+  I = undistortImage(images{i}, cam.Intrinsics);
+  
+  
+  % get matched pt feats
   currPts   = detectSURFFeatures(I, 'NumOctaves', 8, 'ROI', roi);
   currFeats = extractFeatures(I, currPts, 'Upright', true);    
   idxPairs   = matchFeatures(prevFeats, currFeats, 'MaxRatio', .7, 'Unique',  true);
-  % Select matched points.
   mPts1 = prevPts(idxPairs(:, 1));
   mPts2 = currPts(idxPairs(:, 2));
-  % Estimate the camera pose of current view relative to the previous view.
-  % The pose is computed up to scale, meaning that the distance between
-  % the cameras in the previous view and the current view is set to 1.
-  % This will be corrected by the bundle adjustment.
-  %% rel pose <<---
-  [relOrient, relLoc, inlierIdx] = get_relPos(mPts1, mPts2, intrinsics, cfg.pos_alg);
-  % Get the table containing the previous camera pose.
+
+
+
+
+
+  %% est rel pose <<-------------------------------------------------------------------------------------
+  [relQ, relT, inIdx] = get_relPos(mPts1, mPts2, cam.Intrinsics, cfg.pos_alg);
+  
+
+
+
+  
+  
+  
   prevPose = poses(vSet, i-1).AbsolutePose;
-  relPose  = rigid3d(relOrient, relLoc);
-  % Compute the current camera pose in the global coordinate system 
-  % relative to the first view.
+  relPose  = rigid3d(relQ, relT);
   currPose = rigid3d(relPose.T * prevPose.T);
-  % Add the current view to the view set.
   vSet = addView(vSet, i, currPose, 'Points', currPts);
-  % Store the point matches between the previous and the current views.
-  vSet = addConnection(vSet, i-1, i, relPose, 'Matches', idxPairs(inlierIdx,:));
+
+  vSet = addConnection(vSet, i-1, i, relPose, 'Matches', idxPairs(inIdx,:));
   % Find point tracks across all views.
   tracks = findTracks(vSet);
   % Get the table containing camera poses for all views.
   camPoses = poses(vSet);
   % Triangulate initial locations for the 3-D world points.
-  xyzPoints = triangulateMultiview(tracks, camPoses, intrinsics);
+  xyzPoints = triangulateMultiview(tracks, camPoses, cam.Intrinsics);
   % Refine the 3-D world points and camera poses.
   [xyzPoints, camPoses, reprojectionErrors] = bundleAdjustment(xyzPoints, ...
-      tracks, camPoses, intrinsics, 'FixedViewId', 1, ...
+      tracks, camPoses, cam.Intrinsics, 'FixedViewId', 1, ...
       'PointsUndistorted', true);
   % Store the refined camera poses.
   vSet = updateView(vSet, camPoses);
@@ -141,7 +145,7 @@ title('Refined Camera Poses');
 
 %% compute dense reconstruction
 % Read and undistort the first image
-I = undistortImage(images{1}, intrinsics); 
+I = undistortImage(images{1}, cam.Intrinsics); 
 % Detect corners in the first image.
 prevPts = detectMinEigenFeatures(I, 'MinQuality', 0.001);
 % Create the point tracker object to track the points across views.
@@ -155,7 +159,7 @@ vSet = updateView(vSet, 1, 'Points', prevPts);
 % Track the points across all views.
 for i = 2:numel(images)
   % Read and undistort the current image.
-  I = undistortImage(images{i}, intrinsics); 
+  I = undistortImage(images{i}, cam.Intrinsics); 
   % Track the points.
   [currPts, validIdx] = step(tracker, I);
   % Clear the old matches between the points.
@@ -173,10 +177,10 @@ tracks = findTracks(vSet);
 % Find point tracks across all views.
 camPoses = poses(vSet);
 % Triangulate initial locations for the 3-D world points.
-xyzPoints = triangulateMultiview(tracks, camPoses, intrinsics);
+xyzPoints = triangulateMultiview(tracks, camPoses, cam.Intrinsics);
 % Refine the 3-D world points and camera poses.
 [xyzPoints, camPoses, reprojectionErrors] = bundleAdjustment(...
-  xyzPoints, tracks, camPoses, intrinsics, 'FixedViewId', 1, ...
+  xyzPoints, tracks, camPoses, cam.Intrinsics, 'FixedViewId', 1, ...
   'PointsUndistorted', true);
 
 
