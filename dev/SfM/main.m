@@ -105,6 +105,10 @@ for i = 2:numel(images)
   vSet = addView(vSet, i, currPose, 'Points', currPts);
 
   vSet = addConnection(vSet, i-1, i, relPose, 'Matches', idxPairs(inIdx,:));
+  
+  
+  
+  
   % Find point tracks across all views.
   tracks = findTracks(vSet);
   % Get the table containing camera poses for all views.

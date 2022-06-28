@@ -41,10 +41,10 @@ function [Q, T, inLIdx] = get_relPos(m1, m2, camIntrs, pos_alg)
  
   for i = 1:num_ransacTrials   
     if strcmp(pos_alg, "default")
-      [R, T, inLIdx, inLFract] = get_rPos_SfM_def(m1, m2, camIntrs);
+      [R, T, inLIdx, inLFract] = rPos_SfM_def(m1, m2, camIntrs);
       Q = R; %for now
     elseif strcmp(pos_alg, "RQuEst")
-      [Q, T, inLIdx, inLFract] = relPos_RQuEst(m1, m2, camIntrs);
+      [Q, T, inLIdx, inLFract] = rPos_RQuEst(m1, m2, camIntrs);
     else 
       assert(false, "[get_relPos]--> unknown pos est alg!");
     end

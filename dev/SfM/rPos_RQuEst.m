@@ -59,7 +59,7 @@
 % piecewise planar environment, in International Journal of Pattern
 % Recognition and Artificial Intelligence, 2(3):485508, 1988.
 %#codegen
-function [Q, T, validFrac] =  rPos_RQuEst(F, varargin)
+function [Rot, T, validFrac] =  rPos_RQuEst(F, varargin)
   [camPar1, camPar2, inLPts1, inLPts2] = parseInputs(F, varargin{:});
   if isa(camPar1, 'cameraIntrinsics')
     camPar1 = camPar1.CameraParameters;
@@ -71,6 +71,8 @@ function [Q, T, validFrac] =  rPos_RQuEst(F, varargin)
   K2 = camPar2.IntrinsicMatrix;
   
   
+
+  %% run initial QuEst 
   if ~isa(F, 'images.geotrans.internal.GeometricTransformation')
     if isFundamentalMatrix(F, inLPts1, inLPts2, K1, K2)
       E = K2 * F * K1'; % Compute the essential matrix
@@ -84,25 +86,29 @@ function [Q, T, validFrac] =  rPos_RQuEst(F, varargin)
   end
 
 
-
+  %% choose a solution 
 
   [R, t, validFrac] = chooseRealizableSol(Rs, Ts, camPar1, camPar2, inLPts1, ...
     inLPts2);
   % R and t are currently the transformation from camera1's coordinates into
   % camera2's coordinates. To find the location and orientation of camera2 in
   % camera1's coordinates we must take their inverse.
-  Q = R;
+  Rot = R;
   T = t;
   if size(T, 1) == 1
-    Q = R(:,:,1)';
-    T = -t * Q;    
+    Rot = R(:,:,1)';
+    T = -t * Rot;    
   else
     [~, idx] = sort(t(:, 3)); % Sort t to make consistent order of output
     for n = 1:size(t, 1)
-      Q(:,:,n) = R(:,:,idx(n))';
-      T(n, :) = -t(idx(n), :) * Q(:,:,n);
+      Rot(:,:,n) = R(:,:,idx(n))';
+      T(n, :) = -t(idx(n), :) * Rot(:,:,n);
     end
   end
+
+
+
+  
 %--------------------------------------------------------------------------
 
 
@@ -144,7 +150,7 @@ function [camPar1, camPar2, inLPts1, inLPts2] = parseInputs(F, varargin)
   [inLPts1, inLPts2] = vision.internal.inputValidation.checkAndConvertMatchedPoints(...
     pts1, pts2, mfilename, 'inlierPoints1', 'inlierPoints2');
   %coder.internal.errorIf(isempty(points1), 'vision:relativeCameraPose:emptyInlierPoints');
-  assert(false, "[  rPos_RQuEst}->> empty inliers!");
+  assert(false, "[rPos_RQuEst}->> empty inliers!");
 %--------------------------------------------------------------------------
 
 

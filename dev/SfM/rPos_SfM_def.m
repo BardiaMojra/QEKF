@@ -1,4 +1,6 @@
-function [R, T, inLIdx, inLFract] = get_rPos_SfM_def(m1, m2, camIntrs)
+function [R, T, inLIdx, inLFract] = rPos_SfM_def(m1, m2, camIntrs)
+
+
   [E, inLIdx, inLFract] = estimateEssentialMatrix(m1, m2, camIntrs);
   if sum(inLIdx) / numel(inLIdx) < .3 % Make sure we get enough inliers
     return;
