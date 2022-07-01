@@ -27,39 +27,26 @@
 
 % Copyright 2016 The MathWorks, Inc. 
 
-function [Q, T, inLIdx] = get_relPos(m1, m2, camIntrs, pos_alg)
-  inLThresh = .8; % ideally as close as possible to 1.0
-  num_ransacTrials = 100;
-  %pos_alg = "default";
-  %pos_alg = "RQuEst";
-  if ~isnumeric(m1)
-    m1 = m1.Location;
-  end
-  if ~isnumeric(m2)
-    m2 = m2.Location;
-  end
- 
-  for i = 1:num_ransacTrials   
-    if strcmp(pos_alg, "default")
-      [R, T, inLIdx, inLFract] = rPos_SfM_def(m1, m2, camIntrs);
-      Q = R; %for now
-    elseif strcmp(pos_alg, "RQuEst")
-      %[Q, T, inLIdx, inLFract] = rPos_RQuEst(m1, m2, camIntrs);
-      [M, inLIdx] = QuEst_RANSAC_Ver1_2(matches.m1, matches.m2, ranThresh);
-      Q = M.Q;
-      T = M.t;
-    else 
-      assert(false, "[get_relPos]--> unknown pos est alg!");
-    end
-    
     disp("Q"); disp(Q);
     disp("T"); disp(T);
     disp("inLFract"); disp(inLFract);
     
-    if inLFract > inLThresh % -->> must have hi frac of inliers or F-mat would be wrong
-      return;
-    end
+function [Q, T, inLIdx] = get_relPos(m1, m2, camIntrs, pos_alg)
+  inLThresh = .8; % RANSAC inlier threshold
+  trials = 100;
+  %pos_alg = "default";
+  %pos_alg = "RQuEst";
 
-  end % for
-  error('[relPos_SfM_def]->> after 100 iters, unable to compute the Essential matrix!');
+  if strcmp(pos_alg, "default")
+    [Q, T, inLIdx] = rPos_SfM_def(m1, m2, camIntrs);
+    Q = R; %for now
+  elseif strcmp(pos_alg, "RQuEst")
+    [Q, T, inLIdx] = rPos_RQuEst(m1, m2, camIntrs);
+    %[M, inLIdx, inLFract] = RQuEst(m1, m2, ranThresh);
+    Q = M.Q;
+    T = M.t;
+  else 
+    assert(false, "[get_relPos]--> unknown pos est alg!");
+  end
+  
 end
