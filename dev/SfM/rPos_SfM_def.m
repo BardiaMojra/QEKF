@@ -1,31 +1,3 @@
-function [R, T, inLIdx] = rPos_SfM_def(m1, m2, camIntrs)
-  %% cfg
-  trials = 100;
-  if ~isnumeric(m1)
-    m1 = m1.Location;
-  end
-  if ~isnumeric(m2)
-    m2 = m2.Location;
-  end
-  for i = 1:trials       
-    [E, inLIdx] = estimateEssentialMatrix(m1, m2, camIntrs);
-    if sum(inLIdx) / numel(inLIdx) < .3 % Make sure we get enough inliers
-      continue;
-    end    
-    inLPts1 = m1(inLIdx, :); % get the epipolar inliers.
-    inLPts2 = m2(inLIdx, :);    
-    % Compute cam pos from fundamental matrix. Use half of pts to reduce comp
-    [R, T, inLFract] = relativeCameraPose(E, camIntrs, inLPts1(1:2:end,:),...
-      inLPts2(1:2:end, :));
-    disp("[rPos_SfM_def]->> inLFract"); disp(inLFract);
-    if inLFract > inLThresh % -->> must have hi frac of inliers or F-mat would be wrong
-      return;
-    end
-  end % for
-  error('[relPos_SfM_def]->> after 100 iters, unable to compute the Essential matrix!');
-
-end 
-
 % get_relPos Robustly estimate relative camera pose
 %  [orientation, location, inlierIdx] = get_relPos(
 %    matchedPoints1, matchedPoints2, cameraParams) returns the pose of
@@ -50,30 +22,30 @@ end
 %  inLIdx   - the indices of the inlier points from estimating the
 %                fundamental matrix
 %
-%  See also estimateEssentialmatrix, estimateFundamentalMatrix, 
+%  See also estimateEssentialmatrix, estimateFundamentalMatrix,
 %  relativeCameraPose
-% Copyright 2016 The MathWorks, Inc. 
-
-function [R, T, inLIdx] = get_relPos(m1, m2, camIntrs)
+% Copyright 2016 The MathWorks, Inc.
+function [R, T, inLIdx] = rPos_SfM_def(m1, m2, camIntrs, trials, inLThresh)
   if ~isnumeric(m1)
     m1 = m1.Location;
   end
   if ~isnumeric(m2)
     m2 = m2.Location;
   end
-  for i = 1:100
+  for i = 1:trials
     [E, inLIdx] = estimateEssentialMatrix(m1, m2, camIntrs);
-    if sum(inLIdx) / numel(inLIdx) < .3 % gotta have enough inliers
+    if sum(inLIdx) / numel(inLIdx) < .3 % Make sure we get enough inliers
       continue;
     end
-    inLPts1 = m1(inLIdx, :); % Get the epipolar inliers.
-    inLPts2 = m2(inLIdx, :);    
-    [R, T, inLFract] = relativeCameraPose(E, camIntrs, inLPts1(1:2:end, :),...
-      inLPts2(1:2:end, :)); % use half of pts to reduce comp
-    if inLFract > .8 % -->> must have high % of inliers or Fmat would be wrong
+    inLPts1 = m1(inLIdx, :); % get the epipolar inliers.
+    inLPts2 = m2(inLIdx, :);
+    % Compute cam pos from fundamental matrix. Use half of pts to reduce comp
+    [R, T, inLFract] = relativeCameraPose(E, camIntrs, inLPts1(1:2:end,:),...
+      inLPts2(1:2:end, :));
+    disp("[rPos_SfM_def]->> inLFract"); disp(inLFract);
+    if inLFract > inLThresh % -->> must have hi frac of inliers or F-mat would be wrong
       return;
     end
-  end % for 
-  error('[get_relPos]->> after 100 iters, unable to compute the E-matrix!');
+  end % for
+  error('[rPos_SfM_def]->> after 100 iters, unable to compute the Essential matrix!');
 end
-  
