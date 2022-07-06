@@ -8,11 +8,9 @@ function [R, T, inLIdx] = rPos_RQuEst(m1, m2, camIntrs, trials, inLThresh)
 
   for i = 1:trials
     %[E, inLIdx] = estimateEssentialMatrix(m1, m2, camIntrs);
-
     [M, inLIdx] = RQuEst(m1, m2, ranThresh);
     Q = M.Q;
     T = M.t;
-
     if sum(inLIdx) / numel(inLIdx) < .3 % Make sure we get enough inliers
       continue;
     end
@@ -24,7 +22,7 @@ function [R, T, inLIdx] = rPos_RQuEst(m1, m2, camIntrs, trials, inLThresh)
     [R, T, inLFract] = RQuEst_relCamPose(E, camIntrs, inLPts1(1:2:end,:),...
       inLPts2(1:2:end, :));
 
-    disp("[rPos_RQuEst]->> inLFract"); disp(inLFract);
+    disp("[rPos_RQuEst]->> inLFract:"); disp(inLFract);
     if inLFract > inLThresh % should be .8-.9
       return;
     end

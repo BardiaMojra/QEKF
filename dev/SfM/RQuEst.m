@@ -162,9 +162,9 @@ function [x1, x2, npts] = checkargs(arg)
     x1 = arg{1};
     x2 = arg{2};
     if ~all(size(x1)==size(x2))
-        error('Image dataset must have the same size.');
+      error('Image dataset must have the same size.');
     elseif size(x1,1) ~= 3
-        error('Image cordinates must come in a 3xN matrix.');
+      error('Image cordinates must come in a 3xN matrix.');
     end
   elseif length(arg) == 1
     if size(arg{1},1) ~= 6
@@ -323,41 +323,36 @@ function [M, inliers] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback, ..
       degenerate = 1;
       count = 1;
       while degenerate
-          % Generate s random indicies in the range 1..npts
-          % (If you do not have the statistics toolbox with randsample(),
-          % use the function RANDOMSAMPLE from my webpage)
-          if ~exist('randsample', 'file')
-              ind = randomsample(npts, s);
-          else
-              ind = randsample(npts, s);
+        % Generate s random indicies in the range 1..npts
+        % (If you do not have the statistics toolbox with randsample(),
+        % use the function RANDOMSAMPLE from my webpage)
+        if ~exist('randsample', 'file')
+          ind = randomsample(npts, s);
+        else
+          ind = randsample(npts, s);
+        end
+        %ind = [1,2,3,4,5,6]; % nbug 
+        % Test that these points are not a degenerate configuration.
+        degenerate = feval(degenfn, x(:,ind));
+        if ~degenerate
+          % Fit model to this random selection of data points.
+          % Note that M may represent a set of models that fit the data in
+          % this case M will be a cell array of models
+          M = feval(fittingfn, x(:,ind));
+          % Depending on your problem it might be that the only way you
+          % can determine whether a data set is degenerate or not is to
+          % try to fit a model and see if it succeeds.  If it fails we
+          % reset degenerate to true.
+          if isempty(M.F)
+            degenerate = 1;
           end
-          
-          ind = [1,2,3,4,5,6]; % nbug 
-  
-          % Test that these points are not a degenerate configuration.
-          degenerate = feval(degenfn, x(:,ind));
-  
-          if ~degenerate
-              % Fit model to this random selection of data points.
-              % Note that M may represent a set of models that fit the data in
-              % this case M will be a cell array of models
-              M = feval(fittingfn, x(:,ind));
-  
-              % Depending on your problem it might be that the only way you
-              % can determine whether a data set is degenerate or not is to
-              % try to fit a model and see if it succeeds.  If it fails we
-              % reset degenerate to true.
-              if isempty(M.F)
-                  degenerate = 1;
-              end
-          end
-  
-          % Safeguard against being stuck in this loop forever
-          count = count + 1;
-          if count > maxDataTrials
-              warning('Unable to select a nondegenerate data set');
-              break
-          end
+        end
+        % Safeguard against being stuck in this loop forever
+        count = count + 1;
+        if count > maxDataTrials
+          warning('Unable to select a nondegenerate data set');
+          break
+        end
       end
   
       % Once we are out here we should have some kind of model...
