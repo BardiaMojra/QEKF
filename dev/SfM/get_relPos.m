@@ -1,9 +1,10 @@
-function [Q, T, inLIdx] = get_relPos(m1, m2, camIntrs, pos_alg)
+function [R, T, inLIdx] = get_relPos(m1, m2, camIntrs, pos_alg)
   %% cfg
   inLThresh = .8; % RANSAC inlier threshold
   trials = 100;
+  %% pose alg
   if strcmp(pos_alg, "default_5Pt")
-    [Q, T, inLIdx] = rPos_SfM_def(m1, m2, camIntrs, trials, inLThresh);
+    [R, T, inLIdx] = rPos_SfM_def(m1, m2, camIntrs, trials, inLThresh);
     Q = rotm2quat(R);
   elseif strcmp(pos_alg, "RQuEst")
     [Q, T, inLIdx] = rPos_RQuEst(m1, m2, camIntrs, trials, inLThresh);
