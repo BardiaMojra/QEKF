@@ -88,7 +88,7 @@ for i = 2:numel(images)
 
 
   %% est rel pose <<-------------------------------------------------------------------------------------
-  [relQ, relT, inIdx] = get_relPos(mPts1, mPts2, cam.Intrinsics, cfg.pos_alg);
+  [relQ, relT, inIdx] = get_rPos(mPts1, mPts2, cam.Intrinsics, cfg.pos_alg);
 
 
 

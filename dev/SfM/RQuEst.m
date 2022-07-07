@@ -205,7 +205,7 @@ function r = check(Es, varargin)
 end
 
 %--------------------------------------------------------------------------
-function Es = quest_algorithm(varargin)
+function M = quest_algorithm(varargin)
   [x1, x2, npts] = checkargs(varargin(:));
   % Recover the pose
   pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5));  % QuEst algorithm
@@ -219,7 +219,7 @@ function Es = quest_algorithm(varargin)
   Tx = Skew(t/norm(t));    
   F = Tx * R; 
 
-  
+
   %path = '../../mout/nbug_PoseEst_F_matlab.txt';
   %writematrix(F,path,'Delimiter',' ');
   M.Q  = q;

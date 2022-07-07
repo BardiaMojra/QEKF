@@ -1,5 +1,5 @@
 
-function [M, inliers] = relPos_QuEst_RANSAC_old(x1, x2, thresh, feedback)
+function [M, inliers] = oQuEst_RAN(x1, x2, thresh, feedback)
   if ~all(size(x1)==size(x2))  % Check input
     error('Image dataset must have the same dimension.');
   end
@@ -32,7 +32,7 @@ end
 % Note that this code allows for F being a cell array of fundamental matrices of
 % which we have to pick the best one. (A 7 point solution can return up to 3
 % solutions)
-function [bestInliers, bestM] = get_SampsonDist(M, x, t)
+function [bestInliers, bestM] = get_SampsonDist(M, x, thresh)
   x1 = x(1:3,:);    % Extract x1 and x2 from x
   x2 = x(4:6,:);
   F = M.F;
@@ -51,7 +51,7 @@ function [bestInliers, bestM] = get_SampsonDist(M, x, t)
       Ftx2 = F{k}'*x2;     
       % Evaluate distances
       d =  x2tFx1.^2 ./ (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-      inliers = find(abs(d) < t);     % Indices of inlying points
+      inliers = find(abs(d) < thresh);     % Indices of inlying points
       if length(inliers) > ninliers   % Record best solution
         ninliers = length(inliers);
         bestM.F = F{k};
@@ -68,7 +68,7 @@ function [bestInliers, bestM] = get_SampsonDist(M, x, t)
     % Evaluate distances
     d =  x2tFx1.^2 ./ ...
          (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-    bestInliers = find(abs(d) < t);     % Indices of inlying points
+    bestInliers = find(abs(d) < thresh);     % Indices of inlying points
     bestM = M;                          % Copy M directly to bestM
   end
 end
@@ -276,9 +276,9 @@ function [M, inliers] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback, ..
                                maxDataTrials, maxTrials)
   % Test number of parameters
   narginchk(6, 9) ;
-  if nargin < 9; maxTrials = 1000;    end;
-  if nargin < 8; maxDataTrials = 100; end;
-  if nargin < 7; feedback = 0;        end;
+  if nargin < 9; maxTrials = 1000;    end
+  if nargin < 8; maxDataTrials = 100; end
+  if nargin < 7; feedback = 0;        end
   [rows, npts] = size(x);
   p = 0.99;         % Desired probability of choosing at least one sample
                     % free from outliers (probably should be a parameter)

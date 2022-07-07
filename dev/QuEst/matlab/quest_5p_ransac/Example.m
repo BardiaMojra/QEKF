@@ -97,7 +97,7 @@ for i = keyFrames
         % Use current image for the next iteration
         Ip = In;
         ppoints = npoints;
-        disp('Not enough matched feature points. Frame skipped!')
+        disp('Not enough matched feature points. Frame skipped!');
         continue
     end
 
@@ -116,7 +116,7 @@ for i = keyFrames
 %             q = M.Q;
 %             tOut = M.t;
         else
-            error('Undefined algorithm.')
+            error('Undefined algorithm.');
         end
 
 %         % Find the closet quaternion and translation to the ground truth

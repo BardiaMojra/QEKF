@@ -44,7 +44,7 @@
 % Ver 1_2:
 %           x1, x2 are Euclidean coordinates
 %
-function [M, inliers] = QuEst_RANSAC_Ver1_2(x1, x2, t, feedback)
+function [M, inliers] = QuEst_RANSAC_Ver1_2(x1, x2, thresh, feedback)
 
 % Check input
 if ~all(size(x1)==size(x2))
@@ -69,7 +69,7 @@ fittingfn = @PoseEstimator;
 distfn    = @get_SampsonDist;
 degenfn   = @IsDegenerate;
 % x1 and x2 are 'stacked' to create a 6xN array for ransac
-[M, inliers] = ransac([x1; x2], fittingfn, distfn, degenfn, s, t, feedback);
+[M, inliers] = ransac([x1; x2], fittingfn, distfn, degenfn, s, thresh, feedback);
 
 % Now do a final fit on the data points considered to be inliers
 % Mb = feval(fittingfn, [x1(:,inliers); x2(:,inliers)]);
@@ -88,7 +88,7 @@ end
 % which we have to pick the best one. (A 7 point solution can return up to 3
 % solutions)
 %
-function [bestInliers, bestM] = get_SampsonDist(M, x, t)
+function [bestInliers, bestM] = get_SampsonDist(M, x, thresh)
     
   x1 = x(1:3,:);    % Extract x1 and x2 from x
   x2 = x(4:6,:);
@@ -111,7 +111,7 @@ function [bestInliers, bestM] = get_SampsonDist(M, x, t)
       % Evaluate distances
       d =  x2tFx1.^2 ./ ...
        (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
-      inliers = find(abs(d) < t);     % Indices of inlying points
+      inliers = find(abs(d) < thresh);     % Indices of inlying points
       if length(inliers) > ninliers   % Record best solution
         ninliers = length(inliers);
         bestM.F = F{k};
@@ -131,7 +131,7 @@ function [bestInliers, bestM] = get_SampsonDist(M, x, t)
     d =  x2tFx1.^2 ./ ...
          (Fx1(1,:).^2 + Fx1(2,:).^2 + Ftx2(1,:).^2 + Ftx2(2,:).^2);
   
-    bestInliers = find(abs(d) < t);     % Indices of inlying points
+    bestInliers = find(abs(d) < thresh);     % Indices of inlying points
     bestM = M;                          % Copy M directly to bestM
 
   end
