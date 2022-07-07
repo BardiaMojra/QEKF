@@ -8,6 +8,10 @@ function [Ori, Loc, inLFract] = RQuEst_relCamPose(F, varargin)
   end
   K1 = camP1.IntrinsicMatrix;
   K2 = camP2.IntrinsicMatrix;
+
+
+
+  
   if ~isa(F, 'images.geotrans.internal.GeometricTransformation')
     if isFundamentalMatrix(F, inLPts1, inLPts2, K1, K2)
       E = K2 * F * K1'; % Compute the essential matrix
@@ -19,6 +23,11 @@ function [Ori, Loc, inLFract] = RQuEst_relCamPose(F, varargin)
    H = (K1 * F.T / K2)';
    [Rs, Ts] = vision.internal.calibration.decomposeHomographyMatrix(H);
   end
+
+
+
+
+  
   [R, t, inLFract] = chooseRealizableSolution(Rs, Ts, camP1, camP2, inLPts1, ...
       inLPts2);
   % R and t are currently the transformation from camera1's coordinates into

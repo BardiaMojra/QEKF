@@ -1,35 +1,5 @@
-% QuEst_RANSAC estimates the pose between two camera views using RANSAC and
-% QuEst algorithm.
-% Input:
-%          x1  - 3xN set of mathced feature point coordinates 
-%                (Euclidean coordinates).  
-%          x2  - 3xN set of feature point coordinates points such that x1 
-%                is matched with x2.
-%          t   - The distance threshold between data point and the model
-%                used to decide whether a point is an inlier or not. 
-%                Note that point coordinates are normalised to that their
-%                mean distance from the origin is sqrt(2).  The value of
-%                t should be set relative to this, say in the range 
-%                0.001 - 0.01  
-% Note that it is assumed that the matching of x1 and x2 are putative and it
-% is expected that a percentage of matches will be wrong.
-% Output:
-%          M       - A structure that contains the best estimated pose.
-%          inliers - An array of indices of the elements of x1, x2 that were
-%                    the inliers for the best pose.
-% This code is based on RANSAC provided by Peter Kovesi. 
-% Copyright (c) Kaveh Fathian,  October 2018.
-% Permission is hereby granted, free of charge, to any person obtaining a copy
-% of this software and associated documentation files (the "Software"), to deal
-% in the software without restriction, subject to the following conditions:
-% The above copyright notice and this permission notice shall be included in 
-% all copies or substantial portions of the Software.
-% The Software is provided "as is", without warranty of any kind.
-% ------------------------------------------------------------------
-% Ver 1_1: RANSAC based on Fundamental matrix 
-% Ver 1_2: x1, x2 are Euclidean coordinates
-%
-function [M, inliers] = relPos_QuEst_RANSAC_old(x1, x2, t, feedback)
+
+function [M, inliers] = relPos_QuEst_RANSAC_old(x1, x2, thresh, feedback)
   if ~all(size(x1)==size(x2))  % Check input
     error('Image dataset must have the same dimension.');
   end
@@ -48,7 +18,7 @@ function [M, inliers] = relPos_QuEst_RANSAC_old(x1, x2, t, feedback)
   distfn    = @get_SampsonDist;
   degenfn   = @IsDegenerate;
   % x1 and x2 are 'stacked' to create a 6xN array for ransac
-  [M, inliers] = ransac([x1; x2], fittingfn, distfn, degenfn, s, t, feedback);
+  [M, inliers] = ransac([x1; x2], fittingfn, distfn, degenfn, s, thresh, feedback);
   % Now do a final fit on the data points considered to be inliers
   % Mb = feval(fittingfn, [x1(:,inliers); x2(:,inliers)]);
 end    
@@ -182,6 +152,125 @@ function [x1, x2, npts] = checkargs(arg)
   end
 end
 
+
+%%
+% RANSAC - Robustly fits a model to data with the RANSAC algorithm
+%
+% Usage:
+%
+% [M, inliers] = ransac(x, fittingfn, distfn, degenfn s, t, feedback, ...
+%                       maxDataTrials, maxTrials)
+%
+% Arguments:
+%     x         - Data sets to which we are seeking to fit a model M
+%                 It is assumed that x is of size [d x Npts]
+%                 where d is the dimensionality of the data and Npts is
+%                 the number of data points.
+%
+%     fittingfn - Handle to a function that fits a model to s
+%                 data from x.  It is assumed that the function is of the
+%                 form: 
+%                    M = fittingfn(x)
+%                 Note it is possible that the fitting function can return
+%                 multiple models (for example up to 3 fundamental matrices
+%                 can be fitted to 7 matched points).  In this case it is
+%                 assumed that the fitting function returns a cell array of
+%                 models.
+%                 If this function cannot fit a model it should return M as
+%                 an empty matrix.
+%
+%     distfn    - Handle to a function that evaluates the
+%                 distances from the model to data x.
+%                 It is assumed that the function is of the form:
+%                    [inliers, M] = distfn(M, x, t)
+%                 This function must evaluate the distances between points
+%                 and the model returning the indices of elements in x that
+%                 are inliers, that is, the points that are within distance
+%                 't' of the model.  Additionally, if M is a cell array of
+%                 possible models 'distfn' will return the model that has the
+%                 most inliers.  If there is only one model this function
+%                 must still copy the model to the output.  After this call M
+%                 will be a non-cell object representing only one model. 
+%
+%     degenfn   - Handle to a function that determines whether a
+%                 set of datapoints will produce a degenerate model.
+%                 This is used to discard random samples that do not
+%                 result in useful models.
+%                 It is assumed that degenfn is a boolean function of
+%                 the form: 
+%                    r = degenfn(x)
+%                 It may be that you cannot devise a test for degeneracy in
+%                 which case you should write a dummy function that always
+%                 returns a value of 1 (true) and rely on 'fittingfn' to return
+%                 an empty model should the data set be degenerate.
+%
+%     s         - The minimum number of samples from x required by
+%                 fittingfn to fit a model.
+%
+%     t         - The distance threshold between a data point and the model
+%                 used to decide whether the point is an inlier or not.
+%
+%     feedback  - An optional flag 0/1. If set to one the trial count and the
+%                 estimated total number of trials required is printed out at
+%                 each step.  Defaults to 0.
+%
+%     maxDataTrials - Maximum number of attempts to select a non-degenerate
+%                     data set. This parameter is optional and defaults to 100.
+%
+%     maxTrials - Maximum number of iterations. This parameter is optional and
+%                 defaults to 1000.
+%
+% Returns:
+%     M         - The model having the greatest number of inliers.
+%     inliers   - An array of indices of the elements of x that were
+%                 the inliers for the best model.
+%
+%
+% Note that the desired probability of choosing at least one sample free from
+% outliers is set at 0.99.  You will need to edit the code should you wish to
+% change this (it should probably be a parameter)
+%
+% For an example of the use of this function see RANSACFITHOMOGRAPHY or
+% RANSACFITPLANE 
+
+% References:
+%    M.A. Fishler and  R.C. Boles. "Random sample concensus: A paradigm
+%    for model fitting with applications to image analysis and automated
+%    cartography". Comm. Assoc. Comp, Mach., Vol 24, No 6, pp 381-395, 1981
+%
+%    Richard Hartley and Andrew Zisserman. "Multiple View Geometry in
+%    Computer Vision". pp 101-113. Cambridge University Press, 2001
+
+% Copyright (c) 2003-2013 Peter Kovesi
+% Centre for Exploration Targeting
+% The University of Western Australia
+% peter.kovesi at uwa edu au    
+% http://www.csse.uwa.edu.au/~pk
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in 
+% all copies or substantial portions of the Software.
+%
+% The Software is provided "as is", without warranty of any kind.
+%
+% May      2003 - Original version
+% February 2004 - Tidied up.
+% August   2005 - Specification of distfn changed to allow model fitter to
+%                 return multiple models from which the best must be selected
+% Sept     2006 - Random selection of data points changed to ensure duplicate
+%                 points are not selected.
+% February 2007 - Jordi Ferrer: Arranged warning printout.
+%                               Allow maximum trials as optional parameters.
+%                               Patch the problem when non-generated data
+%                               set is not given in the first iteration.
+% August   2008 - 'feedback' parameter restored to argument list and other
+%                 breaks in code introduced in last update fixed.
+% December 2008 - Octave compatibility mods
+% June     2009 - Argument 'MaxTrials' corrected to 'maxTrials'!
+% January  2013 - Separate code path for Octave no longer needed
 
 function [M, inliers] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback, ...
                                maxDataTrials, maxTrials)

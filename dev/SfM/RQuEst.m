@@ -5,12 +5,17 @@ function [E, inLIdx, stat] = RQuEst(mP1, mP2, varargin)
     'NotEnoughInliers',  int32(2));
   [pts1, pts2, K1, K2, pars, oClass] = parseInputs(mP1, mP2, varargin{:});
   numPts = size(pts1, 1);
+  
   sampSz = 6;
+  
   if numPts < sampSz
     E = eye(3, oClass); % default outputs
     inLIdx = false(numPts, 1);
     stat = statusCode.NotEnoughPts;
   else
+
+
+
     [pts1n, pts2n] = pxls2NormCoords(pts1, pts2, K1, K2);
     pars.sampleSize = sampSz;
     pars.recomputeModelFromInliers = true;
@@ -21,6 +26,8 @@ function [E, inLIdx, stat] = RQuEst(mP1, mP2, varargin)
     
     [isFound, E, inLIdx] = vision.internal.ransac.msac(...
       cat(3, pts1n, pts2n), pars, funcs, K1, K2, oClass);
+
+
     if isFound
       stat = statusCode.NoError;
       E = cast(normalizeEssentialMatrix(E), oClass);
@@ -198,19 +205,21 @@ function r = check(Es, varargin)
 end
 
 %--------------------------------------------------------------------------
-function Es = quest_algorithm(x, varargin)
+function Es = quest_algorithm(varargin)
   [x1, x2, npts] = checkargs(varargin(:));
   % Recover the pose
   pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5));  % QuEst algorithm
   % Pick the best pose solution
   res = QuatResidueVer3_1(x1, x2, pose.Q); % Scoring function
-  [resMin,mIdx] = min(abs(res)); 
+  [resMin, mIdx] = min(abs(res)); 
   q = pose.Q(:,mIdx); 
   t = pose.T(:,mIdx);
   % Make a fundamental matrix from the recovered rotation and translation
   R = Q2R(q);
   Tx = Skew(t/norm(t));    
   F = Tx * R; 
+
+  
   %path = '../../mout/nbug_PoseEst_F_matlab.txt';
   %writematrix(F,path,'Delimiter',' ');
   M.Q  = q;
@@ -219,6 +228,34 @@ function Es = quest_algorithm(x, varargin)
   M.m2 = x2;
   M.F  = F;
 end
+
+%% Function to check argument values and set defaults
+%
+function [x1, x2, npts] = checkargs(arg)
+  if length(arg) == 2
+    x1 = arg{1};
+    x2 = arg{2};
+    if ~all(size(x1)==size(x2))
+        error('Image dataset must have the same size.');
+    elseif size(x1,1) ~= 3
+        error('Image cordinates must come in a 3xN matrix.');
+    end
+  elseif length(arg) == 1
+    if size(arg{1},1) ~= 6
+      error('Single input argument must be 6xN');
+    else
+      x1 = arg{1}(1:3,:);
+      x2 = arg{1}(4:6,:);
+    end
+  else
+    error('Wrong number of arguments supplied');
+  end
+  npts = size(x1,2);
+  if npts < 6
+    error('At least 6 points are needed to compute the fundamental matrix');
+  end
+end
+
 %%todo read nister's paper
 function Es = fivePointAlgorithm(x, varargin)
 Q1 = x(:,:,1);
