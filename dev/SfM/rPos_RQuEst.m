@@ -9,7 +9,8 @@ function [R, T, inLIdx] = rPos_RQuEst(m1, m2, camIns, trials, thresh)
   end
   for i = 1:trials
     %[E, inLIdx] = estimateEssentialMatrix(m1, m2, camIntrs);
-    [Qs, E, inLIdx] = RQuEst(m1, m2, camIntrs);
+    [M, E, inLIdx] = RQuEst(m1, m2, camIns);
+    disp("[rPos_RQuEst]->> M: "); disp(M);
     if sum(inLIdx) / numel(inLIdx) < .3 % Make sure we get enough inliers
       continue;
     end

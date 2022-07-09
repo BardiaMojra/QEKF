@@ -16,11 +16,11 @@ function [E, inLIdx, stat] = RQuEst(mP1, mP2, varargin)
 
 
 
-    [pts1n, pts2n] = pxls2NormCoords(pts1, pts2, K1, K2);
+    [pts1n, pts2n] = pxls2NormCoords(pts1, pts2, K1, K2); % undistort/calib points
     pars.sampleSize = sampSz;
     pars.recomputeModelFromInliers = true;
 
-    funcs.fitFunc = @quest_algorithm;
+    funcs.fitFunc = @run_quest;
     funcs.evalFunc = @evalEssential;
     funcs.checkFunc = @check;
     
@@ -36,7 +36,9 @@ function [E, inLIdx, stat] = RQuEst(mP1, mP2, varargin)
       inLIdx = false(numPts, 1);
       stat = statusCode.NotEnoughInliers;
     end
+
   end
+
   if nargout < 3
     checkRuntimeStatus(statusCode, stat)
   end
@@ -205,88 +207,92 @@ function r = check(Es, varargin)
 end
 
 %--------------------------------------------------------------------------
-function M = quest_algorithm(varargin)
-  [x1, x2, npts] = checkargs(varargin(:));
+function Es = run_quest(x, varargin)
+  [K1, K2, oClass] = varargin{:};
+  numPts = 6;
+  x1 = x(:,:,1)';
+  x2 = x(:,:,2)';
+  % Normalize the points in l^1 norm
+  x1n = sum(abs(x1),1);
+  x2n = sum(abs(x2),1);
+  x1 = bsxfun(@rdivide, x1,x1n);
+  x2 = bsxfun(@rdivide, x2,x2n);
+  assert(isequal(size(x1,[1,2]), size(x2,[1,2])), ...
+    "[RQuEst.run_quest]->> x1, x2 DO NOT have same size!"); % check 
+  assert(isequal(size(x1,2), size(x2,2), numPts), ...
+    "[RQuEst.run_quest]->> x1, x2 DO NOT have 6 match point coorespondances!"); % check 
+  
   % Recover the pose
-  pose = QuEst_Ver1_1(x1(:,1:5), x2(:,1:5));  % QuEst algorithm
+  pose = QuEst_Ver1_1(x1, x2);  % QuEst algorithm
+  disp("[RQuEst.run_quest]->> poses: "); disp(pose);
   % Pick the best pose solution
-  res = QuatResidueVer3_1(x1, x2, pose.Q); % Scoring function
-  [resMin, mIdx] = min(abs(res)); 
-  q = pose.Q(:,mIdx); 
-  t = pose.T(:,mIdx);
-  % Make a fundamental matrix from the recovered rotation and translation
-  R = Q2R(q);
-  Tx = Skew(t/norm(t));    
-  F = Tx * R; 
+  Q_res = QuatResidueVer3_1(x1, x2, pose.Qs); % Scoring function
+  disp("[RQuEst.run_quest]->> Q_res: "); disp(Q_res);
 
-
-  %path = '../../mout/nbug_PoseEst_F_matlab.txt';
-  %writematrix(F,path,'Delimiter',' ');
-  M.Q  = q;
-  M.t  = t;
-  M.m1 = x1;
-  M.m2 = x2;
-  M.F  = F;
-end
-
-%% Function to check argument values and set defaults
-%
-function [x1, x2, npts] = checkargs(arg)
-  if length(arg) == 2
-    x1 = arg{1};
-    x2 = arg{2};
-    if ~all(size(x1)==size(x2))
-        error('Image dataset must have the same size.');
-    elseif size(x1,1) ~= 3
-        error('Image cordinates must come in a 3xN matrix.');
+  Em = zeros([3, 3, size(pose.Qs,2)], 'like', pose.Qs);
+  k = 0;
+  for i = 1:size(pose.Qs,2)
+    q = pose.Qs(:,i); 
+    t = pose.Ts(:,i);
+    R = Q2R(q);
+    Tx = Skew(t/norm(t));    
+    F = Tx * R; 
+    % Compute the essential matrix
+    E = K2' * F * K1;
+    % Check if it is valid
+    if all(isfinite(E(:))) && rank(E) >= 2 
+      k = k + 1;
+      Em(:,:,k) = E;            
     end
-  elseif length(arg) == 1
-    if size(arg{1},1) ~= 6
-      error('Single input argument must be 6xN');
-    else
-      x1 = arg{1}(1:3,:);
-      x2 = arg{1}(4:6,:);
-    end
-  else
-    error('Wrong number of arguments supplied');
   end
-  npts = size(x1,2);
-  if npts < 6
-    error('At least 6 points are needed to compute the fundamental matrix');
+  % Convert to cell array, because this is what msac expects.
+  if isempty(coder.target)
+    Es = num2cell(Em(:,:,1:k), [1 2]);
+  else
+    Es = repmat({zeros(3, 'like', Em)}, [1, k]);
+    for i = 1:k
+      Es{i} = Em(:,:,i);
+    end
   end
 end
 
 %%todo read nister's paper
 function Es = fivePointAlgorithm(x, varargin)
-Q1 = x(:,:,1);
-Q2 = x(:,:,2);
-
-Q = [Q2(:,1).*Q1(:,1),...
-    Q2(:,1).*Q1(:,2),...
-    Q2(:,1).*Q1(:,3),...
-    Q2(:,2).*Q1(:,1),...
-    Q2(:,2).*Q1(:,2),...
-    Q2(:,2).*Q1(:,3),...
-    Q2(:,3).*Q1(:,1),...
-    Q2(:,3).*Q1(:,2),...
-    Q2(:,3).*Q1(:,3),...
-    ];
-
-[~, ~, V] = svd(Q);
-EE = V(:,6:9);
-E1 = reshape(EE(:,1), [3,3])';
-E2 = reshape(EE(:,2), [3,3])';
-E3 = reshape(EE(:,3), [3,3])';
-E4 = reshape(EE(:,4), [3,3])';
-
-C = computeCoefficients(E1, E2, E3, E4);
-
-C1 = C(:,[1:4,11:13,17:18,20]);
-C2 = [zeros(10,4, 'like', C) C(:,[5:7,14:15,19])];
-C3 = [zeros(10,7, 'like', C) C(:,[8:9,16])];
-C4 = [zeros(10,9, 'like', C) C(:,10)];
-
-Es = polyeig4(C1,C2,C3,C4,E1,E2,E3,E4);
+  Q1 = x(:,:,1);
+  Q2 = x(:,:,2);
+  Q = [Q2(:,1).*Q1(:,1),...
+      Q2(:,1).*Q1(:,2),...
+      Q2(:,1).*Q1(:,3),...
+      Q2(:,2).*Q1(:,1),...
+      Q2(:,2).*Q1(:,2),...
+      Q2(:,2).*Q1(:,3),...
+      Q2(:,3).*Q1(:,1),...
+      Q2(:,3).*Q1(:,2),...
+      Q2(:,3).*Q1(:,3)];
+  
+  % 1. null space extraction 
+  [~, ~, V] = svd(Q); 
+  
+  % 2. constraint expansion (epipolar ... 
+  % constraints which caused det(F)=0 (single cubic constraint, ...
+  % et al Nister, eq 5), and the cubic constraint on the essential matrix ...
+  % (et al Nister, eq 6)).
+  EE = V(:,6:9);
+  E1 = reshape(EE(:,1), [3,3])'; 
+  E2 = reshape(EE(:,2), [3,3])';
+  E3 = reshape(EE(:,3), [3,3])';
+  E4 = reshape(EE(:,4), [3,3])';
+  
+  % 3. Gauss-Jordan Elimination 
+  C = computeCoefficients(E1, E2, E3, E4);
+  
+  % 4. Determinant Expansion
+  C1 = C(:,[1:4,11:13,17:18,20]);
+  C2 = [zeros(10,4, 'like', C) C(:,[5:7,14:15,19])];
+  C3 = [zeros(10,7, 'like', C) C(:,[8:9,16])];
+  C4 = [zeros(10,9, 'like', C) C(:,10)];
+  % 5. root extraction using Sturm sequences to bracket the roots 
+  Es = polyeig4(C1,C2,C3,C4,E1,E2,E3,E4); % 5. extraction 
 end
 
 

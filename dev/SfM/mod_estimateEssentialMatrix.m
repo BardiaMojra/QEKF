@@ -565,7 +565,7 @@ function Es = polyeig4(A0, A1, A2, A3, E1, E2, E3, E4)
   B = zeros(nB, 'like', A);
   B((n+1):(nB+1):end) = 1;
   B(1:n, 1:end) = -[A1, A2, A3];
-  
+ 
   [X,z] = eig(A,B,'vector');
   Em = zeros([3, 3, numel(z)], 'like', A0);
   V = zeros(n, p, 'like', A0);
@@ -594,7 +594,6 @@ function Es = polyeig4(A0, A1, A2, A3, E1, E2, E3, E4)
       end
     end    
   end
-  
   % Convert to cell array, because this is what msac expects.
   if isempty(coder.target)
     Es = num2cell(Em(:,:,1:k), [1 2]);
