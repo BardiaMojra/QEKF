@@ -60,18 +60,18 @@ end
 function dists = evalEssential(Es, x, varargin)
   K1 = varargin{1};
   K2 = varargin{2};
-  outputClass = varargin{3};
+  oClass = varargin{3};
   x1 = (x(:,:,1) * K1)';
   x2 = (x(:,:,2) * K2)';
   numSols = numel(Es);
-  dists = zeros(size(x1, 2), numSols, outputClass);
+  dists = zeros(size(x1, 2), numSols, oClass);
   for i = 1:numSols
     F = K2 \ Es{i} / K1';
     Fx1 = F*x1;
     epipDists = sum(x2 .* Fx1);
     Ftx2 = F'*x2;
     % Sampson distance
-    dists(:,i) =  epipDists.^2 ./ (sum(Fx1(1:2,:).^2) + sum(Ftx2(1:2,:).^2));
+    dists(:,i) =  epipDists.^2 ./ (sum(Fx1(1:2,:).^2) + sum(Ftx2(1:2,:).^2))
   end
 end
 
@@ -229,7 +229,7 @@ function Es = run_quest(x, varargin)
   Q_res = QuatResidueVer3_1(x1, x2, pose.Qs); % Scoring function
   disp("[RQuEst.run_quest]->> Q_res: "); disp(Q_res);
 
-  Em = zeros([3, 3, size(pose.Qs,2)], 'like', pose.Qs);
+  Em = zeros([3, 3, size(pose.Qs,2)], oClass);
   k = 0;
   for i = 1:size(pose.Qs,2)
     q = pose.Qs(:,i); 
@@ -237,12 +237,13 @@ function Es = run_quest(x, varargin)
     R = Q2R(q);
     Tx = Skew(t/norm(t));    
     F = Tx * R; 
-    % Compute the essential matrix
-    E = K2' * F * K1;
-    % Check if it is valid
-    if all(isfinite(E(:))) && rank(E) >= 2 
+    %E = K2' * F * K1; % Compute the essential matrix
+    E = F; % already calibrated 
+    if all(isfinite(E(:))) && rank(E) >= 2 % Check if it is valid
       k = k + 1;
-      Em(:,:,k) = E;            
+      Em(:,:,k) = E;
+      disp("[RQuEst.run_quest]->> E: "); disp(E);
+
     end
   end
   % Convert to cell array, because this is what msac expects.
@@ -269,10 +270,8 @@ function Es = fivePointAlgorithm(x, varargin)
       Q2(:,3).*Q1(:,1),...
       Q2(:,3).*Q1(:,2),...
       Q2(:,3).*Q1(:,3)];
-  
   % 1. null space extraction 
   [~, ~, V] = svd(Q); 
-  
   % 2. constraint expansion (epipolar ... 
   % constraints which caused det(F)=0 (single cubic constraint, ...
   % et al Nister, eq 5), and the cubic constraint on the essential matrix ...
@@ -282,10 +281,8 @@ function Es = fivePointAlgorithm(x, varargin)
   E2 = reshape(EE(:,2), [3,3])';
   E3 = reshape(EE(:,3), [3,3])';
   E4 = reshape(EE(:,4), [3,3])';
-  
   % 3. Gauss-Jordan Elimination 
   C = computeCoefficients(E1, E2, E3, E4);
-  
   % 4. Determinant Expansion
   C1 = C(:,[1:4,11:13,17:18,20]);
   C2 = [zeros(10,4, 'like', C) C(:,[5:7,14:15,19])];

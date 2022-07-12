@@ -1,6 +1,5 @@
 function [R, T, inLIdx] = rPos_RQuEst(m1, m2, camIns, trials, thresh)
   %% cfg
-
   if ~isnumeric(m1)
     m1 = m1.Location;
   end

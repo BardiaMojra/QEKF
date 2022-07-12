@@ -96,12 +96,8 @@ end
 %                   is in the form x = [x1; x2]
 % Output:
 %          M      - A structure that contains the estimated pose.
-%
-%
 % Copyright (c) 2016, Kaveh Fathian.
 % The University of Texas at Dallas.
-% 
-%
 function M = PoseEstimator(varargin)
   [x1, x2, npts] = checkargs(varargin(:));
   % Recover the pose
