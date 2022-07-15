@@ -5,7 +5,6 @@ function [E, inLIdx, stat] = RQuEst(mP1, mP2, varargin)
     'NotEnoughInliers',  int32(2));
   [pts1, pts2, K1, K2, pars, oClass] = parseInputs(mP1, mP2, varargin{:});
   numPts = size(pts1, 1);
-  
   sampSz = 6;
   
   if numPts < sampSz
