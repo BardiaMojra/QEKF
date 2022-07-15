@@ -18,7 +18,7 @@
 %  inLIdx   - the indices of the inlier points from estimating the fundamental matrix
 %  See also estimateEssentialmatrix, estimateFundamentalMatrix,relativeCameraPose
 % Copyright 2016 The MathWorks, Inc.
-function [R, T, Es, inLIdx, inLFract] = rPos_SfM_def(m1, m2, camIntrs, trials, inLThresh)
+function [R, T, E, inLIdx, inLFract] = rPos_SfM_def(m1, m2, camIntrs, trials, inLThresh)
   if ~isnumeric(m1)
     m1 = m1.Location;
   end
@@ -26,14 +26,14 @@ function [R, T, Es, inLIdx, inLFract] = rPos_SfM_def(m1, m2, camIntrs, trials, i
     m2 = m2.Location;
   end
   for i = 1:trials
-    [Es, inLIdx] = estimateEssentialMatrix(m1, m2, camIntrs);
+    [E, inLIdx] = estimateEssentialMatrix_def(m1, m2, camIntrs);
     if sum(inLIdx) / numel(inLIdx) < .3 % Make sure we get enough inliers
       continue;
     end
     inLPts1 = m1(inLIdx, :); % get the epipolar inliers.
     inLPts2 = m2(inLIdx, :);
     % Compute cam pos from fundamental matrix. Use half of pts to reduce comp
-    [R, T, inLFract] = relativeCameraPose(Es, camIntrs, inLPts1(1:2:end,:),...
+    [R, T, inLFract] = relativeCameraPose(E, camIntrs, inLPts1(1:2:end,:),...
       inLPts2(1:2:end,:));
     if inLFract > inLThresh % -->> must have hi frac of inliers or F-mat would be wrong
       return;

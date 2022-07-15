@@ -23,8 +23,7 @@ function [E, inLIdx, stat] = RQuEst(mP1, mP2, varargin)
     funcs.evalFunc = @evalEssential;
     funcs.checkFunc = @check;
     
-    [isFound, E, inLIdx] = vision.internal.ransac.msac(...
-      cat(3, pts1n, pts2n), pars, funcs, K1, K2, oClass);
+    [isFound, E, inLIdx] = msac_def(cat(3, pts1n, pts2n), pars, funcs, K1, K2, oClass);
 
 
     if isFound
@@ -208,14 +207,14 @@ end
 %--------------------------------------------------------------------------
 function Es = run_quest(x, varargin)
   [K1, K2, oClass] = varargin{:};
-  numPts = 6;
+  numPts = 5;
   x1 = x(:,:,1)';
   x2 = x(:,:,2)';
   % Normalize the points in l^1 norm
   x1n = sum(abs(x1),1);
   x2n = sum(abs(x2),1);
-  x1 = bsxfun(@rdivide, x1,x1n);
-  x2 = bsxfun(@rdivide, x2,x2n);
+  x1 = bsxfun(@rdivide, x1, x1n);
+  x2 = bsxfun(@rdivide, x2, x2n);
   assert(isequal(size(x1,[1,2]), size(x2,[1,2])), ...
     "[RQuEst.run_quest]->> x1, x2 DO NOT have same size!"); % check 
   assert(isequal(size(x1,2), size(x2,2), numPts), ...
@@ -223,10 +222,10 @@ function Es = run_quest(x, varargin)
   
   % Recover the pose
   pose = QuEst_Ver1_1(x1, x2);  % QuEst algorithm
-  disp("[RQuEst.run_quest]->> poses: "); disp(pose);
+  %disp("[RQuEst.run_quest]->> poses: "); disp(pose);
   % Pick the best pose solution
   Q_res = QuatResidueVer3_1(x1, x2, pose.Qs); % Scoring function
-  disp("[RQuEst.run_quest]->> Q_res: "); disp(Q_res);
+  %disp("[RQuEst.run_quest]->> Q_res: "); disp(Q_res);
 
   Em = zeros([3, 3, size(pose.Qs,2)], oClass);
   k = 0;
@@ -241,7 +240,7 @@ function Es = run_quest(x, varargin)
     if all(isfinite(E(:))) && rank(E) >= 2 % Check if it is valid
       k = k + 1;
       Em(:,:,k) = E;
-      disp("[RQuEst.run_quest]->> E: "); disp(E);
+      %disp("[RQuEst.run_quest]->> E: "); disp(E);
 
     end
   end
