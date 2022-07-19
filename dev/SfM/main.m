@@ -19,7 +19,7 @@
 %
 %% init
 close all; clear; clc;
-cfg   = config_class(TID  = 'T00001_dev'); %, pos_alg = 'RQuEst');
+cfg   = config_class(TID  = 'T00001_dev');%, pos_alg = 'RQuEst');
 
 
 %% init dataset

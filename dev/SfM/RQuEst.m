@@ -69,7 +69,7 @@ function dists = evalEssential(Es, x, varargin)
     epipDists = sum(x2 .* Fx1);
     Ftx2 = F'*x2;
     % Sampson distance
-    dists(:,i) =  epipDists.^2 ./ (sum(Fx1(1:2,:).^2) + sum(Ftx2(1:2,:).^2))
+    dists(:,i) =  epipDists.^2 ./ (sum(Fx1(1:2,:).^2) + sum(Ftx2(1:2,:).^2));
   end
 end
 
