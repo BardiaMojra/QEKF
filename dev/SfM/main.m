@@ -19,14 +19,15 @@
 %
 %% init
 close all; clear; clc;
-cfg   = config_class(TID  = 'T00001_dev');%, pos_alg = 'RQuEst');
+cfg   = config_class(TID  = 'T00001_impactor');%, pos_alg = 'RQuEst');
 
 
 %% init dataset
 % Use |imageDatastore| to get a list of all image file names in a
 % directory.
-imageDir = fullfile(toolboxdir('vision'), 'visiondata', 'structureFromMotion');
+%imageDir = fullfile(toolboxdir('vision'), 'visiondata', 'structureFromMotion');
 %imageDir = '/home/smerx/DATA/TUM_RGBD/rgbd_dataset_freiburg3_long_office_household/rgb';
+imageDir = "/home/smerx/git/QEKF/dev/SfM/dat/impactor";
 imds = imageDatastore(imageDir);
 figure % Display images
 montage(imds.Files, 'Size', [3, 2]);
