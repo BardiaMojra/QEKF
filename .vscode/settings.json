@@ -5,5 +5,6 @@
   "python.analysis.extraPaths": [
     "/opt/ros/melodic/lib/python2.7/dist-packages"
   ],
-  "cSpell.ignoreWords": ["csv", "name"]
+  "cSpell.ignoreWords": ["csv", "name"],
+  "ros.distro": "humble"
 }
